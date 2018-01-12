@@ -9,6 +9,11 @@ import matplotlib.pyplot as plt
 import matplotlib.figure
 import math
 import numpy as np
+import requests
+import ocr
+import calendar
+import time
+import re
 
 def setup(horizon = 10, lattes_dir = os.getcwd() + os.sep + 'lattes'):
     """Prepare the module for extracting bibliometric data.
@@ -214,5 +219,34 @@ def boxplot(df, subject, metrics, legends=None, vert=True, rows=1):
             ax.plot(x, y, 'ro', ms = 8, zorder = 4)
 
     plt.tight_layout()
+
+def download(id):
+    session = requests.Session()
+    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20100101 Firefox/4.0', 'Accept-Language': 'en-us,en;q=0.5'}
+    url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id)
+    req = session.request('GET', url, headers=headers)
+    saved = False
+    while not saved:
+        html = req.text
+        soup = BeautifulSoup(html, "lxml")
+        image = soup.find('img', id='image_captcha')
+        if image is None: # Without captcha
+            cd = req.headers.get('content-disposition')
+            filename = re.findall('filename=(\S+);', cd)[0]
+            f = open(_lattes_dir + os.sep + filename, 'wb')
+            f.write(req.content);
+            f.close()
+            saved = True
+        else: # with captcha
+            id = soup.find('input', id='idcnpq')['value']
+            captchaFilename = '/buscatextual/servlet/captcha?metodo=getImagemCaptcha&noCache=' + str(calendar.timegm(time.gmtime()) * 1000)
+            req = session.get('http://buscatextual.cnpq.br' + captchaFilename)
+            fcaptcha = open('/tmp/teste.png', 'wb')
+            fcaptcha.write(req.content);
+            fcaptcha.close()
+            code = ocr.breakCaptcha('/tmp/teste.png')
+            r1 = session.get('http://buscatextual.cnpq.br/buscatextual/servlet/captcha?informado=' + code + '&idcnpq=' + id + '&metodo=validaCaptcha')
+            payload = {'metodo': 'captchaValido', 'idcnpq': id, 'idiomaExibicao': '', 'tipo': '', 'informado':''}
+            req = session.post('http://buscatextual.cnpq.br/buscatextual/download.do', data=payload, headers=headers);
 
 setup()
