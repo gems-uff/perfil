@@ -15,21 +15,12 @@ import calendar
 import time
 import re
 
-def setup(horizon = 10, lattes_dir = os.getcwd() + os.sep + 'lattes'):
-    """Prepare the module for extracting bibliometric data.
-    Please note that all metrics collected according to a predefined horizon are also collected for the lifetime of the researcher, appended with '(total)'.
+# Please note that all metrics collected according to a predefined horizon are also collected for the lifetime of the researcher, appended with '(total)'.
 
-    Keyword arguments:
-    horizon -- the horizon in years for collecting metrics (default 10)
-    lattes_dir -- the directory that contains the zip files downloaded from the Lattes platform (default './lattes').
-    """
-    global _horizon, _horizon_year, _lattes_dir, _jcr
-    _horizon = horizon
-    _horizon_year = str(datetime.now().year - horizon + 1)
-    _lattes_dir = lattes_dir
-
-    df_jcr = pd.read_csv('jcr.csv', sep='\t')
-    _jcr = set(df_jcr['ISSN'])
+_start_year = 2015 # the first year for collecting metrics
+_end_year = 2017 # the last year for collecting metrics
+_lattes_dir = os.getcwd() + os.sep + 'lattes' # the directory that contains the zip files downloaded from the Lattes platform.
+_jcr = set(pd.read_csv('jcr.csv', sep='\t')['ISSN'])
 
 def lattes(id):
     """Collects the following metrics from a Lattes CV:
@@ -79,23 +70,23 @@ def lattes(id):
             profile['Publicações Indexadas JCR (total)'] = len([e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO"]/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in _jcr])
             profile['Publicações (total)'] = profile['Publicações em Congressos (total)'] + profile['Publicações em Periódicos (total)']
 
-            profile['Participações em Projetos'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + _horizon_year + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
-            profile['Projetos Coordenados'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + _horizon_year + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
+            profile['Participações em Projetos'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(_start_year) + ' and @ANO-INICIO<=' + str(_end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
+            profile['Projetos Coordenados'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(_start_year) + ' and @ANO-INICIO<=' + str(_end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
             profile['Projetos'] = profile['Participações em Projetos'] + profile['Projetos Coordenados']  
             
-            profile['Orientações de Mestrado'] = len(tree.xpath('/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO[@ANO>=' + _horizon_year + ']'))
-            profile['Orientações de Doutorado'] = len(tree.xpath('/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO[@ANO>=' + _horizon_year + ']'))
+            profile['Orientações de Mestrado'] = len(tree.xpath('/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO[@ANO>=' + str(_start_year) + ' and @ANO<=' + str(_end_year) + ']'))
+            profile['Orientações de Doutorado'] = len(tree.xpath('/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO[@ANO>=' + str(_start_year) + ' and @ANO<=' + str(_end_year) + ']'))
             profile['Orientações'] = profile['Orientações de Mestrado'] + profile['Orientações de Doutorado']
                     
-            profile['Bancas de Mestrado'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-MESTRADO[@ANO>=' + _horizon_year + ']'))
-            profile['Bancas de Doutorado'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-DOUTORADO[@ANO>=' + _horizon_year + ']'))
+            profile['Bancas de Mestrado'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-MESTRADO[@ANO>=' + str(_start_year) + ' and @ANO<=' + str(_end_year) + ']'))
+            profile['Bancas de Doutorado'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-DOUTORADO[@ANO>=' + str(_start_year) + ' and @ANO<=' + str(_end_year) + ']'))
             profile['Bancas'] = profile['Bancas de Mestrado'] + profile['Bancas de Doutorado']
                     
-            profile['Publicações em Congressos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO" and @ANO-DO-TRABALHO>=' + _horizon_year + ']'))
-            profile['Publicações em Periódicos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO" and @ANO-DO-ARTIGO>=' + _horizon_year + ']'))
-            profile['Publicações Indexadas JCR'] = len([e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + _horizon_year + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in _jcr])
+            profile['Publicações em Congressos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO" and @ANO-DO-TRABALHO>=' + str(_start_year) + ' and @ANO-DO-TRABALHO<=' + str(_end_year) + ']'))
+            profile['Publicações em Periódicos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO" and @ANO-DO-ARTIGO>=' + str(_start_year) + ' and @ANO-DO-ARTIGO<=' + str(_end_year) + ']'))
             profile['Publicações'] = profile['Publicações em Congressos'] + profile['Publicações em Periódicos']
-    
+            profile['Publicações Indexadas JCR'] = len([e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(_start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(_end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in _jcr])
+
     return profile
 
 def scholar(id):
@@ -118,7 +109,8 @@ def scholar(id):
     
     citations = soup.find_all("span", "gsc_g_al")
     sum = 0
-    for i in range(-1, -(min(_horizon,len(citations))+1), -1):
+    current_year = datetime.now().year
+    for i in range(-(current_year - _end_year + 1), -(min(current_year - _start_year + 1, len(citations)) + 1), -1):
         try:
             sum += int(citations[i].string)
         except:
@@ -128,7 +120,7 @@ def scholar(id):
     return profile
 
 def normalized(profile):
-    """Tries to generate the following normalized metrics considering the academic age (years since the PhD defense) of the researcher:
+    """Tries to generate the following normalized metrics considering the academic age (years since the PhD defense) of the researcher, appended with (anual):
     - Participações em Projetos
     - Projetos Coordenados
     - Projetos
@@ -248,5 +240,3 @@ def download(id):
             r1 = session.get('http://buscatextual.cnpq.br/buscatextual/servlet/captcha?informado=' + code + '&idcnpq=' + id + '&metodo=validaCaptcha')
             payload = {'metodo': 'captchaValido', 'idcnpq': id, 'idiomaExibicao': '', 'tipo': '', 'informado':''}
             req = session.post('http://buscatextual.cnpq.br/buscatextual/download.do', data=payload, headers=headers);
-
-setup()
