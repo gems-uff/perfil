@@ -17,7 +17,7 @@ start_year = 2008
 
 # The last year for collecting metrics.
 
-end_year = 2017
+end_year = 2018
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 
