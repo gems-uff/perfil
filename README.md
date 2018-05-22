@@ -6,7 +6,7 @@ Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes
 
 1. Atualize o arquivo que contém os pesquisadores (e.g., pgc.tsv) adicionando Nome, ID Lattes e ID Scholar para os que devem ser considerados. Não se preocupe com as demais colunas, pois elas serão preenchidas automaticamente. 
 
-**CUIDADO** ao colar o ID Lattes. Garanta que o ID seja colado como texto, pois caso seja colado como número o Excel vai arredondar o valor e os IDs se tornarão inválidos, ou corresponderão ao ID do Lattes de um pesquisador diferente. 
+**CUIDADO** ao colar o ID Lattes. Se estiver usando o Excel para fazer a tabela de pesquisadores, garanta que o ID do Lattes seja colado como texto, pois caso seja colado como número o Excel vai arredondar o valor e os IDs se tornarão inválidos, ou corresponderão ao ID do Lattes de um pesquisador diferente. 
 
 2. Atualize o horizonte de coleta (variáveis start_year e end_year) e indique o arquivo que contém os pesquisadores (e.g., pgc.tsv) em config.py.
 
