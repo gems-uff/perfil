@@ -177,34 +177,34 @@ def boxplot(df, subject, metrics, legends=None, vert=True, rows=1):
     width *= cols # figure width
     height *= rows # figure height
 
-    plt.xkcd()
-    plt.close('all')
-    fig = plt.figure(figsize=(width,height))
-    for i in range(len(metrics)):
-        metric = metrics[i]
-        ax = plt.subplot2grid((rows*2,cols), ((i%rows)*2 + (0 if i < len(metrics) - plots_last_col else rows-plots_last_col),i//rows), rowspan=2)
-        df.boxplot(column=metric, ax=ax, widths=0.7, vert=vert)
+    with plt.xkcd():
+        plt.close('all')
+        fig = plt.figure(figsize=(width,height))
+        for i in range(len(metrics)):
+            metric = metrics[i]
+            ax = plt.subplot2grid((rows*2,cols), ((i%rows)*2 + (0 if i < len(metrics) - plots_last_col else rows-plots_last_col),i//rows), rowspan=2)
+            df.boxplot(column=metric, ax=ax, widths=0.7, vert=vert)
 
-        if vert:
-            ax.set_xticklabels([legends[i]])
-        else:
-            ax.set_yticklabels([legends[i]])
-        
-        # data points
-        for j, row in df.iterrows():
-            x = 1
-            y = row[metric]
-            if not vert:
-                x, y = y, x
-            ax.plot(x, y, 'ko', ms = 4, alpha=0.2, zorder = 3)
-        
-        # subject point
-        if metric in subject:
-            x = 1
-            y = subject[metric]
-            if not vert:
-                x, y = y, x
-            ax.plot(x, y, 'ro', ms = 8, zorder = 4)
+            if vert:
+                ax.set_xticklabels([legends[i]])
+            else:
+                ax.set_yticklabels([legends[i]])
+
+            # data points
+            for j, row in df.iterrows():
+                x = 1
+                y = row[metric]
+                if not vert:
+                    x, y = y, x
+                ax.plot(x, y, 'ko', ms = 4, alpha=0.2, zorder = 3)
+
+            # subject point
+            if metric in subject:
+                x = 1
+                y = subject[metric]
+                if not vert:
+                    x, y = y, x
+                ax.plot(x, y, 'ro', ms = 8, zorder = 4)
 
     plt.tight_layout()
 
