@@ -8,16 +8,20 @@ import os
 # The file should use tabs as separator of columns
 # The file should use comma as decimal separator
 
-#researchers_file = 'pgc.tsv'
-researchers_file = 'pq-1d.tsv' 
+#researchers_file = 'pgc.xlsx'
+researchers_file = 'pq-1d.xlsx'
+#researchers_file = 'pq-1d-5years.xlsx'
 
-# The first year for collecting metrics.
+# The first and last years, inclusive, for collecting metrics.
 
+# 10 years horizon
 start_year = 2008
-
-# The last year for collecting metrics.
-
 end_year = 2018
+
+# 5 years horizon
+#start_year = 2013
+#end_year = 2018
+
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 

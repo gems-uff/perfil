@@ -16,7 +16,7 @@ import calendar
 import time
 import re
 
-jcr = set(pd.read_csv('jcr.tsv', sep='\t')['ISSN'])
+jcr = set(pd.read_excel('jcr.xlsx')['ISSN'])
 
 def lattes(id):
     """Collects the following metrics from a Lattes CV:
