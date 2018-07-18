@@ -144,7 +144,7 @@ def normalized(profile):
     metrics = ['Participações em Projetos', 'Projetos Coordenados', 'Projetos', 'Orientações de Mestrado', 'Orientações de Doutorado', 'Orientações', 'Bancas de Mestrado', 'Bancas de Doutorado', 'Bancas', 'Publicações em Congressos', 'Publicações em Periódicos', 'Publicações Indexadas JCR', 'Publicações', 'Citações', 'H-Index']
     for metric in metrics:
         metric_total = metric + ' (total)'
-        if metric_total in profile:
+        if metric_total in profile and profile['Idade Acadêmica'] > 0:
             normalized[metric + ' (anual)'] = profile[metric_total] / profile['Idade Acadêmica']
 
     return normalized
