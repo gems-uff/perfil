@@ -210,7 +210,7 @@ def boxplot(df, subject, metrics, legends=None, vert=True, rows=1):
 
 def download(id):
     session = requests.Session()
-    headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:2.0) Gecko/20100101 Firefox/4.0', 'Accept-Language': 'en-us,en;q=0.5'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:63.0) Gecko/20100101 Firefox/63.0'}
     url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id)
     req = session.request('GET', url, headers=headers)
     saved = False
@@ -219,12 +219,24 @@ def download(id):
         soup = BeautifulSoup(html, "lxml")
         image = soup.find('img', id='image_captcha')
         if image is None: # Without captcha
+            try: # sometimes we receive an error page
             cd = req.headers.get('content-disposition')
             filename = re.findall('filename=(\S+);', cd)[0]
             f = open(lattes_dir + os.sep + filename, 'wb')
             f.write(req.content);
             f.close()
+                
+                # just to check if it is a Lattes CV
+                with ZipFile(lattes_dir + os.sep + filename) as zip:
+                    with zip.open('curriculo.xml') as file:
+                        etree.parse(file).xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
+                
             saved = True
+            except:
+                print('retrying... ', end='')
+                session = requests.Session()
+                url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id)
+                req = session.request('GET', url, headers=headers)
         else: # with captcha
             id = soup.find('input', id='idcnpq')['value']
             captchaFilename = '/buscatextual/servlet/captcha?metodo=getImagemCaptcha&noCache=' + str(calendar.timegm(time.gmtime()) * 1000)
