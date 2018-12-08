@@ -16,7 +16,8 @@ import calendar
 import time
 import re
 
-jcr = set(pd.read_excel('jcr.xlsx')['ISSN'])
+df = pd.read_excel('jcr.xlsx')
+jcr = dict(zip(df.issn, df.impact))
 
 def lattes(id):
     """Collects the following metrics from a Lattes CV:
@@ -35,6 +36,7 @@ def lattes(id):
     - Publicações em Congressos *
     - Publicações em Periódicos *
     - Publicações Indexadas JCR *
+    - Publicações Indexadas JCR >= 1,5 *
     - Publicações *
     * Collects the lifetime value appended with '(total)' and the value according to a predefined horizon.\
 
@@ -63,8 +65,11 @@ def lattes(id):
             
             profile['Publicações em Congressos (total)'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO"]'))
             profile['Publicações em Periódicos (total)'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO"]'))
-            profile['Publicações Indexadas JCR (total)'] = len([e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO"]/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr])
             profile['Publicações (total)'] = profile['Publicações em Congressos (total)'] + profile['Publicações em Periódicos (total)']
+
+            pub_jcr = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO"]/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
+            profile['Publicações Indexadas JCR (total)'] = len(pub_jcr)
+            profile['Publicações Indexadas JCR >= 1,5 (total)'] = len([e for e in pub_jcr if jcr[e[:4] + '-' + e[4:]] >= 1.5])
 
             profile['Participações em Projetos'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(start_year) + ' and @ANO-INICIO<=' + str(end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
             profile['Projetos Coordenados'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(start_year) + ' and @ANO-INICIO<=' + str(end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
@@ -81,7 +86,10 @@ def lattes(id):
             profile['Publicações em Congressos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO" and @ANO-DO-TRABALHO>=' + str(start_year) + ' and @ANO-DO-TRABALHO<=' + str(end_year) + ']'))
             profile['Publicações em Periódicos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO" and @ANO-DO-ARTIGO>=' + str(start_year) + ' and @ANO-DO-ARTIGO<=' + str(end_year) + ']'))
             profile['Publicações'] = profile['Publicações em Congressos'] + profile['Publicações em Periódicos']
-            profile['Publicações Indexadas JCR'] = len([e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr])
+
+            pub_jcr = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
+            profile['Publicações Indexadas JCR'] = len(pub_jcr)
+            profile['Publicações Indexadas JCR >= 1,5'] = len([e for e in pub_jcr if jcr[e[:4] + '-' + e[4:]] >= 1.5])
 
     return profile
 
@@ -220,18 +228,18 @@ def download(id):
         image = soup.find('img', id='image_captcha')
         if image is None: # Without captcha
             try: # sometimes we receive an error page
-            cd = req.headers.get('content-disposition')
-            filename = re.findall('filename=(\S+);', cd)[0]
-            f = open(lattes_dir + os.sep + filename, 'wb')
-            f.write(req.content);
-            f.close()
+                cd = req.headers.get('content-disposition')
+                filename = re.findall('filename=(\S+);', cd)[0]
+                f = open(lattes_dir + os.sep + filename, 'wb')
+                f.write(req.content);
+                f.close()
                 
                 # just to check if it is a Lattes CV
                 with ZipFile(lattes_dir + os.sep + filename) as zip:
                     with zip.open('curriculo.xml') as file:
                         etree.parse(file).xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
                 
-            saved = True
+                saved = True
             except:
                 print('retrying... ', end='')
                 session = requests.Session()
