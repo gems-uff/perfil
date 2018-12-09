@@ -1,8 +1,10 @@
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 import populate
-from config import subject, researchers_file
+from config import subject, researchers_file, build_dir
 
 
 def boxplot(df, subject, metrics, file, legends=None, vert=True, rows=1):
@@ -51,7 +53,7 @@ def boxplot(df, subject, metrics, file, legends=None, vert=True, rows=1):
                 ax.plot(x, y, 'ro', ms=8, zorder=4)
 
     plt.tight_layout()
-    plt.savefig(file)
+    plt.savefig(build_dir + os.sep + file)
     print('Boxplot saved in file ' + file)
 
 

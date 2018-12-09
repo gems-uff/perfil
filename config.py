@@ -13,16 +13,23 @@ researchers_file = 'pgc.xlsx'
 start_year = 2016
 end_year = 2018
 
-# The directory that contains the zip files downloaded from the Lattes platform.
-lattes_dir = os.getcwd() + os.sep + 'lattes'
-
-# The file with JCR scores
-df = pd.read_excel('jcr.xlsx')
-jcr = dict(zip(df.issn, df.impact))
-
 # The subject that will be plotted as a red dot in the boxplots.
 subject = {
     'Nome': 'Leonardo Gresta Paulino Murta',
     'ID Lattes': '1565296529736448',
     'ID Scholar': 'VEbJeB8AAAAJ'
 }
+
+# The file with JCR scores
+df = pd.read_excel('jcr.xlsx')
+jcr = dict(zip(df.issn, df.impact))
+
+# The directory that contains the zip files downloaded from the Lattes platform.
+lattes_dir = os.getcwd() + os.sep + 'lattes'
+if not os.path.exists(lattes_dir):
+    os.makedirs(lattes_dir)
+
+# The directory that contains the generated figures.
+build_dir = os.getcwd() + os.sep + 'build'
+if not os.path.exists(build_dir):
+    os.makedirs(build_dir)
