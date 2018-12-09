@@ -35,9 +35,11 @@ def lattes(id):
     - Bancas *
     - Publicações em Congressos *
     - Publicações em Periódicos *
-    - Publicações Indexadas JCR *
-    - Publicações Indexadas JCR > 1,5 *
     - Publicações *
+    - Publicações JCR *
+    - Publicações JCR > 1,5 *
+    - Aceitações JCR > 1,5
+    - Artigos JCR > 1,5
     * Collects the lifetime value appended with '(total)' and the value according to a predefined horizon.\
 
     Keyword arguments:
@@ -67,9 +69,9 @@ def lattes(id):
             profile['Publicações em Periódicos (total)'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO"]'))
             profile['Publicações (total)'] = profile['Publicações em Congressos (total)'] + profile['Publicações em Periódicos (total)']
 
-            pub_jcr = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO"]/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
-            profile['Publicações Indexadas JCR (total)'] = len(pub_jcr)
-            profile['Publicações Indexadas JCR > 1,5 (total)'] = len([e for e in pub_jcr if jcr[e[:4] + '-' + e[4:]] > 1.5])
+            jcr_pub = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO"]/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
+            profile['Publicações JCR (total)'] = len(jcr_pub)
+            profile['Publicações JCR > 1,5 (total)'] = len([e for e in jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
 
             profile['Participações em Projetos'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(start_year) + ' and @ANO-INICIO<=' + str(end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
             profile['Projetos Coordenados'] = len(tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(start_year) + ' and @ANO-INICIO<=' + str(end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
@@ -87,10 +89,13 @@ def lattes(id):
             profile['Publicações em Periódicos'] = len(tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO" and @ANO-DO-ARTIGO>=' + str(start_year) + ' and @ANO-DO-ARTIGO<=' + str(end_year) + ']'))
             profile['Publicações'] = profile['Publicações em Congressos'] + profile['Publicações em Periódicos']
 
-            pub_jcr = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
-            profile['Publicações Indexadas JCR'] = len(pub_jcr)
-            profile['Publicações Indexadas JCR > 1,5'] = len([e for e in pub_jcr if jcr[e[:4] + '-' + e[4:]] > 1.5])
-
+            jcr_pub = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
+            accepted_jcr_pub = [e for e in tree.xpath('/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-ACEITOS-PARA-PUBLICACAO/ARTIGO-ACEITO-PARA-PUBLICACAO/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]            
+            profile['Publicações JCR'] = len(jcr_pub)
+            profile['Publicações JCR > 1,5'] = len([e for e in jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
+            profile['Aceitações JCR > 1,5'] = len([e for e in accepted_jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
+            profile['Artigos JCR > 1,5'] = profile['Publicações JCR > 1,5'] + profile['Aceitações JCR > 1,5']
+            
     return profile
 
 def scholar(id):
