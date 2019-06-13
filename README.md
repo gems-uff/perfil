@@ -16,4 +16,4 @@ Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes
 
 5. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 1 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 1 acima). 
 
-6. Use visualiza.py para gerar as boxplots.
+6. Use visualize.py para gerar as boxplots.
