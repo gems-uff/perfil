@@ -1,0 +1,11 @@
+name: perfil
+channels:
+  - defaults
+dependencies:
+  - python=3.7.*
+  - pandas=0.25.*
+  - requests=2.22.*
+  - beautifulsoup4=4.8.*
+  - lxml=4.4.*
+  - opencv-python=4.1.*
+  - xlrd=1.2.*

@@ -2,7 +2,28 @@
 
 Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes quanto o Google Scholar para a coleta de dados e gerando boxplots para a visualização dos resultados.
 
-## Siga os seguintes passos:
+## Instalação
+
+### Requisitos 
+Assumimos que você tem o [Anaconda](https://www.anaconda.com/) instalado no seu computador.
+
+### Passos para Instalação
+
+1. Clone nosso repositorio:
+`git clone https://github.com/gems-uff/perfil.git`
+
+2. Entre no diretório do projeto:
+`cd perfil`
+
+3 - Crie um ambiente conda:
+`conda env create -f environment.yml`
+
+4 - Ative o ambiente conda que você acabou de criar:
+`conda activate perfil`
+
+(no Windows esse comando é `source activate perfil`)
+
+## Execução dos scripts:
 
 1. Atualize o arquivo que contém os pesquisadores (e.g., pgc.xlsx) adicionando Nome, ID Lattes e ID Scholar para os que devem ser considerados. Não se preocupe com as demais colunas, pois elas serão preenchidas automaticamente. 
 
