@@ -42,9 +42,13 @@ def lattes(id):
         with zip.open('curriculo.xml') as file:
             tree = etree.parse(file)
             profile['Nome'] = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
-            profile['Ano do Doutorado'] = int(
-                tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO/@ANO-DE-CONCLUSAO')[0])
-            profile['Idade Acadêmica'] = datetime.now().year - profile['Ano do Doutorado']
+            ano = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO/@ANO-DE-CONCLUSAO')[0]
+            if ano != '':
+                profile['Ano do Doutorado'] = int(ano)
+                profile['Idade Acadêmica'] = datetime.now().year - profile['Ano do Doutorado']
+            else:
+                profile['Ano do Doutorado'] = '--'
+                profile['Idade Acadêmica'] = 0
 
             profile['Participações em Projetos (total)'] = len(tree.xpath(
                 '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' +

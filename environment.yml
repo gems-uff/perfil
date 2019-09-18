@@ -9,3 +9,4 @@ dependencies:
   - lxml=4.4.*
   - opencv-python=4.1.*
   - xlrd=1.2.*
+  - openpyxl=2.6.*
