@@ -7,10 +7,10 @@ import pandas as pd
 # "ID Scholar" containing the 12-character code associated with a Google Scholar profile
 # Extra colums will be ignored.
 # The order of the columns does not matter
-researchers_file = 'pq-1d-5years.xlsx'
+researchers_file = 'pgc.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
-start_year = 2014
+start_year = 2017
 end_year = 2019
 
 # The subject that will be plotted as a red dot in the boxplots.

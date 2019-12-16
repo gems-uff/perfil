@@ -1,54 +1,30 @@
-import calendar
 import os
-import re
 import time
-from zipfile import ZipFile
+import webbrowser
 
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from lxml import etree
 
-import ocr
-from config import lattes_dir, researchers_file
+from config import researchers_file
+
+
+def modification_time(path):
+    try:
+        timestamp = os.path.getmtime(path)
+    except OSError:
+        timestamp = -1
+    return timestamp
 
 
 def download(id_lattes):
-    session = requests.Session()
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:63.0) Gecko/20100101 Firefox/63.0'}
+    path = os.getcwd() + os.sep + 'lattes' + os.sep + str(id_lattes) + '.zip'
     url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id_lattes)
-    req = session.request('GET', url, headers=headers)
-    saved = False
-    while not saved:
-        html = req.text
-        soup = BeautifulSoup(html, "lxml")
-        image = soup.find('img', id='image_captcha')
-        try: # sometimes we receive an error page
-            if image is None:  # Without captcha
-                cd = req.headers.get('content-disposition')
-                filename = re.findall('filename=(\S+);', cd)[0]
-                with open(lattes_dir + os.sep + filename, 'wb') as file:
-                    file.write(req.content)
-                with ZipFile(lattes_dir + os.sep + filename) as zip: # just to check if it is actually a Lattes CV
-                    with zip.open('curriculo.xml') as file:
-                        etree.parse(file).xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
-                saved = True
-            else:  # with captcha
-                id_lattes = soup.find('input', id='idcnpq')['value']
-                captchaFilename = '/buscatextual/servlet/captcha?metodo=getImagemCaptcha&noCache=' + str(calendar.timegm(time.gmtime()) * 1000)
-                req = session.get('http://buscatextual.cnpq.br' + captchaFilename)
-                with open('captcha.png', 'wb') as file:
-                    file.write(req.content)
-                code = ocr.breakCaptcha('captcha.png')
-                os.remove('captcha.png')
-                session.get('http://buscatextual.cnpq.br/buscatextual/servlet/captcha?informado=' + code + '&idcnpq=' + id_lattes + '&metodo=validaCaptcha')
-                payload = {'metodo': 'captchaValido', 'idcnpq': id_lattes, 'idiomaExibicao': '', 'tipo': '', 'informado': ''}
-                req = session.post('http://buscatextual.cnpq.br/buscatextual/download.do', data=payload, headers=headers);
-        except:
-            print('\tRetrying... ')
-            session = requests.Session()
-            url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id_lattes)
-            req = session.request('GET', url, headers=headers)
+
+    webbrowser.open(url)
+
+    # waits while the user downloads the file
+    timestamp = modification_time(path)
+    while timestamp == modification_time(path):
+        time.sleep(1)
 
 
 def main():
@@ -68,4 +44,4 @@ def main():
 
 
 if __name__ == "__main__":
-   main()
+    main()
