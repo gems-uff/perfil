@@ -5,7 +5,7 @@ Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes
 ## Instalação
 
 ### Requisitos 
-Assumimos que você tem o Python 3.7+ instalado no seu computador.
+Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 ### Passos para Instalação
 
@@ -19,11 +19,11 @@ Assumimos que você tem o Python 3.7+ instalado no seu computador.
 
 3. Instale o pipenv (se ainda não estiver instalado)
 
-`~/perfil$ python3.7 -m pip install pipenv`
+`~/perfil$ python -m pip install pipenv`
 
 4. Instale as bibliotecas necessárias:
 
-`~/perfil$ pipenv install`
+`~/perfil$ pipenv sync`
 
 ## Execução dos scripts:
 
@@ -43,14 +43,14 @@ Assumimos que você tem o Python 3.7+ instalado no seu computador.
 
 5. Use download.py para baixar os currículos Lattes. Isso pode ser um pouco demorado (30 segundos por CV), mas não precisa ser feito sempre. Faça somente quando houver atualização dos currículos no horizonte de análise.
 
-`~/perfil$ python3.7 download.py`
+`~/perfil$ python download.py`
 
 6. Use populate.py para que as demais colunas do arquivo que contém os pesquisadores (e.g. pgc.xlsx) sejam populadas usando os dados atuais do Lattes e Google Scholar.
 
-`~/perfil$ python3.7 populate.py`
+`~/perfil$ python populate.py`
 
 7. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 3 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 3 acima). 
 
 8. Use visualize.py para gerar as boxplots.
 
-`~/perfil$ python3.7 visualize.py`
+`~/perfil$ python visualize.py`
