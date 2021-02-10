@@ -11,8 +11,8 @@ requests = "*"
 beautifulsoup4 = "*"
 lxml = "*"
 opencv-python = "*"
-xlrd = "*"
 openpyxl = "*"
+matplotlib = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
