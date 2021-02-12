@@ -11,6 +11,166 @@ from lxml import etree
 from config import start_year, end_year, lattes_dir, researchers_file, jcr
 
 
+def calculate_pages(first_page, last_page):
+    try:
+        return (int(last_page) - int(first_page)) + 1
+    except ValueError:
+        return 0
+
+def new_article(type, title, forum, year, first_page, last_page):
+    article = {}
+    article['Tipo'] = type  # TODO change to an enum
+    article['Título da Publicação'] = title
+    article['Fórum'] = forum
+    article['Ano'] = year
+    article['Páginas'] = calculate_pages(first_page,last_page)
+
+    return article
+
+#get scholar informations which are not about articles
+def extract_scholar_information_from_xml(profile, tree):
+    new_profile = profile
+
+    new_profile['Nome'] = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
+
+    last_lattes_update = tree.xpath('/CURRICULO-VITAE/@DATA-ATUALIZACAO')[0]
+    new_profile['Última atualização Lattes'] = last_lattes_update[:2] + '/' + last_lattes_update[
+                                                                          2:-4] + '/' + last_lattes_update[
+                                                                                        -4:]
+    ano = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO/@ANO-DE-CONCLUSAO')[0]
+    if ano != '':
+        new_profile['Ano do Doutorado'] = int(ano)
+        new_profile['Idade Acadêmica'] = datetime.now().year - new_profile['Ano do Doutorado']
+    else:
+        new_profile['Ano do Doutorado'] = '--'
+        new_profile['Idade Acadêmica'] = 0
+    new_profile['Participações em Projetos (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' +
+        new_profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
+    new_profile['Projetos Coordenados (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' +
+        new_profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
+    new_profile['Projetos (total)'] = new_profile['Participações em Projetos (total)'] + new_profile[
+        'Projetos Coordenados (total)']
+    new_profile['Orientações de Mestrado (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'))
+    new_profile['Orientações de Doutorado (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'))
+    new_profile['Orientações (total)'] = new_profile['Orientações de Mestrado (total)'] + new_profile[
+        'Orientações de Doutorado (total)']
+    new_profile['Bancas de Mestrado (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO'))
+    new_profile['Bancas de Doutorado (total)'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO'))
+    new_profile['Bancas (total)'] = new_profile['Bancas de Mestrado (total)'] + new_profile['Bancas de Doutorado (total)']
+
+    # Information between the years at config.py
+    new_profile['Participações em Projetos'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(
+            start_year) + ' and @ANO-INICIO<=' + str(
+            end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + new_profile[
+            'Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
+    new_profile['Projetos Coordenados'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(
+            start_year) + ' and @ANO-INICIO<=' + str(
+            end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + new_profile[
+            'Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
+    new_profile['Projetos'] = new_profile['Participações em Projetos'] + new_profile['Projetos Coordenados']
+
+    new_profile['Orientações de Mestrado'] = len(tree.xpath(
+        '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO[@ANO>=' + str(
+            start_year) + ' and @ANO<=' + str(end_year) + ']'))
+    new_profile['Orientações de Doutorado'] = len(tree.xpath(
+        '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO[@ANO>=' + str(
+            start_year) + ' and @ANO<=' + str(end_year) + ']'))
+    new_profile['Orientações'] = new_profile['Orientações de Mestrado'] + new_profile['Orientações de Doutorado']
+
+    new_profile['Bancas de Mestrado'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-MESTRADO[@ANO>=' + str(
+            start_year) + ' and @ANO<=' + str(end_year) + ']'))
+    new_profile['Bancas de Doutorado'] = len(tree.xpath(
+        '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-DOUTORADO[@ANO>=' + str(
+            start_year) + ' and @ANO<=' + str(end_year) + ']'))
+    new_profile['Bancas'] = new_profile['Bancas de Mestrado'] + new_profile['Bancas de Doutorado']
+
+    return new_profile
+
+#get informations about a scholar's articles and publications from conferences
+def extract_conferences_information_from_xml(profile, tree):
+
+    new_profile= profile
+
+    # only one access to the xml file per attribute
+
+    number_of_conferences = len(tree.xpath(
+                '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO'))
+    conferences_status = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO/@NATUREZA')  # maybe change the variable name to 'conferences_natures'
+    conferences_years = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO/@ANO-DO-TRABALHO')
+    conferences_papers_titles = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO/@TITULO-DO-TRABALHO')
+    conferences_names = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DETALHAMENTO-DO-TRABALHO/@NOME-DO-EVENTO')
+    conferences_papers_first_page = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DETALHAMENTO-DO-TRABALHO/@PAGINA-INICIAL')
+    conferences_papers_last_page = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DETALHAMENTO-DO-TRABALHO/@PAGINA-FINAL')
+
+    new_profile['Publicações em Congressos'] = []
+    for conferenceIndex in range(number_of_conferences):
+        conference_status = conferences_status[conferenceIndex]
+        conference_year = int(conferences_years[conferenceIndex])
+
+        if conference_status == "COMPLETO" and start_year <= conference_year <= end_year:
+            article = new_article("CONFERENCIA",
+                                  conferences_papers_titles[conferenceIndex],
+                                  conferences_names[conferenceIndex],
+                                  conference_year,
+                                  conferences_papers_first_page[conferenceIndex], conferences_papers_last_page[conferenceIndex])
+
+            new_profile['Publicações em Congressos'].append(article)
+
+    return new_profile
+
+#get information about a scholar's publications from magazines
+def extract_publication_information_from_xml(profile, tree):
+
+    new_profile= profile
+
+    # only one access to the xml file per attribute
+    number_of_publications = len(tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO'))
+    publications_years = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO')
+    publications_titles = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO/@TITULO-DO-ARTIGO')
+    magazines_names = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@TITULO-DO-PERIODICO-OU-REVISTA')
+    papers_first_page = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@PAGINA-INICIAL')
+    papers_last_page = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@PAGINA-FINAL')
+    magazines_issn = tree.xpath(
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@ISSN')
+
+    new_profile['Publicações em Periódicos'] = []
+    for publicationIndex in range(number_of_publications):
+        publication_year = int(publications_years[publicationIndex])
+
+        if start_year <= publication_year <= end_year:
+            article = new_article("PERIODICO",
+                                  publications_titles[publicationIndex],
+                                  magazines_names[publicationIndex],
+                                  publication_year,
+                                  papers_first_page[publicationIndex], papers_last_page[publicationIndex])
+            article['ISSN'] = magazines_issn[publicationIndex]
+
+            new_profile['Publicações em Periódicos'].append(article)
+
+    return new_profile
+
+
 def lattes(id):
     """Collects the following metrics from a Lattes CV:
     - Nome
@@ -41,36 +201,13 @@ def lattes(id):
     with ZipFile(lattes_dir + os.sep + str(id) + '.zip') as zip:
         with zip.open('curriculo.xml') as file:
             tree = etree.parse(file)
-            profile['Nome'] = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO')[0]
-            ano = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO/@ANO-DE-CONCLUSAO')[0]
-            if ano != '':
-                profile['Ano do Doutorado'] = int(ano)
-                profile['Idade Acadêmica'] = datetime.now().year - profile['Ano do Doutorado']
-            else:
-                profile['Ano do Doutorado'] = '--'
-                profile['Idade Acadêmica'] = 0
 
-            profile['Participações em Projetos (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' +
-                profile['Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
-            profile['Projetos Coordenados (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' +
-                profile['Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
-            profile['Projetos (total)'] = profile['Participações em Projetos (total)'] + profile[
-                'Projetos Coordenados (total)']
+            profile = extract_scholar_information_from_xml(profile, tree)
+            profile = extract_conferences_information_from_xml(profile, tree)
+            profile = extract_publication_information_from_xml(profile, tree)
 
-            profile['Orientações de Mestrado (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO'))
-            profile['Orientações de Doutorado (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO'))
-            profile['Orientações (total)'] = profile['Orientações de Mestrado (total)'] + profile[
-                'Orientações de Doutorado (total)']
 
-            profile['Bancas de Mestrado (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO'))
-            profile['Bancas de Doutorado (total)'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO'))
-            profile['Bancas (total)'] = profile['Bancas de Mestrado (total)'] + profile['Bancas de Doutorado (total)']
+
 
             profile['Publicações em Congressos (total)'] = len(tree.xpath(
                 '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO"]'))
@@ -85,41 +222,10 @@ def lattes(id):
             profile['Publicações JCR (total)'] = len(jcr_pub)
             profile['Publicações JCR > 1,5 (total)'] = len([e for e in jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
 
-            profile['Participações em Projetos'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(
-                    start_year) + ' and @ANO-INICIO<=' + str(
-                    end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile[
-                    'Nome'] + '" and @FLAG-RESPONSAVEL="NAO"]'))
-            profile['Projetos Coordenados'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA[@ANO-INICIO>=' + str(
-                    start_year) + ' and @ANO-INICIO<=' + str(
-                    end_year) + ']/EQUIPE-DO-PROJETO/INTEGRANTES-DO-PROJETO[@NOME-COMPLETO="' + profile[
-                    'Nome'] + '" and @FLAG-RESPONSAVEL="SIM"]'))
-            profile['Projetos'] = profile['Participações em Projetos'] + profile['Projetos Coordenados']
-
-            profile['Orientações de Mestrado'] = len(tree.xpath(
-                '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-MESTRADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO[@ANO>=' + str(
-                    start_year) + ' and @ANO<=' + str(end_year) + ']'))
-            profile['Orientações de Doutorado'] = len(tree.xpath(
-                '/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS/ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO/DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO[@ANO>=' + str(
-                    start_year) + ' and @ANO<=' + str(end_year) + ']'))
-            profile['Orientações'] = profile['Orientações de Mestrado'] + profile['Orientações de Doutorado']
-
-            profile['Bancas de Mestrado'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-MESTRADO[@ANO>=' + str(
-                    start_year) + ' and @ANO<=' + str(end_year) + ']'))
-            profile['Bancas de Doutorado'] = len(tree.xpath(
-                '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO/DADOS-BASICOS-DA-PARTICIPACAO-EM-BANCA-DE-DOUTORADO[@ANO>=' + str(
-                    start_year) + ' and @ANO<=' + str(end_year) + ']'))
-            profile['Bancas'] = profile['Bancas de Mestrado'] + profile['Bancas de Doutorado']
-
-            profile['Publicações em Congressos'] = len(tree.xpath(
-                '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO" and @ANO-DO-TRABALHO>=' + str(
-                    start_year) + ' and @ANO-DO-TRABALHO<=' + str(end_year) + ']'))
-            profile['Publicações em Periódicos'] = len(tree.xpath(
-                '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO[@NATUREZA="COMPLETO" and @ANO-DO-ARTIGO>=' + str(
-                    start_year) + ' and @ANO-DO-ARTIGO<=' + str(end_year) + ']'))
-            profile['Publicações'] = profile['Publicações em Congressos'] + profile['Publicações em Periódicos']
+            profile['Quantidade de Publicações em Congressos'] = len(profile['Publicações em Congressos'])
+            profile['Quantidade de Publicações em Periódicos'] = len(profile['Publicações em Periódicos'])
+            profile['Quantidade de Publicações'] = profile['Quantidade de Publicações em Congressos'] + profile[
+                'Quantidade de Publicações em Periódicos']
 
             jcr_pub = [e for e in tree.xpath(
                 '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(
@@ -134,6 +240,9 @@ def lattes(id):
             profile['Artigos JCR > 1,5'] = profile['Publicações JCR > 1,5'] + profile['Aceitações JCR > 1,5']
 
     return profile
+
+
+
 
 
 def scholar(id):
@@ -233,12 +342,14 @@ def main():
         if not pd.isnull(profile['ID Scholar']):
             profile.update(scholar(profile['ID Scholar']))
         profile.update(normalized(profile))
-        for key, value in profile.items():
-            df.at[i, key] = value
-        print('\tOk ({:.0f}%).'.format((i+1)/max * 100))
-        if not (i+1)%5:
+        #for key, value in profile.items():
+            # df.at[i, key] = value  TODO check erro
+        print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
+        if not (i + 1) % 5:
             print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
             time.sleep(10)
+
+        #print(profile) #testing
 
     print("\nFinished.")
 
@@ -246,4 +357,4 @@ def main():
 
 
 if __name__ == "__main__":
-   main()
+    main()
