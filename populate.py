@@ -17,17 +17,13 @@ def calculate_pages(first_page, last_page):
     except ValueError:
         return 0
 
+
 def new_article(type, title, forum, year, first_page, last_page):
-    article = {}
-    article['Tipo'] = type  # TODO change to an enum
-    article['Título da Publicação'] = title
-    article['Fórum'] = forum
-    article['Ano'] = year
-    article['Páginas'] = calculate_pages(first_page,last_page)
+    return {'Tipo': type, 'Título da Publicação': title, 'Fórum': forum, 'Ano': year,
+            'Páginas': calculate_pages(first_page, last_page)}
 
-    return article
 
-#get scholar informations which are not about articles
+# get scholar informations which are not about articles
 def extract_scholar_information_from_xml(profile, tree):
     new_profile = profile
 
@@ -35,8 +31,8 @@ def extract_scholar_information_from_xml(profile, tree):
 
     last_lattes_update = tree.xpath('/CURRICULO-VITAE/@DATA-ATUALIZACAO')[0]
     new_profile['Última atualização Lattes'] = last_lattes_update[:2] + '/' + last_lattes_update[
-                                                                          2:-4] + '/' + last_lattes_update[
-                                                                                        -4:]
+                                                                              2:-4] + '/' + last_lattes_update[
+                                                                                            -4:]
     ano = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO/@ANO-DE-CONCLUSAO')[0]
     if ano != '':
         new_profile['Ano do Doutorado'] = int(ano)
@@ -62,7 +58,8 @@ def extract_scholar_information_from_xml(profile, tree):
         '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-MESTRADO'))
     new_profile['Bancas de Doutorado (total)'] = len(tree.xpath(
         '/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO/PARTICIPACAO-EM-BANCA-DE-DOUTORADO'))
-    new_profile['Bancas (total)'] = new_profile['Bancas de Mestrado (total)'] + new_profile['Bancas de Doutorado (total)']
+    new_profile['Bancas (total)'] = new_profile['Bancas de Mestrado (total)'] + new_profile[
+        'Bancas de Doutorado (total)']
 
     # Information between the years at config.py
     new_profile['Participações em Projetos'] = len(tree.xpath(
@@ -95,15 +92,15 @@ def extract_scholar_information_from_xml(profile, tree):
 
     return new_profile
 
-#get informations about a scholar's articles and publications from conferences
-def extract_conferences_information_from_xml(profile, tree):
 
-    new_profile= profile
+# get informations about a scholar's articles and publications from conferences
+def extract_conferences_information_from_xml(profile, tree):
+    new_profile = profile
 
     # only one access to the xml file per attribute
 
     number_of_conferences = len(tree.xpath(
-                '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO'))
+        '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO'))
     conferences_status = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO/@NATUREZA')  # maybe change the variable name to 'conferences_natures'
     conferences_years = tree.xpath(
@@ -127,16 +124,17 @@ def extract_conferences_information_from_xml(profile, tree):
                                   conferences_papers_titles[conferenceIndex],
                                   conferences_names[conferenceIndex],
                                   conference_year,
-                                  conferences_papers_first_page[conferenceIndex], conferences_papers_last_page[conferenceIndex])
+                                  conferences_papers_first_page[conferenceIndex],
+                                  conferences_papers_last_page[conferenceIndex])
 
             new_profile['Publicações em Congressos'].append(article)
 
     return new_profile
 
-#get information about a scholar's publications from magazines
-def extract_publication_information_from_xml(profile, tree):
 
-    new_profile= profile
+# get information about a scholar's publications from magazines
+def extract_publication_information_from_xml(profile, tree):
+    new_profile = profile
 
     # only one access to the xml file per attribute
     number_of_publications = len(tree.xpath(
@@ -164,7 +162,8 @@ def extract_publication_information_from_xml(profile, tree):
                                   magazines_names[publicationIndex],
                                   publication_year,
                                   papers_first_page[publicationIndex], papers_last_page[publicationIndex])
-            article['ISSN'] = magazines_issn[publicationIndex]
+            article['ISSN'] = magazines_issn[publicationIndex][:4] + "-" + magazines_issn[publicationIndex][-4:]
+            article['JCR'] = jcr[article['ISSN']] if article['ISSN'] in jcr else 0
 
             new_profile['Publicações em Periódicos'].append(article)
 
@@ -206,9 +205,6 @@ def lattes(id):
             profile = extract_conferences_information_from_xml(profile, tree)
             profile = extract_publication_information_from_xml(profile, tree)
 
-
-
-
             profile['Publicações em Congressos (total)'] = len(tree.xpath(
                 '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DADOS-BASICOS-DO-TRABALHO[@NATUREZA="COMPLETO"]'))
             profile['Publicações em Periódicos (total)'] = len(tree.xpath(
@@ -227,22 +223,16 @@ def lattes(id):
             profile['Quantidade de Publicações'] = profile['Quantidade de Publicações em Congressos'] + profile[
                 'Quantidade de Publicações em Periódicos']
 
-            jcr_pub = [e for e in tree.xpath(
-                '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO[DADOS-BASICOS-DO-ARTIGO/@NATUREZA="COMPLETO" and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO>=' + str(
-                    start_year) + ' and DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO<=' + str(
-                    end_year) + ']/DETALHAMENTO-DO-ARTIGO/@ISSN') if e[:4] + '-' + e[4:] in jcr]
             accepted_jcr_pub = [e for e in tree.xpath(
                 '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-ACEITOS-PARA-PUBLICACAO/ARTIGO-ACEITO-PARA-PUBLICACAO/DETALHAMENTO-DO-ARTIGO/@ISSN')
                                 if e[:4] + '-' + e[4:] in jcr]
-            profile['Publicações JCR'] = len(jcr_pub)
-            profile['Publicações JCR > 1,5'] = len([e for e in jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
+
+            profile['Publicações JCR'] = len([e for e in profile['Publicações em Periódicos'] if e['JCR'] > 0])
+            profile['Publicações JCR > 1,5'] = len([e for e in profile['Publicações em Periódicos'] if e['JCR'] > 1.5])
             profile['Aceitações JCR > 1,5'] = len([e for e in accepted_jcr_pub if jcr[e[:4] + '-' + e[4:]] > 1.5])
             profile['Artigos JCR > 1,5'] = profile['Publicações JCR > 1,5'] + profile['Aceitações JCR > 1,5']
 
     return profile
-
-
-
 
 
 def scholar(id):
@@ -342,14 +332,14 @@ def main():
         if not pd.isnull(profile['ID Scholar']):
             profile.update(scholar(profile['ID Scholar']))
         profile.update(normalized(profile))
-        #for key, value in profile.items():
-            # df.at[i, key] = value  TODO check erro
+        # for key, value in profile.items():
+        # df.at[i, key] = value  TODO check erro
         print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
         if not (i + 1) % 5:
             print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
             time.sleep(10)
 
-        #print(profile) #testing
+        # print(profile) #testing
 
     print("\nFinished.")
 
