@@ -231,7 +231,10 @@ def main():
         if not pd.isnull(profile['ID Lattes']):
             profile.update(lattes(profile['ID Lattes']))
         if not pd.isnull(profile['ID Scholar']):
-            profile.update(scholar(profile['ID Scholar']))
+            try:
+                profile.update(scholar(profile['ID Scholar']))
+            except:
+                print(f"Failed to retrieve Google Scholar data.")
         profile.update(normalized(profile))
         for key, value in profile.items():
             df.at[i, key] = value
