@@ -10,8 +10,8 @@ import pandas as pd
 researchers_file = 'teste.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
-start_year = 2017
-end_year = 2019
+start_year = 2016
+end_year = 2020
 
 # The subject that will be plotted as a red dot in the boxplots.
 subject = {
