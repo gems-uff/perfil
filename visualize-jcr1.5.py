@@ -12,7 +12,7 @@ def main():
 
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
 
-    # Métricas referentes a toda a carreira
+    # Métrica referentes ao horizonte escolhido
     metrics = ['Artigos JCR > 1,5']
     boxplot(df, subject, metrics, 'fig-jcr>1.5.png', vert=False)
 

@@ -59,8 +59,8 @@ def boxplot(df, subject, metrics, file, legends=None, vert=True, rows=1):
 
 def main():
     # Comment the line bellow to remove the red dot indicating the performance of the subject in the following boxplot
-    subject.update(populate.all(subject['ID Lattes'], subject['ID Scholar']))
-    print('Red dot representing', subject["Nome"])
+    # subject.update(populate.all(subject['ID Lattes'], subject['ID Scholar']))
+    # print('Red dot representing', subject["Nome"])
 
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
 
