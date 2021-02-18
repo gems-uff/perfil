@@ -132,7 +132,7 @@ def extract_conferences_information_from_xml(profile, tree):
     return new_profile
 
 
-# get information about a scholar's publications from magazines
+# get information about a scholar's publications from journals
 def extract_publication_information_from_xml(profile, tree):
     new_profile = profile
 
@@ -143,13 +143,13 @@ def extract_publication_information_from_xml(profile, tree):
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO/@ANO-DO-ARTIGO')
     publications_titles = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DADOS-BASICOS-DO-ARTIGO/@TITULO-DO-ARTIGO')
-    magazines_names = tree.xpath(
+    journals_names = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@TITULO-DO-PERIODICO-OU-REVISTA')
     papers_first_page = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@PAGINA-INICIAL')
     papers_last_page = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@PAGINA-FINAL')
-    magazines_issn = tree.xpath(
+    journals_issn = tree.xpath(
         '/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO/@ISSN')
 
     new_profile['Publicações em Periódicos'] = []
@@ -159,10 +159,10 @@ def extract_publication_information_from_xml(profile, tree):
         if start_year <= publication_year <= end_year:
             article = new_article("PERIODICO",
                                   publications_titles[publicationIndex],
-                                  magazines_names[publicationIndex],
+                                  journals_names[publicationIndex],
                                   publication_year,
                                   papers_first_page[publicationIndex], papers_last_page[publicationIndex])
-            article['ISSN'] = magazines_issn[publicationIndex][:4] + "-" + magazines_issn[publicationIndex][-4:]
+            article['ISSN'] = journals_issn[publicationIndex][:4] + "-" + journals_issn[publicationIndex][-4:]
             article['JCR'] = jcr[article['ISSN']] if article['ISSN'] in jcr else 0
 
             new_profile['Publicações em Periódicos'].append(article)
