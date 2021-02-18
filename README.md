@@ -45,12 +45,16 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python download.py`
 
-6. Use populate.py para que as demais colunas do arquivo que contém os pesquisadores (e.g. pgc.xlsx) sejam populadas usando os dados atuais do Lattes e Google Scholar.
+6. O programa abrirá uma nova guia com o link de download do currículo lattes no seu navegador principal, confirme o captcha e o download será feito. Após o download ser concluído, mova o .zip baixado para a pasta "lattes".
+
+7. Se ainda houver mais currículos lattes para baixar, o programa irá repetir o passo 6, faça-o até não haver mais arquivos para atualizar.
+
+8. Use populate.py para que as demais colunas do arquivo que contém os pesquisadores (e.g. pgc.xlsx) sejam populadas usando os dados atuais do Lattes e Google Scholar.
 
 `~/perfil$ python populate.py`
 
-7. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 3 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 3 acima). 
+9. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 3 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 3 acima). 
 
-8. Use visualize.py para gerar as boxplots.
+10. Use visualize.py para gerar as boxplots.
 
 `~/perfil$ python visualize.py`
