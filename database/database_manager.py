@@ -9,9 +9,10 @@ from database.journal import Journal
 from database.project import Project, ResearcherProject
 from database.researcher import Researcher
 from database.paper import Paper, JournalPaper, ConferencePaper, journal_association_table, conference_association_table
+from database.affiliation import Affiliation
 
-#engine = create_engine("sqlite:///db.sqlite3", echo=False)
 engine = create_engine("sqlite:///:memory:", echo=False)
+# engine = create_engine("sqlite:///db.sqlite3", echo=False)
 
 
 def start_database():
@@ -23,7 +24,7 @@ def start_database():
 
 def database_schema_png():
     """Creates and .png with a schema of the database"""
-    #remember to change the engine to one which is persistent
+    # remember to change the engine to one which is persistent
     Session = start_database()
     graph = create_schema_graph(metadata=MetaData("sqlite:///db.sqlite3"),
                                 show_datatypes=False,  # The image would get nasty big if we"d show the datatypes

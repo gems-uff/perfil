@@ -8,7 +8,7 @@ from lxml import etree
 from zipfile import ZipFile
 
 from config import start_year, end_year, lattes_dir, researchers_file, jcr
-from database.database_manager import start_database, Researcher
+from database.database_manager import start_database, database_schema_png
 from database_populate import *
 
 
