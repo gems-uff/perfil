@@ -70,4 +70,4 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 3. Chame o comando abaixo para executar os testes:
 
-`~/perfil$ python -m unittest database_test.py -v
+`~/perfil$ python -m unittest database_test.py -v`
