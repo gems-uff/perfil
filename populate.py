@@ -12,17 +12,6 @@ from database.database_manager import start_database, database_schema_png
 from database_populate import *
 
 
-def test_database(session):
-    # Example
-
-    researchers = session.query(Researcher).all()
-    murta_phd_year = session.query(Researcher.phd_defense_year).filter(Researcher.name.contains("Leonardo Gresta")).all()
-
-    print(researchers)
-    print()
-    print(murta_phd_year)
-
-
 def lattes(id, session, google_scholar_id):
     """Populates the database with the lattes info"""
     with ZipFile(lattes_dir + os.sep + str(id) + '.zip') as zip:
@@ -30,8 +19,6 @@ def lattes(id, session, google_scholar_id):
             tree = etree.parse(file)
 
             researcher_id = add_researcher(session, tree, google_scholar_id)
-            add_conferences(session, tree)
-            add_journals(session, tree)
             add_conference_papers(session, tree, researcher_id)
             add_journal_papers(session, tree, researcher_id)
             add_projects(session, tree)
@@ -95,7 +82,7 @@ def main():
     max = len(df)
     print('Processing', max, 'researchers...\n')
 
-    session = start_database()
+    session = start_database(False)
 
     for i, row in df.iterrows():
         profile = row.to_dict()

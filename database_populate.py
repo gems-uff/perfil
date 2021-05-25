@@ -4,7 +4,7 @@ from sqlalchemy import or_, not_
 from sqlalchemy.orm import Session, aliased
 from config import jcr
 from database.database_manager import Researcher, Conference, Journal, Paper, JournalPaper, ConferencePaper, Project, \
-    Student, ResearcherProject, ResearcherStudent
+    Student, ResearcherProject, ResearcherStudent, Venue
 from database.student import Type
 
 
@@ -37,44 +37,51 @@ def add_researcher(session, tree, google_scholar_id):
     return new_researcher.id
 
 
-def add_conferences(session, tree):
-    """Populates the Conference table"""
-    conferences = tree.xpath(
-        "/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS/DETALHAMENTO-DO-TRABALHO")
+def get_or_create_conference(session, conference_name):
+    """Get a conference or populates the Conference table"""
+    conference_list = session.query(Conference).filter(Conference.name == conference_name).all()
 
-    for conference in conferences:
-        conference_name = conference.get("NOME-DO-EVENTO")
-        if len(session.query(Conference.name).filter(Conference.name == conference_name).all()) == 0:
-            session.add(Conference(name=conference_name))
+    if len(conference_list) == 0:
+        conference = Conference(name=conference_name)
+        session.add(conference)
+        session.flush()
+        return conference.id
+    else:
+        return conference_list[0].id
 
 
-def add_journals(session, tree):
-    """Populates the Journal table"""
-    journals = tree.xpath(
-        "/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO/DETALHAMENTO-DO-ARTIGO")
+def get_or_create_journal(session, journal_details):
+    """Get a journal or populates the Journal table"""
+    journal_issn = journal_details.get("ISSN")[:4] + "-" + journal_details.get("ISSN")[-4:]
+    journal_list = session.query(Journal).filter(Journal.issn == journal_issn).all()
 
-    for journal in journals:
-        journal_name = journal.get("TITULO-DO-PERIODICO-OU-REVISTA")
-        if len(session.query(Journal.name).filter(Journal.name == journal_name).all()) == 0:
-            journal_issn = journal.get("ISSN")[:4] + "-" + journal.get("ISSN")[-4:]
-            journal_jcr = jcr[journal_issn] if journal_issn in jcr else 0
-            session.add(Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr))
+    if len(journal_list) == 0:
+        journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA")
+        journal_jcr = jcr[journal_issn] if journal_issn in jcr else 0
+        journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr)
+        session.add(journal)
+        session.flush()
+        return journal.id
+    else:
+        return journal_list[0].id
 
 
 def add_journal_papers(session, tree, researcher_id):
     """Populates the JournalPaper table"""
     papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO")
-    papers = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-ARTIGO",
-                        details_attribute="DETALHAMENTO-DO-ARTIGO", title_attribute="TITULO-DO-ARTIGO",
-                        year_attribute="ANO-DO-ARTIGO")
+    papers_and_venue_id = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-ARTIGO",
+                                     details_attribute="DETALHAMENTO-DO-ARTIGO", title_attribute="TITULO-DO-ARTIGO",
+                                     year_attribute="ANO-DO-ARTIGO", session=session)
     researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
-    for paper in papers:
+    for paper_id in papers_and_venue_id:
+        paper = paper_id[0]
+        venue_id = paper_id[1]
         if len(session.query(JournalPaper).filter(JournalPaper.title == paper.title, or_(JournalPaper.doi == paper.doi,
                                                                                          JournalPaper.doi is None)).all()) == 0:
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year,
                                              first_page=paper.first_page,
-                                             last_page=paper.last_page, authors=paper.authors)
+                                             last_page=paper.last_page, authors=paper.authors, venue=venue_id)
             session.flush()
             new_journal_paper.researchers.append(researcher)
 
@@ -82,23 +89,25 @@ def add_journal_papers(session, tree, researcher_id):
 def add_conference_papers(session, tree, researcher_id):
     """Populates the ConferencePaper table"""
     papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS")
-    papers = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-TRABALHO",
-                        details_attribute="DETALHAMENTO-DO-TRABALHO", title_attribute="TITULO-DO-TRABALHO",
-                        year_attribute="ANO-DO-TRABALHO")
+    papers_and_venue_id = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-TRABALHO",
+                                     details_attribute="DETALHAMENTO-DO-TRABALHO", title_attribute="TITULO-DO-TRABALHO",
+                                     year_attribute="ANO-DO-TRABALHO", session=session)
     researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
-    for paper in papers:
+    for paper_id in papers_and_venue_id:
+        paper = paper_id[0]
+        venue_id = paper_id[1]
         if len(session.query(ConferencePaper).filter(ConferencePaper.title == paper.title,
                                                      or_(ConferencePaper.doi == paper.doi,
                                                          ConferencePaper.doi is None)).all()) == 0:
             new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, year=paper.year,
                                                    first_page=paper.first_page,
-                                                   last_page=paper.last_page, authors=paper.authors)
+                                                   last_page=paper.last_page, authors=paper.authors, venue=venue_id)
             session.flush()
             new_conference_paper.researchers.append(researcher)
 
 
-def get_papers(element_list, basic_data_attribute, details_attribute, title_attribute, year_attribute):
+def get_papers(element_list, basic_data_attribute, details_attribute, title_attribute, year_attribute, session):
     """Get basic information on papers from xml"""
     papers = []
 
@@ -114,15 +123,25 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
         first_page = paper_details.get("PAGINA-INICIAL")
         last_page = paper_details.get("PAGINA-FINAL")
         authors = ""
+        venue_id = get_or_add_paper_venue_id(session, details_attribute, paper_details)
 
         for author in paper_authors:
             authors += author.get("NOME-COMPLETO-DO-AUTOR") + ";"
         authors = authors[:-1]
 
-        papers.append(
-            Paper(title=title, doi=doi, year=year, first_page=first_page, last_page=last_page, authors=authors))
+        papers.append([
+            Paper(title=title, doi=doi, year=year, first_page=first_page, last_page=last_page, authors=authors),
+            venue_id])
 
     return papers
+
+
+def get_or_add_paper_venue_id(session, details_attribute, paper_details):
+    if details_attribute == "DETALHAMENTO-DO-TRABALHO":
+        venue_name = paper_details.get("NOME-DO-EVENTO")
+        return get_or_create_conference(session, venue_name)
+    else:
+        return get_or_create_journal(session, paper_details)
 
 
 def add_projects(session, tree):
@@ -213,7 +232,7 @@ def add_researcher_student_from_xml(session, element, advisor_or_committee: Advi
         committee_members = ""
         for member in committee:
             committee_members += member.get("NOME-COMPLETO-DO-PARTICIPANTE-DA-BANCA") + ";"
-        committee_members[:-1]
+        committee_members = committee_members[:-1]
 
         new_researcher_student.committee = committee_members
 
@@ -246,7 +265,7 @@ def add_researcher_project(session):
         project_manager = relation[3]
 
         new_researcher_project = ResearcherProject(researcher_id=researcher_id, project_id=project_id)
-        if researcher_name in project_manager: new_researcher_project.coordinator = True
+        new_researcher_project.coordinator = True if researcher_name in project_manager else False
         session.add(new_researcher_project)
 
 

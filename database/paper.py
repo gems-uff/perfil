@@ -24,8 +24,8 @@ class Paper(Base):
     type = Column(String(50))
 
     __mapper_args__ = {
-        'polymorphic_identity': 'employee',
-        'polymorphic_on': type
+        "polymorphic_identity": "paper",
+        "polymorphic_on": type
     }
 
     def __repr__(self):
