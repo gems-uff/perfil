@@ -58,3 +58,16 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 10. Use visualize.py para gerar as boxplots.
 
 `~/perfil$ python visualize.py`
+## Execução dos testes:
+
+1. Entre no diretório do projeto:
+
+`~$ cd perfil`
+
+2. Ative o ambiente conda que você acabou de criar:
+
+`~/perfil$ pipenv shell`
+
+3. Chame o comando abaixo para executar os testes:
+
+`~/perfil$ python -m unittest database_test.py -v`
