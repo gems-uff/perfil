@@ -23,8 +23,20 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout repository code
+        uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
+      # Setup Python (faster than using Python container)
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: Install pipenv
+        run: python -m pip install --upgrade pipenv
+
+      - name: Install libs
+        run: pipenv sync
+
       - name: Run tests
         run: pipenv run python -m unittest database_test.py -v
