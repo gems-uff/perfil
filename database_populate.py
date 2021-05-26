@@ -1,5 +1,4 @@
 from enum import Enum
-import copy
 from sqlalchemy import or_, not_
 from sqlalchemy.orm import Session, aliased
 from config import jcr
