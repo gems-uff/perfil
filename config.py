@@ -1,6 +1,6 @@
 import os
-
 import pandas as pd
+from utils.dict_xlsx_utils import create_synonyms_dictionary
 
 # The expected input file must have the following columns:
 # "ID Lattes" containing the 16-digit number associated with a Lattes CV 
@@ -23,6 +23,22 @@ subject = {
 # The file with JCR scores
 df = pd.read_excel('jcr.xlsx')
 jcr = dict(zip(df.issn, df.impact))
+
+# The file with conferences' qualis
+df_qualis_conferences = pd.read_excel('qualis-conferences-2016.xlsx')
+conferences_qualis = dict(zip(df_qualis_conferences.title, df_qualis_conferences.qualis))
+
+# The file with journals' qualis
+df_qualis_journals = pd.read_excel('qualis-journals-2016.xlsx')
+journals_qualis = dict(zip(df_qualis_journals.title, df_qualis_journals.qualis))
+
+# Minimum similarities
+conferences_minimum_similarity = 0.5
+journals_minimum_similarity = 0.5
+
+# The file with conferences' synonyms
+conferences_synonyms = create_synonyms_dictionary("conferences_synonyms.xlsx")
+journals_synonyms = create_synonyms_dictionary("journals_synonyms.xlsx")
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 lattes_dir = os.getcwd() + os.sep + 'lattes'

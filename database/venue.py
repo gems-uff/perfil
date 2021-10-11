@@ -1,5 +1,19 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey
+import enum
+
+from sqlalchemy import Column, Integer, Float, String, ForeignKey, Enum
 from database.base import Base
+
+
+class QualisLevel(enum.Enum):
+    A1 = "A1"
+    A2 = "A2"
+    B1 = "B1"
+    B2 = "B2"
+    B3 = "B3"
+    B4 = "B4"
+    B5 = "B5"
+    C = "C"
+    NC = "NC"
 
 
 class Venue(Base):
@@ -7,7 +21,7 @@ class Venue(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    qualis = Column(String)  # TODO new rules
+    qualis = Column(Enum(QualisLevel))
     type = Column(String(50))
 
     __mapper_args__ = {

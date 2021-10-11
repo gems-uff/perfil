@@ -7,7 +7,7 @@ class Researcher(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    last_lattes_update = Column(String)  # TODO change to date?
+    last_lattes_update = Column(String)
     phd_college = Column(String)
     phd_defense_year = Column(Integer)
     google_scholar_id = Column(String)

@@ -4,13 +4,16 @@ from sqlalchemy_schemadisplay import create_schema_graph
 
 from database.base import Base
 from database.venue import Venue, Conference, Journal
-from database.student import Student, ResearcherStudent
+from database.titles_support import ResearcherAdvisement, ResearcherCommittee
 from database.project import Project, ResearcherProject
 from database.researcher import Researcher, Affiliation
 from database.paper import Paper, JournalPaper, ConferencePaper, journal_association_table, conference_association_table
+from database.book import Book, PublishedBook, PublishedBookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
+from database.other_works import Patent, ResearcherEditorialBoard, ResearcherConferenceManagement, ResearcherPatent
 
 
 def start_database(sqlite: bool):
+    """Starts the database returning the session"""
     engine = create_engine("sqlite:///:memory:", echo=False)
     if sqlite:
         engine = create_engine("sqlite:///db.sqlite3", echo=False)

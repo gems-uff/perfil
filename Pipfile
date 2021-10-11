@@ -15,6 +15,7 @@ openpyxl = "*"
 matplotlib = "*"
 sqlalchemy = "*"
 sqlalchemy-schemadisplay = "*"
+pylcs = "*"
 
 [requires]
 python_version = "3.8"
