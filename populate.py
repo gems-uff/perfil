@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from lxml import etree
 from zipfile import ZipFile
-from config import start_year, end_year, lattes_dir, researchers_file, jcr, conferences_qualis, journals_qualis
+from config import start_year, end_year, lattes_dir, researchers_file, jcr, conferences_qualis, journals_qualis, similarity_dir
 from database.database_manager import start_database, database_schema_png
 from database.populate.book import add_researcher_published_books, add_researcher_published_chapters
 from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, \
@@ -99,8 +99,8 @@ def initialize_similarities_dict():
 
 def create_similarities_xlsx():
     """Creates .xlsx from the similarities dictionaries"""
-    create_similarity_file(conferences_similarity_dict, "conferences_similar")
-    create_similarity_file(journals_similarity_dict, "journals_similar")
+    create_similarity_file(conferences_similarity_dict, similarity_dir+os.sep+"conferences_similar")
+    create_similarity_file(journals_similarity_dict, similarity_dir+os.sep+"journals_similar")
 
 
 def main():

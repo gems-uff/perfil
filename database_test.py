@@ -1,4 +1,5 @@
 import unittest
+import os
 from lxml import etree
 from zipfile import ZipFile
 from database.database_manager import start_database
@@ -21,7 +22,7 @@ class DatabaseTestCase(unittest.TestCase):
     def setUpClass(cls):
         """Initialize some attributes to make the tests"""
         cls.session = start_database(False)
-        with ZipFile("curriculo_test.zip") as zip:
+        with ZipFile("test_resources" + os.sep + "curriculo_test.zip") as zip:
             with zip.open("curriculo_test.xml") as file:
                 cls.tree = etree.parse(file)
         # with open("curriculo_test.xml", encoding="ISO-8859-1") as file:
