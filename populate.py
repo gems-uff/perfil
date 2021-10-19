@@ -76,17 +76,17 @@ def scholar(id):
     return profile
 
 
-def all(id_lattes, id_scholar):
-    """Collects all metrics of a given researcher.
-    Please cheque the metric list in the documentation of functions lattes, scholar, and normalized.
-
-    Keyword arguments:
-    id_lattes -- the 16-digit number associated with a Lattes CV
-    id_scholar -- the 12-character code associated with a Google Scholar profile
-    """
-    lattes(id_lattes)
-    # profile.update(scholar(id_scholar))
-    # return profile
+# def all(id_lattes, id_scholar):
+#     """Collects all metrics of a given researcher.
+#     Please cheque the metric list in the documentation of functions lattes, scholar, and normalized.
+#
+#     Keyword arguments:
+#     id_lattes -- the 16-digit number associated with a Lattes CV
+#     id_scholar -- the 12-character code associated with a Google Scholar profile
+#     """
+#     lattes(id_lattes)
+#     # profile.update(scholar(id_scholar))
+#     # return profile
 
 
 def initialize_similarities_dict():
@@ -134,6 +134,7 @@ def main():
 
     df.to_excel(researchers_file, index=False)
     create_similarities_xlsx()
+    return session
 
 
 if __name__ == "__main__":

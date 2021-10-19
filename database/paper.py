@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String,Table, ForeignKey
+import enum
+from sqlalchemy import Column, Integer, String,Table, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from database.base import Base
 
@@ -11,11 +12,18 @@ conference_association_table = Table("researcher_conference_paper", Base.metadat
                                      Column("conference_paper_id", Integer, ForeignKey("conference_paper.id")))
 
 
+class PaperNature(enum.Enum):
+    COMPLETE = "artigo completo"
+    ABSTRACT = "resumo"
+    EXPANDED_ABSTRACT = "resumo expandido"
+
+
 class Paper(Base):
     __tablename__ = "paper"
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
+    nature = Column(Enum(PaperNature))
     year = Column(Integer)
     doi = Column(String)
     first_page = Column(Integer)

@@ -4,21 +4,21 @@ from database.base import Base
 
 
 class AdvisementsTypes(enum.Enum):
-    BACHELOR = "bachelor"
-    MASTER = "master"
-    PHD = "phd"
-    SPECIALIZATION = "specialization"
-    UNDERGRATUATE_RESEARCH = "undergratuate_research"
+    BACHELOR = "graduação"
+    MASTER = "mestrado"
+    PHD = "doutorado"
+    SPECIALIZATION = "especialização"
+    UNDERGRATUATE_RESEARCH = "iniciação científica"
 
 
 class CommitteeTypes(enum.Enum):
-    BACHELOR = "bachelor"
-    MASTER = "master"
-    MASTER_QUALIFICATION = "master_qualification"
-    PHD = "phd"
-    PHD_QUALIFICATION = "phd_qualification"
-    SPECIALIZATION = "specialization"
-    CIVIL_SERVICE_EXAMINATION = "civil_service_examination"
+    BACHELOR = "graduação"
+    MASTER = "mestrado"
+    MASTER_QUALIFICATION = "qualificação de mestrado"
+    PHD = "doutorado"
+    PHD_QUALIFICATION = "qualificação de doutorado"
+    SPECIALIZATION = "especialização"
+    CIVIL_SERVICE_EXAMINATION = "concurso público"
 
 
 class ResearcherAdvisement(Base):

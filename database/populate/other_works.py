@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import and_
 from utils.log import log_primary_key_error
 from database.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
@@ -70,14 +71,14 @@ def add_researcher_patents_software(session, tree, researcher_id):
     for program in programs:
         program_patent_id = get_or_add_patent(session, program, True)
 
-        session.add(ResearcherPatent(patent_id=program_patent_id, researcher_id=researcher_id))
+        if program_patent_id is not None: session.add(ResearcherPatent(patent_id=program_patent_id, researcher_id=researcher_id))
 
     patents = tree.xpath("/CURRICULO-VITAE/PRODUCAO-TECNICA/PATENTE")
 
     for patent in patents:
         patent_id = get_or_add_patent(session, patent, False)
 
-        session.add(ResearcherPatent(patent_id=patent_id, researcher_id=researcher_id))
+        if patent_id is not None: session.add(ResearcherPatent(patent_id=patent_id, researcher_id=researcher_id))
 
 
 def get_or_add_patent(session, patent, software_patent: bool):
@@ -86,17 +87,27 @@ def get_or_add_patent(session, patent, software_patent: bool):
     patent_details = None
 
     if software_patent:
-        basic_data = patent.findall("DADOS-BASICOS-DO-SOFTWARE")[0]
-        patent_details = patent.findall("DETALHAMENTO-DO-SOFTWARE/REGISTRO-OU-PATENTE")[0]
+        basic_data = patent.findall("DADOS-BASICOS-DO-SOFTWARE")
+        patent_details = patent.findall("DETALHAMENTO-DO-SOFTWARE/REGISTRO-OU-PATENTE")
     else:
-        basic_data = patent.findall("DADOS-BASICOS-DA-PATENTE")[0]
-        patent_details = patent.findall("DETALHAMENTO-DA-PATENTE/REGISTRO-OU-PATENTE")[0]
+        basic_data = patent.findall("DADOS-BASICOS-DA-PATENTE")
+        patent_details = patent.findall("DETALHAMENTO-DA-PATENTE/REGISTRO-OU-PATENTE")
 
-    number = patent_details.get("CODIGO-DO-REGISTRO-OU-PATENTE")
+    if len(basic_data) == 0: return None
+    basic_data = basic_data[0]
+    patent_details = patent_details[0] if len(patent_details) > 0 else None
+
+    number = str(uuid.uuid4())
+    title = local_of_registry = None
+    if patent_details is not None:
+        number = patent_details.get("CODIGO-DO-REGISTRO-OU-PATENTE")
+        title = patent_details.get("TITULO-PATENTE")
+        local_of_registry = patent_details.get("INSTITUICAO-DEPOSITO-REGISTRO")
 
     patent_list = session.query(Patent).filter(Patent.number == number).all()
 
-    if len(patent_list) > 0: return patent_list[0].id
+    if len(patent_list) > 0:
+        return patent_list[0].id
 
     year = None
     type = None
@@ -106,8 +117,6 @@ def get_or_add_patent(session, patent, software_patent: bool):
     else:
         year = basic_data.get("ANO-DESENVOLVIMENTO")
         type = PatentType.PATENT
-    title = patent_details.get("TITULO-PATENTE")
-    local_of_registry = patent_details.get("INSTITUICAO-DEPOSITO-REGISTRO")
 
     authors = ""
     for author in patent.findall("AUTORES"):

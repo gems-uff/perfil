@@ -1,10 +1,11 @@
 from sqlalchemy import or_, not_, and_
-from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, journals_qualis, \
-    journals_synonyms, journals_minimum_similarity, jcr
-from database.paper import JournalPaper, ConferencePaper, Paper
+from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
+    conferences_papers_title_minimum_similarity, journals_qualis, journals_synonyms, journals_minimum_similarity, \
+    journals_papers_title_minimum_similarity, jcr
+from database.paper import JournalPaper, ConferencePaper, Paper, PaperNature
 from database.researcher import Researcher
 from database.venue import Conference, Journal, QualisLevel
-from utils.similarity_manager import detect_similar
+from utils.similarity_manager import detect_similar, get_similarity
 
 
 def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
@@ -110,13 +111,19 @@ def add_journal_papers(session, tree, researcher_id, journals_similarity_dict):
     for paper_venueid in papers_and_venue_id:
         paper = paper_venueid[0]
         venue_id = paper_venueid[1]
-        if len(session.query(JournalPaper).filter(JournalPaper.title == paper.title, or_(JournalPaper.doi == paper.doi,
-                                                                                         JournalPaper.doi is None)).all()) == 0:
-            new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year,
-                                             first_page=paper.first_page,
-                                             last_page=paper.last_page, authors=paper.authors, venue=venue_id)
+        journal_paper_in_db = session.query(JournalPaper).filter(
+            and_(JournalPaper.title == paper.title, JournalPaper.nature == paper.nature, JournalPaper.venue == venue_id),
+            or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None)).all()
+
+        if len(journal_paper_in_db) == 0:
+            new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
+                                             first_page=paper.first_page, last_page=paper.last_page,
+                                             authors=paper.authors, venue=venue_id)
             session.flush()
             new_journal_paper.researchers.append(researcher)
+        else:
+            for journal_paper in journal_paper_in_db:
+                if researcher.name not in journal_paper.authors: journal_paper.researchers.append(researcher)
 
 
 def add_conference_papers(session, tree, researcher_id, conferences_similarity_dict):
@@ -131,14 +138,21 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
     for paper_id in papers_and_venue_id:
         paper = paper_id[0]
         venue_id = paper_id[1]
-        if len(session.query(ConferencePaper).filter(ConferencePaper.title == paper.title,
-                                                     or_(ConferencePaper.doi == paper.doi,
-                                                         ConferencePaper.doi is None)).all()) == 0:
-            new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, year=paper.year,
-                                                   first_page=paper.first_page,
+
+        conference_paper_in_db = session.query(ConferencePaper).filter(
+            and_(ConferencePaper.title == paper.title, ConferencePaper.nature == paper.nature,
+                 ConferencePaper.venue == venue_id),
+            or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None)).all()
+
+        if len(conference_paper_in_db) == 0:
+            new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
+                                                   year=paper.year, first_page=paper.first_page,
                                                    last_page=paper.last_page, authors=paper.authors, venue=venue_id)
             session.flush()
             new_conference_paper.researchers.append(researcher)
+        else:
+            for conference_paper in conference_paper_in_db:
+                if researcher.name not in conference_paper.authors: conference_paper.researchers.append(researcher)
 
 
 def get_papers(element_list, basic_data_attribute, details_attribute, title_attribute, year_attribute, session,
@@ -152,6 +166,7 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
 
         title = basic_data.get(title_attribute)
         doi = basic_data.get("DOI") if basic_data.get("DOI") != "" else None
+        nature = nature_switch(basic_data.get("NATUREZA"))
 
         year = basic_data.get(year_attribute)
         first_page = paper_details.get("PAGINA-INICIAL")
@@ -164,10 +179,21 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
         authors = authors[:-1]
 
         papers.append([
-            Paper(title=title, doi=doi, year=year, first_page=first_page, last_page=last_page, authors=authors),
-            venue_id])
+            Paper(title=title, doi=doi, nature=nature, year=year, first_page=first_page, last_page=last_page,
+                  authors=authors), venue_id])
 
     return papers
+
+
+def nature_switch(basic_data_nature):
+    nature = {
+        "COMPLETO": PaperNature.COMPLETE,
+        "RESUMO": PaperNature.ABSTRACT,
+        "RESUMO_EXPANDIDO": PaperNature.EXPANDED_ABSTRACT
+    }
+
+    if basic_data_nature in nature: return nature[basic_data_nature]
+    return None
 
 
 def get_or_add_paper_venue_id(session, details_attribute, paper_details, similarity_dict):
@@ -189,11 +215,24 @@ def add_coauthor_papers(session):
     for relation in coauthors_and_conference_papers:
         researcher = relation[0]
         paper = relation[1]
-        if paper not in researcher.conference_papers: researcher.conference_papers.append(paper)
+        add_papers_different_titles(paper, researcher.conference_papers, conferences_papers_title_minimum_similarity)
 
     coauthors_and_journal_papers = session.query(Researcher, JournalPaper).filter(
         JournalPaper.authors.contains(Researcher.name)).all()
     for relation in coauthors_and_journal_papers:
         researcher = relation[0]
         paper = relation[1]
-        if paper not in researcher.journal_papers: researcher.journal_papers.append(paper)
+        add_papers_different_titles(paper, researcher.journal_papers, journals_papers_title_minimum_similarity)
+
+
+def add_papers_different_titles(paper, papers_list, title_minimum_similarity):
+    """For each paper in the researcher's paper list, checks if it's the same by doing the lcs with the titles
+    and adds it if the list doesn't have the paper"""
+    already_added = False
+    for researcher_paper in papers_list:
+        if get_similarity(paper.title.lower(),
+                          researcher_paper.title.lower()) >= title_minimum_similarity:
+            already_added = True
+            break
+    if not already_added: papers_list.append(paper)
+

@@ -8,7 +8,7 @@ from database.populate.researcher_and_project import *
 from database.populate.titles_support import add_researcher_advisements, add_researcher_committee, ResearcherAdvisement, \
     ResearcherCommittee, AdvisementsTypes, CommitteeTypes
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers, Journal, \
-    Conference, JournalPaper, ConferencePaper, QualisLevel
+    Conference, JournalPaper, ConferencePaper, QualisLevel, PaperNature
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -54,6 +54,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(journal_paper_one.title, "A Caminho da Manutenção de Software Baseada em Componentes via "
                                                   "Técnicas de Gerência de Configuração de Software")
         self.assertEqual(journal_paper_one.doi, None)
+        self.assertEqual(journal_paper_one.nature, PaperNature.COMPLETE)
         self.assertEqual(journal_paper_one.year, 2005)
         self.assertEqual(journal_paper_one.first_page, 45)
         self.assertEqual(journal_paper_one.last_page, 62)
@@ -64,6 +65,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(journal_paper_two.researchers[0].id, 1)
         self.assertEqual(journal_paper_two.title, "Odyssey-SCM: An Integrated Software Configuration Management "
                                                   "Infrastructure for UML models")
+        self.assertEqual(journal_paper_two.nature, PaperNature.COMPLETE)
         self.assertEqual(journal_paper_two.doi, "10.1016/j.scico.2006.05.011")
         self.assertEqual(journal_paper_two.year, 2007)
         self.assertEqual(journal_paper_two.first_page, 249)
@@ -100,6 +102,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(conference_paper_one.title, "Charon: Uma Máquina de Processos Extensível Baseada em Agentes "
                                                      "Inteligentes")
         self.assertEqual(conference_paper_one.doi, "DOITESTE")
+        self.assertEqual(conference_paper_one.nature, PaperNature.EXPANDED_ABSTRACT)
         self.assertEqual(conference_paper_one.year, 2002)
         self.assertEqual(conference_paper_one.first_page, 236)
         self.assertEqual(conference_paper_one.last_page, 247)
@@ -109,6 +112,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(conference_paper_two.researchers[0].id, 1)
         self.assertEqual(conference_paper_two.title, "LockED: Uma Abordagem para o Controle de "
                                                      "Alterações de Artefatos de Software")
+        self.assertEqual(conference_paper_two.nature, PaperNature.ABSTRACT)
         self.assertEqual(conference_paper_two.doi, None)
         self.assertEqual(conference_paper_two.year, 2001)
         self.assertEqual(conference_paper_two.first_page, 348)
