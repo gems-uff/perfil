@@ -1,8 +1,9 @@
 import openpyxl
 import os
 import populate
+import sys
 from sqlalchemy import and_
-from config import full_professorship_advancement_output_dir, start_year, end_year
+from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year
 from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
 from database.titles_support import CommitteeTypes
 
@@ -137,21 +138,24 @@ def write_xlsx_files(researchers_to_write, session):
     for i in range(len(researchers_to_write)):
         wb = openpyxl.Workbook()
         write_researcher_xlsx(researchers_to_write[i], session, wb)
-        wb.save(full_professorship_advancement_output_dir + os.sep + researchers_to_write[i].name+".xlsx")
+        wb.save(generate_reseacher_paper_and_title_info_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
 
 
-def researchers_selection(researchers):
+def researchers_selection(researchers, arg):
     """Makes the user select a researcher to write the .xlsx file from. Or all of them"""
-    print("Type the number of the researcher you wish to generate the .xlsx file for")
-    i = 0
-    for i in range(len(researchers)):
-        print(i, " - ", researchers[i].name)
-    print(i+1, " - All of them")
+    researcher_index = arg
 
-    researcher_index = input()
+    if researcher_index is None:
+        print("Type the number of the researcher you wish to generate the .xlsx file for")
+        i = 0
+        for i in range(len(researchers)):
+            print(i, " - ", researchers[i].name)
+        print(i+1, " - All of them")
 
-    while (not researcher_index.isdigit()) or (int(researcher_index) > len(researchers)):
-        researcher_index = input("Type a number between 0 and {}".format(i+1))
+        researcher_index = input()
+
+        while (not researcher_index.isdigit()) or (int(researcher_index) > len(researchers)):
+            researcher_index = input("Type a number between 0 and {}".format(i+1))
 
     if int(researcher_index) >= len(researchers): return researchers
 
@@ -159,10 +163,12 @@ def researchers_selection(researchers):
 
 
 def main():
+    arg = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else None
+
     session = populate.main()
     researchers = session.query(Researcher).all()
 
-    researchers_to_write = researchers_selection(researchers)
+    researchers_to_write = researchers_selection(researchers, arg)
     write_xlsx_files(researchers_to_write, session)
 
 
