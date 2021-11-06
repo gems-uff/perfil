@@ -2,10 +2,15 @@ import openpyxl
 import os
 import populate
 import sys
+import argparse
 from sqlalchemy import and_
 from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year
 from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
 from database.titles_support import CommitteeTypes
+
+
+def researchers_from_args(researcher, arg_id_list):
+    return (researcher.id in arg_id_list) or (researcher.lattes_id in arg_id_list)
 
 
 def correct_year(paper_or_support):
@@ -141,34 +146,46 @@ def write_xlsx_files(researchers_to_write, session):
         wb.save(generate_reseacher_paper_and_title_info_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
 
 
-def researchers_selection(researchers, arg):
+def researchers_selection(researchers, args):
     """Makes the user select a researcher to write the .xlsx file from. Or all of them"""
-    researcher_index = arg
+    researcher_index = args
 
     if researcher_index is None:
         print("Type the number of the researcher you wish to generate the .xlsx file for")
-        i = 0
-        for i in range(len(researchers)):
-            print(i, " - ", researchers[i].name)
+        i = 1
+        for i in range(1, len(researchers)+1):
+            print(i, " - ", researchers[i-1].name)
         print(i+1, " - All of them")
 
         researcher_index = input()
 
-        while (not researcher_index.isdigit()) or (int(researcher_index) > len(researchers)):
+        while (not researcher_index.isdigit()) or (int(researcher_index) > len(researchers)+1):
             researcher_index = input("Type a number between 0 and {}".format(i+1))
 
-    if int(researcher_index) >= len(researchers): return researchers
+        researcher_index = int(researcher_index) - 1
 
-    return [researchers[int(researcher_index)]]
+    elif isinstance(researcher_index, list): return list(filter(lambda x: researchers_from_args(x, researcher_index), researchers))
+
+    if researcher_index >= len(researchers): return researchers
+
+    return [researchers[researcher_index]]
 
 
 def main():
-    arg = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else None
+    parser = argparse.ArgumentParser(description="Researchers to generate .xlsx file")
+    parser.add_argument("-r", "--researchers", nargs='+')
+    parser.add_argument("-a", "--all", action="store_true")
+
+    researchers_arg = parser.parse_args().researchers
+    if researchers_arg is not None:
+        for i in range(len(researchers_arg)):
+            if researchers_arg[i].isdigit(): researchers_arg[i] = int(researchers_arg[i])
 
     session = populate.main()
     researchers = session.query(Researcher).all()
 
-    researchers_to_write = researchers_selection(researchers, arg)
+    args = len(researchers) if parser.parse_args().all else researchers_arg
+    researchers_to_write = researchers_selection(researchers, args)
     write_xlsx_files(researchers_to_write, session)
 
 

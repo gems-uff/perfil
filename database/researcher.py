@@ -11,6 +11,7 @@ class Researcher(Base):
     phd_college = Column(String)
     phd_defense_year = Column(Integer)
     google_scholar_id = Column(String)
+    lattes_id = Column(Integer)
 
     def __repr__(self):
         return str(self.__dict__)

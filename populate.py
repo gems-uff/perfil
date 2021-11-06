@@ -20,13 +20,13 @@ conferences_similarity_dict = None
 journals_similarity_dict = None
 
 
-def lattes(id, session, google_scholar_id):
+def lattes(lattes_id, session, google_scholar_id):
     """Populates the database with the lattes info"""
-    with ZipFile(lattes_dir + os.sep + str(id) + '.zip') as zip:
+    with ZipFile(lattes_dir + os.sep + str(lattes_id) + '.zip') as zip:
         with zip.open('curriculo.xml') as file:
             tree = etree.parse(file)
 
-            researcher_id = add_researcher(session, tree, google_scholar_id)
+            researcher_id = add_researcher(session, tree, google_scholar_id, lattes_id)
             add_conference_papers(session, tree, researcher_id, conferences_similarity_dict)
             add_journal_papers(session, tree, researcher_id, journals_similarity_dict)
             add_projects(session, tree)

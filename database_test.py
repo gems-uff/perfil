@@ -17,6 +17,7 @@ class DatabaseTestCase(unittest.TestCase):
     tree = None
     google_scholar_id = "VEbJeB8AAAAJ"
     researcher_id = 1
+    lattes_id = 1565296529736448
 
     @classmethod
     def setUpClass(cls):
@@ -30,7 +31,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test01AddResearcher(self):
         """Adds the researcher which will be used in most of the tests"""
-        researcher_id = add_researcher(self.session, self.tree, self.google_scholar_id)
+        researcher_id = add_researcher(self.session, self.tree, self.google_scholar_id, self.lattes_id)
         researcher_database = self.session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
         self.assertEqual(researcher_database.name, "Leonardo Gresta Paulino Murta")

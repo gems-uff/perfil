@@ -2,7 +2,7 @@ from sqlalchemy import or_
 from database.database_manager import Researcher, Project, ResearcherProject
 
 
-def add_researcher(session, tree, google_scholar_id):
+def add_researcher(session, tree, google_scholar_id, lattes_id):
     """Populates the Researcher table"""
     name = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO")[0]
     last_lattes_update = tree.xpath("/CURRICULO-VITAE/@DATA-ATUALIZACAO")[0]
@@ -12,8 +12,8 @@ def add_researcher(session, tree, google_scholar_id):
     google_scholar_id = google_scholar_id
 
     new_researcher = Researcher(name=name, last_lattes_update=last_lattes_update, phd_college=phd_college,
-                                phd_defense_year=phd_defense_year,
-                                google_scholar_id=google_scholar_id)
+                                phd_defense_year=phd_defense_year, google_scholar_id=google_scholar_id,
+                                lattes_id=lattes_id)
     session.add(new_researcher)
     session.flush()
     return new_researcher.id
