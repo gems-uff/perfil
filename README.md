@@ -49,7 +49,7 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 7. Se ainda houver mais currículos lattes para baixar, o programa irá repetir o passo 6, faça-o até não haver mais arquivos para atualizar.
 
-8. Use populate.py para que as demais colunas do arquivo que contém os pesquisadores (e.g. pgc.xlsx) sejam populadas usando os dados atuais do Lattes e Google Scholar.
+8. populate.py popula o banco de dados, in-memory, usando os lattes dos pesquisadores que estão no arquivo de pesquisadores (passo 3 acima). (Atualmente usa o arquivo [de testes](/resources/teste.xlsx))
 
 `~/perfil$ python populate.py`
 
@@ -58,6 +58,12 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 10. Use visualize.py para gerar as boxplots.
 
 `~/perfil$ python visualize.py`
+
+11. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py.
+    1. `~/perfil$ python generate_reseacher_paper_and_title_info.py` exibe uma linha de comando interativa para o usuário escolher **um** pesquisador para gerar o arquivo ou gerar os arquivos para **todos** os pesquisadores.
+    2. `~/perfil$ python generate_reseacher_paper_and_title_info.py --all` gera os arquivos de todos os pesquisadores sem precisar de interação com a linha de comando.
+    3. `~/perfil$ python generate_reseacher_paper_and_title_info.py --researchers (researcher.id|researcher.lattes_id) +` substitua "(researcher.id|researcher.lattes_id) +" por um ou mais id do banco de dados ou id do lattes dos pesquisadores para gerar apenas os arquivos deles sem precisar de interação com a linha de comando. O id do banco de dados é o mesmo que a ordem no arquivo de pesquisadores.
+
 ## Execução dos testes:
 
 1. Entre no diretório do projeto:
