@@ -35,14 +35,16 @@ df_qualis_journals = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-journa
 journals_qualis = dict(zip(df_qualis_journals.title, df_qualis_journals.qualis))
 
 # Minimum similarities
-conferences_minimum_similarity = 0.5
-journals_minimum_similarity = 0.5
+conferences_minimum_similarity = 0.8
+journals_minimum_similarity = 0.8
 conferences_papers_title_minimum_similarity = 0.9
 journals_papers_title_minimum_similarity = 0.9
+project_name_minimum_similarity = 0.6
 
 # The file with conferences' synonyms
 conferences_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'conferences_synonyms.xlsx')
 journals_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'journals_synonyms.xlsx')
+projects_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'projects_synonyms.xlsx')
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 lattes_dir = os.getcwd() + os.sep + 'lattes'

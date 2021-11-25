@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String,Table, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Table, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from database.base import Base
 
@@ -45,6 +45,7 @@ class JournalPaper(Paper):
 
     id = Column(Integer, ForeignKey("paper.id"), primary_key=True)
     venue = Column(Integer, ForeignKey("journal.id"))
+    accepted = Column(Boolean, default=False)
     researchers = relationship("Researcher", secondary=journal_association_table, backref="journal_papers")
 
     __mapper_args__ = {

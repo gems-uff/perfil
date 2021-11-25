@@ -1,5 +1,7 @@
 from sqlalchemy import or_
 from database.database_manager import Researcher, Project, ResearcherProject
+from config import project_name_minimum_similarity, projects_synonyms
+from utils.similarity_manager import detect_similar
 
 
 def add_researcher(session, tree, google_scholar_id, lattes_id):
@@ -19,14 +21,36 @@ def add_researcher(session, tree, google_scholar_id, lattes_id):
     return new_researcher.id
 
 
-def add_projects(session, tree):
+def check_if_project_is_in_the_database(session, project_name, similarity_dict):
+    """Checks if a project is already in the database by looking at it's name or it's name's synonym. If any isn't found,
+    checks if there is already a project with similar name in the database"""
+    # checks if the exact project name is already on the database
+    if len(session.query(Project).filter(Project.name == project_name).all()) > 0: return True
+
+    if project_name in projects_synonyms:
+        if len(session.query(Project).filter(Project.name == projects_synonyms[project_name]).all()) > 0: return True
+        return False
+
+    if project_name in similarity_dict: return True
+
+    projects_database_names = [project_in_bd.name for project_in_bd in session.query(Project.name)]
+
+    similar_text_in_db = detect_similar(project_name, projects_database_names, project_name_minimum_similarity, similarity_dict)
+    if similar_text_in_db is not None: return True
+
+    return False
+
+
+def add_projects(session, tree, similarity_dict):
     """Populates the Project table"""
     projects = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE"
                           "-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA")
 
     for project in projects:
         name = project.get("NOME-DO-PROJETO")
-        if len(session.query(Project).filter(Project.name == name).all()) == 0:
+        project_already_in_the_database = check_if_project_is_in_the_database(session, name, similarity_dict)
+
+        if not project_already_in_the_database:
             start_year = project.get("ANO-INICIO")
             end_year = project.get("ANO-FIM")
             team = ""

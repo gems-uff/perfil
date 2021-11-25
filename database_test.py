@@ -77,7 +77,7 @@ class DatabaseTestCase(unittest.TestCase):
 
         # Journal - Venue
         # one
-        self.assertEqual(journal_one.name, "Revista Tecnologia da Informação")  # to change
+        self.assertEqual(journal_one.name, "Revista Tecnologia da Informação")
         self.assertEqual(journal_one.qualis, None)
         self.assertEqual(journal_one.issn, "1516-9197")
         self.assertEqual(journal_one.jcr, 0)
@@ -139,7 +139,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test04AddProject(self):
         """Adds all the projects on the .xml file and checks if the information is correct"""
-        add_projects(self.session, self.tree)
+        add_projects(self.session, self.tree, similarity_dict=dict())
         projects_database = self.session.query(Project).all()
 
         project_one, project_two = projects_database[0], projects_database[1]

@@ -3,13 +3,13 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy_schemadisplay import create_schema_graph
 
 from database.base import Base
-from database.venue import Venue, Conference, Journal
-from database.titles_support import ResearcherAdvisement, ResearcherCommittee
-from database.project import Project, ResearcherProject
-from database.researcher import Researcher, Affiliation
-from database.paper import Paper, JournalPaper, ConferencePaper, journal_association_table, conference_association_table
-from database.book import Book, PublishedBook, PublishedBookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
-from database.other_works import Patent, ResearcherEditorialBoard, ResearcherConferenceManagement, ResearcherPatent
+from database.entities.venue import Venue, Conference, Journal
+from database.entities.titles_support import ResearcherAdvisement, ResearcherCommittee
+from database.entities.project import Project, ResearcherProject
+from database.entities.researcher import Researcher, Affiliation
+from database.entities.paper import Paper, JournalPaper, ConferencePaper, journal_association_table, conference_association_table
+from database.entities.book import Book, PublishedBook, PublishedBookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
+from database.entities.other_works import Patent, ResearcherEditorialBoard, ResearcherConferenceManagement, ResearcherPatent
 
 
 def start_database(sqlite: bool):

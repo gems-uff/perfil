@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import and_
 from utils.log import log_primary_key_error
-from database.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
+from database.entities.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
     ResearcherPatent, Patent, PatentType
 
 

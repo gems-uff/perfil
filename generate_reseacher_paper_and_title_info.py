@@ -1,22 +1,19 @@
 import openpyxl
 import os
-import populate
+import populate_database
 import sys
 import argparse
+import pandas as pd
 from sqlalchemy import and_
-from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year
+from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year, researchers_file
 from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
-from database.titles_support import CommitteeTypes
+from database.entities.titles_support import CommitteeTypes
+from utils.list_filters import scope_years_paper_or_support, published_journal_paper
 
 
 def researchers_from_args(researcher, arg_id_list):
+    """Filter function to get the researchers ids or their  lattes_ids from the arguments"""
     return (researcher.id in arg_id_list) or (researcher.lattes_id in arg_id_list)
-
-
-def correct_year(paper_or_support):
-    """filter function to get only database objects within the years specified"""
-    if start_year <= paper_or_support.year <= end_year: return True
-    return False
 
 
 def calculate_number_of_pages(paper):
@@ -28,7 +25,8 @@ def calculate_number_of_pages(paper):
 
 def write_journal_papers(researcher, session, workbook):
     """Writes a sheet with information about the researcher journal papers"""
-    journal_papers = list(filter(correct_year, researcher.journal_papers))
+    journal_papers = list(filter(scope_years_paper_or_support, researcher.journal_papers))
+    journal_papers = list(filter(published_journal_paper, journal_papers))
 
     worksheet = workbook.active
     worksheet.title = "Publicações em periódico"
@@ -60,7 +58,7 @@ def write_journal_papers(researcher, session, workbook):
 
 def write_conference_papers(researcher, session, workbook):
     """Writes a sheet with information about the researcher conference papers"""
-    conference_papers = list(filter(correct_year, researcher.conference_papers))
+    conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
 
     worksheet = workbook.create_sheet("Publicações em conferência")
 
@@ -89,7 +87,7 @@ def write_conference_papers(researcher, session, workbook):
 
 def write_researcher_advisements(researcher, session, workbook):
     """Writes a sheet with information about the researcher advisements"""
-    researcher_advisements = list(filter(correct_year, session.query(ResearcherAdvisement).filter(
+    researcher_advisements = list(filter(scope_years_paper_or_support, session.query(ResearcherAdvisement).filter(
         ResearcherAdvisement.researcher_id == researcher.id).all()))
 
     worksheet = workbook.create_sheet("Orientações")
@@ -108,7 +106,7 @@ def write_researcher_advisements(researcher, session, workbook):
 
 def write_researcher_committee(researcher, session, workbook):
     """Writes a sheet with information about the researcher participation in committees"""
-    researcher_committee = list(filter(correct_year, session.query(ResearcherCommittee).filter(
+    researcher_committee = list(filter(scope_years_paper_or_support, session.query(ResearcherCommittee).filter(
         ResearcherCommittee.researcher_id == researcher.id).all()))
 
     worksheet = workbook.create_sheet("Participações em banca")
@@ -140,10 +138,12 @@ def write_researcher_xlsx(researcher, session, workbook):
 
 def write_xlsx_files(researchers_to_write, session):
     """Writes and saves .xlsx files from a researcher list"""
+    print("\nGenerating", len(researchers_to_write), "file(s)\n")
     for i in range(len(researchers_to_write)):
         wb = openpyxl.Workbook()
         write_researcher_xlsx(researchers_to_write[i], session, wb)
         wb.save(generate_reseacher_paper_and_title_info_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
+    print("Finished generating the file(s)")
 
 
 def researchers_selection(researchers, args):
@@ -171,17 +171,30 @@ def researchers_selection(researchers, args):
     return [researchers[researcher_index]]
 
 
+def print_researchers_ids():
+    """Prints the ids which the researchers are going to have on the console"""
+    df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
+    for i, row in df.iterrows():
+        researcher = row.to_dict()
+        if not pd.isnull(researcher['ID Lattes']):
+            print("Name:", researcher['Nome'], "/ ID Lattes:", researcher['ID Lattes'], "/ ID database:", str(i+1))
+    exit()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Researchers to generate .xlsx file")
     parser.add_argument("-r", "--researchers", nargs='+')
     parser.add_argument("-a", "--all", action="store_true")
+    parser.add_argument("-i", "--ids", action="store_true")
+
+    if parser.parse_args().ids: print_researchers_ids()
 
     researchers_arg = parser.parse_args().researchers
     if researchers_arg is not None:
         for i in range(len(researchers_arg)):
             if researchers_arg[i].isdigit(): researchers_arg[i] = int(researchers_arg[i])
 
-    session = populate.main()
+    session = populate_database.main()
     researchers = session.query(Researcher).all()
 
     args = len(researchers) if parser.parse_args().all else researchers_arg

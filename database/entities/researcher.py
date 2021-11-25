@@ -9,7 +9,7 @@ class Researcher(Base):
     name = Column(String)
     last_lattes_update = Column(String)
     phd_college = Column(String)
-    phd_defense_year = Column(Integer)
+    phd_defense_year = Column(Integer, default=0)
     google_scholar_id = Column(String)
     lattes_id = Column(Integer)
 

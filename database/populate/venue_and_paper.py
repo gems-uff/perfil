@@ -2,14 +2,14 @@ from sqlalchemy import or_, not_, and_
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
     conferences_papers_title_minimum_similarity, journals_qualis, journals_synonyms, journals_minimum_similarity, \
     journals_papers_title_minimum_similarity, jcr
-from database.paper import JournalPaper, ConferencePaper, Paper, PaperNature
-from database.researcher import Researcher
-from database.venue import Conference, Journal, QualisLevel
+from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperNature
+from database.entities.researcher import Researcher
+from database.entities.venue import Conference, Journal, QualisLevel
 from utils.similarity_manager import detect_similar, get_similarity
 
 
 def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
-    """Gets the qualis value of a conference or journal from the xlsx file"""
+    """Gets the qualis value of a conference or journal from the xlsx qualis file"""
     qualis_dictionary = synonyms_dictionary = minimum_similarity = None
     if is_conference:
         qualis_dictionary = conferences_qualis
@@ -21,22 +21,16 @@ def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool)
         minimum_similarity = journals_minimum_similarity
 
     # direct match
-    if venue_name in qualis_dictionary:
-        return qualis_dictionary[venue_name]
+    if venue_name in qualis_dictionary: return qualis_dictionary[venue_name]
 
     # if direct match fails, try to match using the synonyms file
-    for venue_key in synonyms_dictionary:
-        if venue_name in synonyms_dictionary[venue_key] and venue_key in qualis_dictionary:
-            return qualis_dictionary[venue_key]
+    if (venue_name in synonyms_dictionary) and (synonyms_dictionary[venue_name] in qualis_dictionary): return qualis_dictionary[synonyms_dictionary[venue_name]]
 
     # already matched similar texts
-    for venue_key in similarity_dict:
-        if len(similarity_dict[venue_key]) > 0 and venue_name in similarity_dict[venue_key] \
-                and venue_key in qualis_dictionary:
-            return qualis_dictionary[venue_key]
+    if (venue_name in similarity_dict) and (similarity_dict[venue_name] in qualis_dictionary): return qualis_dictionary[venue_key]
 
     # lcs
-    lcs = detect_similar(venue_name, similarity_dict, minimum_similarity)
+    lcs = detect_similar(venue_name, qualis_dictionary, minimum_similarity, similarity_dict)
     if lcs is not None and lcs in qualis_dictionary: return qualis_dictionary[lcs]
 
     return None
@@ -100,8 +94,16 @@ def qualis_switch(qualis_value):
 
 
 def add_journal_papers(session, tree, researcher_id, journals_similarity_dict):
+    """Adds both published journal papers and accepted ones"""
+    add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, True)
+    add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, False)
+
+
+def add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, published):
     """Populates the JournalPaper table"""
-    papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO")
+    papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO") \
+        if published else tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-ACEITOS-PARA-PUBLICACAO/ARTIGO-ACEITO-PARA-PUBLICACAO")
+
     papers_and_venue_id = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-ARTIGO",
                                      details_attribute="DETALHAMENTO-DO-ARTIGO", title_attribute="TITULO-DO-ARTIGO",
                                      year_attribute="ANO-DO-ARTIGO", session=session,
@@ -116,9 +118,10 @@ def add_journal_papers(session, tree, researcher_id, journals_similarity_dict):
             or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None)).all()
 
         if len(journal_paper_in_db) == 0:
+            accepted = not published
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
                                              first_page=paper.first_page, last_page=paper.last_page,
-                                             authors=paper.authors, venue=venue_id)
+                                             authors=paper.authors, venue=venue_id, accepted=accepted)
             session.flush()
             new_journal_paper.researchers.append(researcher)
         else:

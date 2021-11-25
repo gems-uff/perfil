@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 from sqlalchemy import or_, not_, and_
-from database.titles_support import ResearcherAdvisement, AdvisementsTypes, CommitteeTypes, ResearcherCommittee
+from database.entities.titles_support import ResearcherAdvisement, AdvisementsTypes, CommitteeTypes, ResearcherCommittee
 from utils.log import log_primary_key_error
 
 

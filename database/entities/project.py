@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from database.base import Base
-from database.researcher import Researcher
+from database.entities.researcher import Researcher
 
 
 class Project(Base):

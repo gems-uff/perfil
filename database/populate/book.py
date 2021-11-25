@@ -1,4 +1,4 @@
-from database.book import PublishedBook, ResearcherPublishedBook, PublishedBookChapter, ResearcherPublishedBookChapter
+from database.entities.book import PublishedBook, ResearcherPublishedBook, PublishedBookChapter, ResearcherPublishedBookChapter
 
 
 def get_or_add_book_id(session, basic_data, details, book_authors):
