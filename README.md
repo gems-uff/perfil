@@ -39,30 +39,39 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 **CUIDADO** ao colar o ID Lattes. Garanta que o ID do Lattes seja colado como texto, pois caso seja colado como número o Excel irá arredondar o valor e os IDs se tornarão inválidos, ou corresponderão ao ID do Lattes de um pesquisador diferente. 
 
-4. Atualize o horizonte de coleta (variáveis start_year e end_year) e indique o arquivo que contém os pesquisadores (e.g., pgc.xlsx) em config.py. 
+4. Atualize o horizonte de coleta (variáveis start_year e end_year) e indique o caminho do arquivo que contém os pesquisadores (e.g., pgc.xlsx) em config.py.
 
-5. Use download.py para baixar os currículos Lattes. Isso pode ser um pouco demorado (30 segundos por CV), mas não precisa ser feito sempre. Faça somente quando houver atualização dos currículos no horizonte de análise.
+5. Indique o valor de similaridade mínima para os nomes de conferências(variável conferences_minimum_similarity), nomes de periódicos(variável journals_minimum_similarity), títulos de publicações em conferências(variável conferences_papers_title_minimum_similarity), títulos de publicações em periódicos(variável journals_papers_title_minimum_similarity) e nomes de projetos(variável project_name_minimum_similarity) em config.py.
+
+6. Use download.py para baixar os currículos Lattes. Isso pode ser um pouco demorado (30 segundos por CV), mas não precisa ser feito sempre. Faça somente quando houver atualização dos currículos no horizonte de análise.
 
 `~/perfil$ python download.py`
 
-6. O programa abrirá uma nova guia com o link de download do currículo lattes no seu navegador principal, confirme o captcha e o download será feito. Após o download ser concluído, mova o .zip baixado para a pasta "lattes".
+7. O programa abrirá uma nova guia com o link de download do currículo lattes no seu navegador principal, confirme o captcha e o download será feito. Após o download ser concluído, mova o .zip baixado para a pasta "lattes".
 
-7. Se ainda houver mais currículos lattes para baixar, o programa irá repetir o passo 6, faça-o até não haver mais arquivos para atualizar.
+8. Se ainda houver mais currículos lattes para baixar, o programa irá repetir o passo 7, faça-o até não haver mais arquivos para atualizar.
 
-8. populate.py popula o banco de dados, in-memory, usando os lattes dos pesquisadores que estão no arquivo de pesquisadores (passo 3 acima). (Atualmente usa o arquivo [de testes](/resources/teste.xlsx))
+9. populate_database.py popula o banco de dados, in-memory, usando os lattes dos pesquisadores que estão no arquivo de pesquisadores (passo 3 acima) e gera os arquivos de similares na pasta "output/similarity_xlsx".
 
-`~/perfil$ python populate.py`
+`~/perfil$ python populate_database.py`
 
-9. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 3 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 3 acima). 
+10. Caso queira, edite os arquivos de [sinônimos](/resources/synonyms) com a saída obtida nos arquivos de similares.
 
-10. Use visualize.py para gerar as boxplots.
+11. Use write_profile.py para que as demais colunas do arquivo que contém os pesquisadores (e.g. pgc.xlsx) sejam populadas usando os dados atuais do Lattes e Google Scholar.
+
+`~/perfil$ python write_profile.py`
+
+12. Caso deseje destacar os resultados de um pesquisador específico, adicione os dados dele no arquivo config.py (variável subject). Os dados desse pesquisador não precisam estar no arquivo que contém os pesquisadores (passo 3 acima). Além disso, o Lattes desse pesquisador deve ser baixado manualmente (o programa só baixa os Lattes dos pesquisadores que estão no arquivo referenciado no passo 3 acima). 
+
+13. Use visualize.py para gerar as boxplots.
 
 `~/perfil$ python visualize.py`
 
-11. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py.
+14. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py. Os arquivos gerados podem ser encontrados na pasta "output/generate_reseacher_paper_and_title_info" com o nome do pesquisador a qual ele pertence.
     1. `~/perfil$ python generate_reseacher_paper_and_title_info.py` exibe uma linha de comando interativa para o usuário escolher **um** pesquisador para gerar o arquivo ou gerar os arquivos para **todos** os pesquisadores.
     2. `~/perfil$ python generate_reseacher_paper_and_title_info.py --all` gera os arquivos de todos os pesquisadores sem precisar de interação com a linha de comando.
     3. `~/perfil$ python generate_reseacher_paper_and_title_info.py --researchers (researcher.id|researcher.lattes_id) +` substitua "(researcher.id|researcher.lattes_id) +" por um ou mais id do banco de dados ou id do lattes dos pesquisadores para gerar apenas os arquivos deles sem precisar de interação com a linha de comando. O id do banco de dados é o mesmo que a ordem no arquivo de pesquisadores.
+    4. `~/perfil$ python generate_reseacher_paper_and_title_info.py --ids` mostra no console os ids que os pesquisadores no arquivo de pesquisadores irão ter no banco de dados.
 
 ## Execução dos testes:
 
@@ -77,3 +86,49 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 3. Chame o comando abaixo para executar os testes:
 
 `~/perfil$ python -m unittest database_test.py -v`
+
+## Função dos scripts executáveis:
+
+### database_test.py
+Script de teste para verificar se os dados do lattes estão sendo coletados e colocados no banco de dados in-memory.
+
+### download.py
+Script para auxiliar o usuário baixar os lattes dos pesquisadores no arquivo de pesquisadores.
+
+### generate_reseacher_paper_and_title_info.py
+Script com a funcionalidade de gerar arquivos .xlsx com informações, dos pesquisadores no arquivo de pesquisadores, que auxiliam na promoção de títulares.
+
+### populate_database.py
+Script que popula o banco de dados in-memory com as informações do lattes dos pesquisadores no arquivo de pesquisadores. Ele também gera os arquivos de nomes similares para conferências, periódicos e projetos.
+
+### visualize.py
+Script que gera as boxplots baseado no arquivo de pesquisadores já preenchido pelo script [write_profile.py](write_profile.py)
+
+### write_profile.py
+Script com a funcionalidade de preencher as informações dos pesquisadores do arquivo de pesquisadores no mesmo. Usa os dados do Lattes e do Google Scholar.
+
+## Váriaveis do arquivo script.py
+
+* **researchers_file** : váriavel com o caminho do arquivo de pesquisadores.
+* **start_year** : ano inicial do horizonte de coleta(inclusive).
+* **end_year** : ano final do horizonte de coleta(inclusive).
+* **subject** : pesquisador a ser destacado quando se gerar as boxplots.
+* **conferences_minimum_similarity** : similaridade mínima entre os nomes de conferência para o software considerar elas as mesmas (valor entre 0 e 1).
+* **journals_minimum_similarity** : similaridade mínima entre os nomes de periódicos para o software considerar eles os mesmos (valor entre 0 e 1).
+* **conferences_papers_title_minimum_similarity** : similaridade mínima entre os títulos de publicações em conferência para o software considerar eles os mesmos (valor entre 0 e 1).
+* **journals_papers_title_minimum_similarity** : similaridade mínima entre os títulos de publicações em periódicos para o software considerar eles os mesmos (valor entre 0 e 1).
+* **project_name_minimum_similarity** : similaridade mínima entre os nomes de projetos para o software considerar eles os mesmos (valor entre 0 e 1).
+
+## Arquivos
+
+### Sinônimos
+Os arquivos de sinônimos se encontram na pasta [/resources/synonyms](/resources/synonyms), sendo eles: conferences_synonyms.xlsx, journals_synonyms.xslx, projects_synonyms.xlsx. Cada linha de cada arquivo representa textos que o software reconhecerá como iguais, sendo que na hora de cadastrar no banco de dados ele usará o nome da primeira coluna.
+
+### Similares
+Os arquivos de similares se encontram na pasta "output/similarity_xlsx", sendo eles: conferences_similar.xlsx, journals_similar.xlsx, projects_similar.xlsx. Eles são gerados de acordo com as taxas mínimas no arquivo [config.py](config.py), cada linha contém os nomes que o programa julgou iguais(maior ou igual a taxa mínima) e a primeira coluna é o nome que ele usou ao cadastrar no banco de dados.
+
+## Logs
+
+### primary_key_warnings.log
+O arquivo exibe possíveis informações duplicadas nos lattes, cada linha foi uma tentativa de inserção no banco a qual já havia uma entrada com a mesma chave primária. No caso de uma chave composta, cada informação é separada por um espaço em branco(" ").
+A cada execução recomenda-se apagar o arquivo, pois ele é incremental.
