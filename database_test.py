@@ -35,7 +35,7 @@ class DatabaseTestCase(unittest.TestCase):
         researcher_database = self.session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
         self.assertEqual(researcher_database.name, "Leonardo Gresta Paulino Murta")
-        self.assertEqual(researcher_database.last_lattes_update, "20012021")
+        self.assertEqual(researcher_database.last_lattes_update, "20/01/2021")
         self.assertEqual(researcher_database.phd_college, "Universidade Federal do Rio de Janeiro")
         self.assertEqual(researcher_database.phd_defense_year, 2006)
         self.assertEqual(researcher_database.google_scholar_id, self.google_scholar_id)
@@ -77,8 +77,9 @@ class DatabaseTestCase(unittest.TestCase):
 
         # Journal - Venue
         # one
+        print(journal_one)
         self.assertEqual(journal_one.name, "Revista Tecnologia da Informação")
-        self.assertEqual(journal_one.qualis, None)
+        self.assertEqual(journal_one.qualis, QualisLevel.C) # with a 0.75 similarity the journal matches with REVISTA TECNOLOGIAS NA EDUCAÇÃO which has a C qualis
         self.assertEqual(journal_one.issn, "1516-9197")
         self.assertEqual(journal_one.jcr, 0)
         # two
