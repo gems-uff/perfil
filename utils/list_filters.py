@@ -1,6 +1,7 @@
 from config import start_year, end_year
-from database.database_manager import Paper, JournalPaper, Journal, ResearcherProject, Project
+from database.database_manager import Paper, JournalPaper, Journal, ResearcherProject, Project, Conference, ConferencePaper
 from database.entities.paper import PaperNature
+from database.entities.venue import QualisLevel
 
 
 def scope_years_paper_or_support(paper_or_support):
@@ -34,3 +35,17 @@ def accepted_journal_paper_jcr(paper: JournalPaper, session, jcr_value):
     """filter accepted papers which have jcr higher than the parameter"""
     return (session.query(Journal.jcr).filter(Journal.id == paper.venue).all()[0][0] > jcr_value) and (paper.accepted is True)
 
+
+def qualis_level_journal(paper: JournalPaper, session, qualis_level: QualisLevel):
+    return session.query(Journal.qualis).filter(Journal.id == paper.venue).all()[0][0] == qualis_level
+
+
+def qualis_level_conference(paper: ConferencePaper, session, qualis_level: QualisLevel):
+    return session.query(Conference.qualis).filter(Conference.id == paper.venue).all()[0][0] == qualis_level
+
+
+def journal_paper(paper):
+    return isinstance(paper, JournalPaper)
+
+def conference_paper(paper):
+    return isinstance(paper, ConferencePaper)

@@ -21,17 +21,17 @@ def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool)
         minimum_similarity = journals_minimum_similarity
 
     # direct match
-    if venue_name in qualis_dictionary: return qualis_dictionary[venue_name]
+    if venue_name in qualis_dictionary: return (qualis_dictionary[venue_name], venue_name)
 
     # if direct match fails, try to match using the synonyms file
-    if (venue_name in synonyms_dictionary) and (synonyms_dictionary[venue_name] in qualis_dictionary): return qualis_dictionary[synonyms_dictionary[venue_name]]
+    if (venue_name in synonyms_dictionary) and (synonyms_dictionary[venue_name] in qualis_dictionary): return (qualis_dictionary[synonyms_dictionary[venue_name]], synonyms_dictionary[venue_name])
 
     # already matched similar texts
-    if (venue_name in similarity_dict) and (similarity_dict[venue_name] in qualis_dictionary): return qualis_dictionary[venue_key]
+    if (venue_name in similarity_dict) and (similarity_dict[venue_name] in qualis_dictionary): return (qualis_dictionary[similarity_dict[venue_name]], similarity_dict[venue_name])
 
     # lcs
     lcs = detect_similar(venue_name, qualis_dictionary, minimum_similarity, similarity_dict)
-    if lcs is not None and lcs in qualis_dictionary: return qualis_dictionary[lcs]
+    if lcs is not None and lcs in qualis_dictionary: return (qualis_dictionary[lcs], lcs)
 
     return None
 
@@ -41,15 +41,19 @@ def get_or_create_conference(session, conference_name, similarity_dict):
     conference_list = session.query(Conference).filter(Conference.name == conference_name).all()
 
     if len(conference_list) == 0:
-        qualis = get_qualis_value_from_xlsx(conference_name, similarity_dict, True)
-        if qualis is not None: qualis = qualis_switch(qualis)
+        qualis_and_forum = get_qualis_value_from_xlsx(conference_name, similarity_dict, True)
+        qualis = None
+        forum_oficial = None
+        if qualis_and_forum is not None:
+            qualis = qualis_switch(qualis_and_forum[0])
+            forum_oficial = qualis_and_forum[1]
         acronym = None
         try:
             acronym = conference_name[conference_name.index("(") + 1:conference_name.index(")")]
         except:
             pass
 
-        conference = Conference(name=conference_name, qualis=qualis, acronym=acronym)
+        conference = Conference(name=conference_name, qualis=qualis, acronym=acronym, forum_oficial=forum_oficial)
         session.add(conference)
         session.flush()
         return conference.id
@@ -65,10 +69,14 @@ def get_or_create_journal(session, journal_details, similarity_dict):
     if len(journal_list) == 0:
         journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA")
         journal_jcr = jcr[journal_issn] if journal_issn in jcr else 0
-        qualis = get_qualis_value_from_xlsx(journal_name, similarity_dict, False)
-        if qualis is not None: qualis = qualis_switch(qualis)
+        qualis_and_forum = get_qualis_value_from_xlsx(journal_name, similarity_dict, False)
+        qualis = None
+        forum_oficial = None
+        if qualis_and_forum is not None:
+            qualis = qualis_switch(qualis_and_forum[0])
+            forum_oficial = qualis_and_forum[1]
 
-        journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis)
+        journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis, forum_oficial=forum_oficial)
         session.add(journal)
         session.flush()
 

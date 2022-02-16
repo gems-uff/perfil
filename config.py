@@ -12,8 +12,8 @@ output_path = os.getcwd() + os.sep + 'output' + os.sep
 researchers_file = resources_path + 'teste.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
-start_year = 2017
-end_year = 2020
+start_year = 2019
+end_year = 2021
 
 # The subject that will be plotted as a red dot in the boxplots.
 subject = {
@@ -35,8 +35,8 @@ df_qualis_journals = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-journa
 journals_qualis = dict(zip(df_qualis_journals.title, df_qualis_journals.qualis))
 
 # Minimum similarities
-conferences_minimum_similarity = 0.8
-journals_minimum_similarity = 0.8
+conferences_minimum_similarity = 0.75
+journals_minimum_similarity = 0.75
 conferences_papers_title_minimum_similarity = 0.9
 journals_papers_title_minimum_similarity = 0.9
 project_name_minimum_similarity = 0.6
@@ -65,3 +65,7 @@ if not os.path.exists(similarity_dir):
 generate_reseacher_paper_and_title_info_output_dir = output_path + 'generate_reseacher_paper_and_title_info'
 if not os.path.exists(generate_reseacher_paper_and_title_info_output_dir):
     os.makedirs(generate_reseacher_paper_and_title_info_output_dir)
+
+generate_datacapes_output_dir = output_path + 'datacapes'
+if not os.path.exists(generate_datacapes_output_dir):
+    os.makedirs(generate_datacapes_output_dir)

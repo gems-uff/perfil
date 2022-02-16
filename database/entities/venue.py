@@ -22,6 +22,7 @@ class Venue(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     qualis = Column(Enum(QualisLevel))
+    forum_oficial = Column(String)
     type = Column(String(50))
 
     __mapper_args__ = {

@@ -7,11 +7,14 @@ from utils.similarity_manager import detect_similar
 def add_researcher(session, tree, google_scholar_id, lattes_id):
     """Populates the Researcher table"""
     name = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO")[0]
-    last_lattes_update = tree.xpath("/CURRICULO-VITAE/@DATA-ATUALIZACAO")[0]
+    last_lattes_update = str(tree.xpath("/CURRICULO-VITAE/@DATA-ATUALIZACAO")[0])
     phd = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO")[0]
     phd_defense_year = phd.get("ANO-DE-CONCLUSAO")
     phd_college = phd.get("NOME-INSTITUICAO")
     google_scholar_id = google_scholar_id
+    if (last_lattes_update is not None) and (len(last_lattes_update) >= 8):
+        last_lattes_update = last_lattes_update[0:2] + "/" + last_lattes_update[2:4] + "/" + last_lattes_update[4:]
+
 
     new_researcher = Researcher(name=name, last_lattes_update=last_lattes_update, phd_college=phd_college,
                                 phd_defense_year=phd_defense_year, google_scholar_id=google_scholar_id,

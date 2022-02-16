@@ -9,18 +9,12 @@ from config import generate_reseacher_paper_and_title_info_output_dir, start_yea
 from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
 from database.entities.titles_support import CommitteeTypes
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper
+from utils.xlsx_utils import calculate_number_of_pages
 
 
 def researchers_from_args(researcher, arg_id_list):
     """Filter function to get the researchers ids or their  lattes_ids from the arguments"""
     return (researcher.id in arg_id_list) or (researcher.lattes_id in arg_id_list)
-
-
-def calculate_number_of_pages(paper):
-    """Calculates the number of pages of a given paper"""
-    if (paper.last_page is None) or (paper.first_page is None) \
-            or (type(paper.last_page) is not int) or (type(paper.first_page) is not int): return ""
-    return paper.last_page - paper.first_page + 1
 
 
 def write_journal_papers(researcher, session, workbook):
