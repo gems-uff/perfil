@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from utils.dict_xlsx_utils import create_synonyms_dictionary
+from database.entities.venue import QualisLevel
 
 # The expected input file must have the following columns:
 # "ID Lattes" containing the 16-digit number associated with a Lattes CV 
@@ -14,6 +15,30 @@ researchers_file = resources_path + 'teste.xlsx'
 # The first and last years, inclusive, for collecting metrics.
 start_year = 2019
 end_year = 2021
+
+qualis_journal_points = {
+    QualisLevel.A1: 1.5,
+    QualisLevel.A2: 1.28,
+    QualisLevel.B1: 1.05,
+    QualisLevel.B2: 0.75,
+    QualisLevel.B3: 0.0,
+    QualisLevel.B4: 0.0,
+    QualisLevel.B5: 0.0,
+    QualisLevel.C: 0.0,
+    QualisLevel.NC: 0.0
+}
+
+qualis_conference_points = {
+    QualisLevel.A1: 1.0,
+    QualisLevel.A2: 0.85,
+    QualisLevel.B1: 0.7,
+    QualisLevel.B2: 0.5,
+    QualisLevel.B3: 0.0,
+    QualisLevel.B4: 0.0,
+    QualisLevel.B5: 0.0,
+    QualisLevel.C: 0.0,
+    QualisLevel.NC: 0.0
+}
 
 # The subject that will be plotted as a red dot in the boxplots.
 subject = {

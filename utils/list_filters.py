@@ -1,7 +1,6 @@
-from config import start_year, end_year
+from config import start_year, end_year, QualisLevel
 from database.database_manager import Paper, JournalPaper, Journal, ResearcherProject, Project, Conference, ConferencePaper
 from database.entities.paper import PaperNature
-from database.entities.venue import QualisLevel
 
 
 def scope_years_paper_or_support(paper_or_support):

@@ -5,10 +5,8 @@ from sqlalchemy import and_
 from datetime import datetime
 from bs4 import BeautifulSoup
 from config import start_year, end_year, researchers_file
-from database.database_manager import Researcher, ResearcherProject, ResearcherAdvisement, ResearcherCommittee, \
-    JournalPaper, Journal, Paper, Project
+from database.database_manager import Researcher, ResearcherProject, ResearcherAdvisement, ResearcherCommittee
 from database.entities.titles_support import AdvisementsTypes, CommitteeTypes
-from database.entities.paper import PaperNature
 import populate_database
 from utils.list_filters import completed_paper_filter, jcr_pub_filter, scope_years_paper_or_support, \
     scope_years_researcher_project, published_journal_paper, accepted_journal_paper_jcr
