@@ -25,28 +25,27 @@ def write_journal_papers(researcher, session, workbook):
     worksheet = workbook.active
     worksheet.title = "Publicações em periódico"
 
-    worksheet.cell(row=1, column=1, value="Título")
-    worksheet.cell(row=1, column=2, value="Autores")
-    worksheet.cell(row=1, column=3, value="Periódico")
-    worksheet.cell(row=1, column=4, value="Ano")
-    worksheet.cell(row=1, column=5, value="Qualis")
+    worksheet.cell(row=1, column=1, value="Autores")
+    worksheet.cell(row=1, column=2, value="Ano")
+    worksheet.cell(row=1, column=3, value="Título")
+    worksheet.cell(row=1, column=4, value="Periódico")
+    worksheet.cell(row=1, column=5, value="ISSN")
     worksheet.cell(row=1, column=6, value="Número de páginas")
-    worksheet.cell(row=1, column=7, value="JCR")
-    worksheet.cell(row=1, column=8, value="ISSN")
+    worksheet.cell(row=1, column=7, value="Qualis")
+    worksheet.cell(row=1, column=8, value="JCR")
 
     paper_index = 0
     for row in range(2, len(journal_papers) + 2):
         venue = session.query(Journal).filter(Journal.id == journal_papers[paper_index].venue).all()
 
-        worksheet.cell(row=row, column=1, value=journal_papers[paper_index].title)
-        worksheet.cell(row=row, column=2, value=journal_papers[paper_index].authors)
-        worksheet.cell(row=row, column=3, value=venue[0].name)
-        worksheet.cell(row=row, column=4, value=journal_papers[paper_index].year)
-        qualis = venue[0].qualis.value if venue[0].qualis is not None else ""
-        worksheet.cell(row=row, column=5, value=qualis)
+        worksheet.cell(row=row, column=1, value=journal_papers[paper_index].authors)
+        worksheet.cell(row=row, column=2, value=journal_papers[paper_index].year)
+        worksheet.cell(row=row, column=3, value=journal_papers[paper_index].title)
+        worksheet.cell(row=row, column=4, value=venue[0].name)
+        worksheet.cell(row=row, column=5, value=venue[0].issn)
         worksheet.cell(row=row, column=6, value=calculate_number_of_pages(journal_papers[paper_index]))
-        worksheet.cell(row=row, column=7, value=venue[0].jcr)
-        worksheet.cell(row=row, column=8, value=venue[0].issn)
+        worksheet.cell(row=row, column=7, value=venue[0].qualis.value if venue[0].qualis is not None else "")
+        worksheet.cell(row=row, column=8, value=venue[0].jcr)
         paper_index += 1
 
 
@@ -56,25 +55,24 @@ def write_conference_papers(researcher, session, workbook):
 
     worksheet = workbook.create_sheet("Publicações em conferência")
 
-    worksheet.cell(row=1, column=1, value="Título")
-    worksheet.cell(row=1, column=2, value="Autores")
-    worksheet.cell(row=1, column=3, value="Conferência")
-    worksheet.cell(row=1, column=4, value="Ano")
-    worksheet.cell(row=1, column=5, value="Qualis")
-    worksheet.cell(row=1, column=6, value="Número de páginas")
+    worksheet.cell(row=1, column=1, value="Autores")
+    worksheet.cell(row=1, column=2, value="Ano")
+    worksheet.cell(row=1, column=3, value="Título")
+    worksheet.cell(row=1, column=4, value="Conferência")
+    worksheet.cell(row=1, column=5, value="Número de páginas")
+    worksheet.cell(row=1, column=6, value="Qualis")
     worksheet.cell(row=1, column=7, value="Tipo")
 
     paper_index = 0
     for row in range(2, len(conference_papers) + 2):
         venue = session.query(Conference).filter(Conference.id == conference_papers[paper_index].venue).all()
 
-        worksheet.cell(row=row, column=1, value=conference_papers[paper_index].title)
-        worksheet.cell(row=row, column=2, value=conference_papers[paper_index].authors)
-        worksheet.cell(row=row, column=3, value=venue[0].name)
-        worksheet.cell(row=row, column=4, value=conference_papers[paper_index].year)
-        qualis = venue[0].qualis.value if venue[0].qualis is not None else ""
-        worksheet.cell(row=row, column=5, value=qualis)
-        worksheet.cell(row=row, column=6, value=calculate_number_of_pages(conference_papers[paper_index]))
+        worksheet.cell(row=row, column=1, value=conference_papers[paper_index].authors)
+        worksheet.cell(row=row, column=2, value=conference_papers[paper_index].year)
+        worksheet.cell(row=row, column=3, value=conference_papers[paper_index].title)
+        worksheet.cell(row=row, column=4, value=venue[0].name)
+        worksheet.cell(row=row, column=5, value=calculate_number_of_pages(conference_papers[paper_index]))
+        worksheet.cell(row=row, column=6, value=venue[0].qualis.value if venue[0].qualis is not None else "")
         worksheet.cell(row=row, column=7, value=conference_papers[paper_index].nature.value)
         paper_index += 1
 

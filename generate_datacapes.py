@@ -255,7 +255,7 @@ def main():
     researchers = session.query(Researcher).all()
 
     print("\nGenerating datacapes files...\n")
-    
+
     # writes researchers production
     papers = remove_paper_duplicates(write_reseachers_production(researchers, session))  # Some files only need a paper of each, they don't make distiction between the researchers
     # writes yearly production
