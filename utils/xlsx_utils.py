@@ -9,4 +9,5 @@ def calculate_number_of_pages(paper):
 
 
 def get_qualis_points(is_journal_paper: bool, qualis: QualisLevel):
+    """Gets the sim-cred points of a venue"""
     return qualis_journal_points[qualis] if is_journal_paper else qualis_conference_points[qualis]

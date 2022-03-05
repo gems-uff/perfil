@@ -10,6 +10,7 @@ from utils.list_filters import scope_years_paper_or_support, published_journal_p
 
 
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
+    """Writes qualitative info about papers in a .xlsx"""
     column_number_additional = 0
     if(write_researcher):
         worksheet.cell(row=row, column=1, value=researcher.name)
@@ -25,26 +26,28 @@ def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_
     worksheet.cell(row=row, column=8+column_number_additional, value=venue.forum_oficial)
     if write_researcher:
         worksheet.cell(row=row, column=9+column_number_additional, value=" https://doi.org/" + paper.doi if paper.doi is not None and paper.doi.strip() != "" else "null")
-        if venue.qualis is not None:
-            worksheet.cell(row=row, column=10+column_number_additional, value=get_qualis_points(is_journal_paper, venue.qualis))
+        worksheet.cell(row=row, column=10+column_number_additional, value=get_qualis_points(is_journal_paper, venue.qualis) if venue.qualis is not None else "null")
 
 
 def reseacher_production_paper_iterator(array_papers, researcher, session, worksheet, row, is_journal_paper : bool):
+    """For each paper of a given researcher calls the function to write its info"""
     for i in range(len(array_papers)):
         paper = array_papers[i]
         venue = session.query(Journal).filter(paper.venue == Journal.id).all()[0] if is_journal_paper \
-            else session.query(Conference).filter(paper.venue == Conference.id).all()[0]
+            else session.query(Conference).filter(paper.venue == Conference.id).all()[0]  # Gets the paper venue
 
         write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper, True)
-        row += 1
-    return row
+        row += 1  # next paper info must be written on next row
+
+    return row  # returns the last roll after all the papers' info
 
 
 def write_reseachers_production(researchers, session):
+    """Writes the producao_docentes.xlsx file"""
     wb = openpyxl.Workbook()
     worksheet = wb.active
     row = 1
-    papers = []
+    papers = []  # array to get and filter all the papers only once
     for researcher in researchers:
         conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
         row = reseacher_production_paper_iterator(conference_papers, researcher, session, worksheet, row, False)
@@ -52,23 +55,28 @@ def write_reseachers_production(researchers, session):
         journal_papers = list(filter(published_journal_paper,list(filter(scope_years_paper_or_support, researcher.journal_papers))))
         row = reseacher_production_paper_iterator(journal_papers, researcher, session, worksheet, row, True)
 
-        papers += conference_papers
-        papers += journal_papers
+        papers += conference_papers  # Adds the conference papers of the researcher to the list
+        papers += journal_papers  # Adds the journal papers of the researcher to the list
 
     wb.save(generate_datacapes_output_dir + os.sep + "producao_docentes.xlsx")
 
-    return papers
+    return papers  # Return all the papers of the researchers in the scope years
 
 
 def write_yearly_production(papers, session):
+    """Writes the producao_anual.xlsx file"""
     papers.sort(key=lambda paper: paper.year)
+
     wb = openpyxl.Workbook()
     worksheet = wb.active
+
     for i in range(len(papers)):
         is_journal_paper = isinstance(papers[i], JournalPaper)
         venue = session.query(Journal).filter(papers[i].venue == Journal.id).all()[0] if is_journal_paper \
             else session.query(Conference).filter(papers[i].venue == Conference.id).all()[0]
+
         write_production_paper(papers[i], None, i + 1, venue, worksheet, is_journal_paper, False)
+
     wb.save(generate_datacapes_output_dir + os.sep + "producao_anual.xlsx")
 
 
@@ -79,23 +87,9 @@ def write_summary_header_papers(column, periodico, worksheet):
     return column
 
 
-def write_summary_header(worksheet):
-    worksheet.cell(row=1, column=1, value="ENTIDADE")
-    worksheet.cell(row=1, column=2, value="PERIODICOS JCR")
-    column = 3
-    column = write_summary_header_papers(column, "PERIODICO", worksheet)
-    column = write_summary_header_papers(column, "CONFERENCIA", worksheet)
-    worksheet.cell(row=1, column=column, value="I-RESTRITO PERIODICO")
-    worksheet.cell(row=1, column=column + 1, value="I-RESTRITO CONFERENCIA")
-    worksheet.cell(row=1, column=column + 2, value="I-RESTRITO TOTAL")
-    worksheet.cell(row=1, column=column + 3, value="I-GERAL PERIODICO")
-    worksheet.cell(row=1, column=column + 4, value="I-GERAL CONFERENCIA")
-    worksheet.cell(row=1, column=column + 5, value="I-GERAL TOTAL")
-    worksheet.cell(row=1, column=column + 6, value="SATURACAO (TRAVA)")
-    worksheet.cell(row=1, column=column + 7, value="PONTOS CREDENCIAMENTO")
-
-
 def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_journal_list : bool):
+    """Writes the amount of papers of each qualis in a .xlsx file.
+    It also calculates the restricted index, general index and the index of (a1, a2, b1, b2) qualis"""
     restricted_index = 0
     general_index = 0
     a1_b2_index = 0
@@ -116,18 +110,39 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
     return restricted_index, general_index, a1_b2_index
 
 
+def write_summary_header(worksheet):
+    """Writes the header of datacapes summary files"""
+
+    worksheet.cell(row=1, column=1, value="ENTIDADE")
+    worksheet.cell(row=1, column=2, value="PERIODICOS JCR")
+    column = 3
+    column = write_summary_header_papers(column, "PERIODICO", worksheet)
+    column = write_summary_header_papers(column, "CONFERENCIA", worksheet)
+    worksheet.cell(row=1, column=column, value="I-RESTRITO PERIODICO")
+    worksheet.cell(row=1, column=column + 1, value="I-RESTRITO CONFERENCIA")
+    worksheet.cell(row=1, column=column + 2, value="I-RESTRITO TOTAL")
+    worksheet.cell(row=1, column=column + 3, value="I-GERAL PERIODICO")
+    worksheet.cell(row=1, column=column + 4, value="I-GERAL CONFERENCIA")
+    worksheet.cell(row=1, column=column + 5, value="I-GERAL TOTAL")
+    worksheet.cell(row=1, column=column + 6, value="SATURACAO (TRAVA)")
+    worksheet.cell(row=1, column=column + 7, value="PONTOS CREDENCIAMENTO")
+
+
 def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity, row, session, worksheet):
+    """Writes the quantitative info about papers in a .xlsx file"""
     worksheet.cell(row=row, column=1, value=entity)
     worksheet.cell(row=row, column=2, value=len(journal_papers_jcr))
     journal_indexes = write_paper_number_by_qualis(session, 3, journal_papers, row, worksheet, True)
     conference_indexes = write_paper_number_by_qualis(session, len(QualisLevel) + 3,
                                                       conference_papers, row, worksheet, False)
 
-    # indexes
+    # get indexes from tuple
     journal_restricted_index = journal_indexes[0]
     conference_restricted_index = conference_indexes[0]
     journal_general_index = journal_indexes[1]
     conference_general_index = conference_indexes[1]
+    journal_a1b2_score = journal_indexes[2]
+    conferences_a1b2_score = conference_indexes[2]
 
     column = len(QualisLevel) * 2 + 3 # column number jump after writing the number of journals and conferences by qualis
 
@@ -148,8 +163,6 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
             worksheet.cell(row=row, column=column + 6, value="IND.")
 
     # PONTOS CREDENCIAMENTO
-    journal_a1b2_score = journal_indexes[2]
-    conferences_a1b2_score = conference_indexes[2]
 
     journal_a1b2_score += len(list(filter(lambda x: qualis_level_journal(x, session, QualisLevel.A2), journal_papers))) * 0.005
     if journal_restricted_index == 0:
@@ -159,12 +172,16 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
 
 
 def write_4n_production(papers, session):
+    """Writes the producao_4n.xlsx file"""
+
     wb = openpyxl.Workbook()
     worksheet = wb.active
+
     for i in range(len(papers)):
         is_journal_paper = isinstance(papers[i], JournalPaper)
         venue = session.query(Journal).filter(papers[i].venue == Journal.id).all()[0] if is_journal_paper \
             else session.query(Conference).filter(papers[i].venue == Conference.id).all()[0]
+
         row = i + 1
 
         worksheet.cell(row=row, column=1, value="PERIODICO" if is_journal_paper else "CONFERENCIA")
@@ -182,10 +199,11 @@ def write_4n_production(papers, session):
 
 
 def write_researchers_summary(researchers, session):
+    """Writes the sumario_docentes.xlsx file"""
     wb = openpyxl.Workbook()
     worksheet = wb.active
     write_summary_header(worksheet)
-    row = 2
+    row = 2  # the header uses the first row
     for researcher in researchers:
         conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
         journal_papers = list(
@@ -194,14 +212,18 @@ def write_researchers_summary(researchers, session):
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)
 
-        row += 1
+        row += 1  # a row for each researcher
     wb.save(generate_datacapes_output_dir + os.sep + "sumario_docentes.xlsx")
 
 
 def write_yearly_summary(papers, session):
+    """Writes the sumario_anual.xslx file"""
+
+    # Sort papers by year to make sure
     papers_by_year = defaultdict(list)
     for paper in papers:
         papers_by_year[paper.year].append(paper)
+
     wb = openpyxl.Workbook()
     worksheet = wb.active
     write_summary_header(worksheet)
@@ -214,35 +236,38 @@ def write_yearly_summary(papers, session):
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, year, row, session, worksheet)
 
-        row += 1
+        row += 1 # a row for each year
     wb.save(generate_datacapes_output_dir + os.sep + "sumario_anual.xlsx")
 
 
 def remove_paper_duplicates(papers):
+    """Removes duplicates, same title, of the same papers"""
     new_list = papers.copy()
     for i in range(len(papers)):
         for j in range(i + 1, len(papers)):
             if (papers[i].title == papers[j].title):
-                new_list.remove(papers[j])
-    return new_list
+                new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets removed
+    return new_list  # the list with only a paper of each
 
 
 def main():
-    # TODO prints
     session = populate_database.main()
     researchers = session.query(Researcher).all()
 
+    print("\nGenerating datacapes files...\n")
+    
     # writes researchers production
-    papers = remove_paper_duplicates(write_reseachers_production(researchers, session))
+    papers = remove_paper_duplicates(write_reseachers_production(researchers, session))  # Some files only need a paper of each, they don't make distiction between the researchers
     # writes yearly production
-    write_yearly_production(papers, session)
+    write_yearly_production(papers, session)  # here it sorts the papers by year which is used on the next files
     # writes 4n production
     write_4n_production(papers, session)
-
     # writes researcher summary
     write_researchers_summary(researchers, session)
-    #writes yearly summary
+    # writes yearly summary
     write_yearly_summary(papers, session)
+
+    print("Finished generating the datacapes files\n")
 
 
 if __name__ == "__main__":

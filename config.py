@@ -16,6 +16,7 @@ researchers_file = resources_path + 'teste.xlsx'
 start_year = 2019
 end_year = 2021
 
+# Dictionaries to get the sim-cred points by qualis and venue
 qualis_journal_points = {
     QualisLevel.A1: 1.5,
     QualisLevel.A2: 1.28,
