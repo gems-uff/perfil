@@ -35,7 +35,7 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ pipenv shell`
 
-3. Atualize o arquivo que contém os pesquisadores (e.g., pgc.xlsx) adicionando Nome, ID Lattes e ID Scholar para os que devem ser considerados. Não se preocupe com as demais colunas, pois elas serão preenchidas automaticamente. 
+3. Atualize o arquivo que contém os pesquisadores (e.g., pgc.xlsx) adicionando Nome, ID Lattes e ID Scholar para os que devem ser considerados e indique seu caminho na váriavel "researchers_file" no arquivo [config.py](/config.py). Não se preocupe com as demais colunas, pois elas serão preenchidas automaticamente. 
 
 **CUIDADO** ao colar o ID Lattes. Garanta que o ID do Lattes seja colado como texto, pois caso seja colado como número o Excel irá arredondar o valor e os IDs se tornarão inválidos, ou corresponderão ao ID do Lattes de um pesquisador diferente. 
 
@@ -67,11 +67,15 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python visualize.py`
 
-14. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py. Os arquivos gerados podem ser encontrados na pasta "output/generate_reseacher_paper_and_title_info" com o nome do pesquisador a qual ele pertence.
+14. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados, os que estão no arquivo de pesquisadores, com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py. Os arquivos gerados podem ser encontrados na pasta "output/generate_reseacher_paper_and_title_info" com o nome do pesquisador a qual ele pertence.
     1. `~/perfil$ python generate_reseacher_paper_and_title_info.py` exibe uma linha de comando interativa para o usuário escolher **um** pesquisador para gerar o arquivo ou gerar os arquivos para **todos** os pesquisadores.
     2. `~/perfil$ python generate_reseacher_paper_and_title_info.py --all` gera os arquivos de todos os pesquisadores sem precisar de interação com a linha de comando.
     3. `~/perfil$ python generate_reseacher_paper_and_title_info.py --researchers (researcher.id|researcher.lattes_id) +` substitua "(researcher.id|researcher.lattes_id) +" por um ou mais id do banco de dados ou id do lattes dos pesquisadores para gerar apenas os arquivos deles sem precisar de interação com a linha de comando. O id do banco de dados é o mesmo que a ordem no arquivo de pesquisadores.
     4. `~/perfil$ python generate_reseacher_paper_and_title_info.py --ids` mostra no console os ids que os pesquisadores no arquivo de pesquisadores irão ter no banco de dados.
+
+15. Use generate_datacapes.py para gerar relatórios sobre a produção e sumário dos pesquisadores e anual, esse script também gera o relatório "4n". Lembrando que a saída é de acordo com o arquivo de pesquisadores. Os arquivos gerados podem ser encontrados na pasta "output/datacapes".
+
+`~/perfil$ python generate_datacapes.py`
 
 ## Execução dos testes:
 
@@ -95,6 +99,9 @@ Script de teste para verificar se os dados do lattes estão sendo coletados e co
 ### download.py
 Script para auxiliar o usuário baixar os lattes dos pesquisadores no arquivo de pesquisadores.
 
+### generate_datacapes.py
+Script para gerar relatórios de um programa de pós-graduação conforme pedido pela CAPES. Os relatórios são baseados nas publicações em periódicos e conferências e seus respectivos Qualis
+
 ### generate_reseacher_paper_and_title_info.py
 Script com a funcionalidade de gerar arquivos .xlsx com informações, dos pesquisadores no arquivo de pesquisadores, que auxiliam na promoção de títulares.
 
@@ -111,6 +118,8 @@ Script com a funcionalidade de preencher as informações dos pesquisadores do a
 
 * **researchers_file** : váriavel com o caminho do arquivo de pesquisadores.
 * **start_year** : ano inicial do horizonte de coleta(inclusive).
+* **qualis_journal_points**: o valor dos pontos de cada nível de Qualis de publicações em periódicos de acordo com a regra para credenciamento como Docente Permanente do PGC
+* **qualis_conference_points**: o valor dos pontos de cada nível de Qualis de publicações em conferências de acordo com a regra para credenciamento como Docente Permanente do PGC
 * **end_year** : ano final do horizonte de coleta(inclusive).
 * **subject** : pesquisador a ser destacado quando se gerar as boxplots.
 * **conferences_minimum_similarity** : similaridade mínima entre os nomes de conferência para o software considerar elas as mesmas (valor entre 0 e 1).
