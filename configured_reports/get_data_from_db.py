@@ -14,11 +14,16 @@ from configured_reports.util import append_lists
 
 
 def get_researchers(researcher_id, session):
-    return session.query(Researcher).all() if researcher_id == 0 else session.query(Researcher).filter(
+    """Returns a list with one researcher if researcher_id <= 0, otherwise returns a list with all researchers"""
+
+    return session.query(Researcher).all() if researcher_id <= 0 else session.query(Researcher).filter(
         Researcher.id == researcher_id).all()
 
 
-def quantity_of_researcher_itens(session, item_class, researcher_id):
+def quantity_of_researcher_itens(session, item_class: str, researcher_id):
+    """Returns the quantity of times a researchers needs to be repeated accordingly with the item_class variable
+    received"""
+
     researcher_itens = {
         "Artigo": append_lists(get_paper_list(session, False, researcher_id), get_paper_list(session, True, researcher_id)),
         "Banca": get_committee_list(session, researcher_id),
@@ -37,6 +42,8 @@ def quantity_of_researcher_itens(session, item_class, researcher_id):
 
 
 def get_researchers_list(session, cartesian_product: bool, item_class):
+    """Returns the list of researchers repeated as many time is necessary accordingly with the parameters received"""
+
     researchers = session.query(Researcher).all()
 
     if cartesian_product:
@@ -49,6 +56,8 @@ def get_researchers_list(session, cartesian_product: bool, item_class):
 
 
 def get_paper_list(session, is_journal: bool, researcher_id=0):
+    """Returns the list of papers be it journal papers or conference papers of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     paper_list = []
 
@@ -62,7 +71,9 @@ def get_paper_list(session, is_journal: bool, researcher_id=0):
 
 
 def get_papers_venues_list(session, is_journal: bool, researcher_id=0):
-    papers = get_paper_list(session, is_journal)
+    """Returns the list of venues of journal papers or conference papers of a given researcher or all of them"""
+
+    papers = get_paper_list(session, is_journal, researcher_id)
     venues_ids = [paper.venue for paper in papers]
     venue_list = []
 
@@ -73,6 +84,8 @@ def get_papers_venues_list(session, is_journal: bool, researcher_id=0):
 
 
 def get_advisement_list(session, researcher_id=0):
+    """Return the advisements list of a given researcher or all of them"""
+
     researcher_list = get_researchers(researcher_id, session)
     advisement_list = []
     for researcher in researcher_list:
@@ -81,6 +94,8 @@ def get_advisement_list(session, researcher_id=0):
 
 
 def get_committee_list(session, researcher_id=0):
+    """Returns the committees list of a given researcher or all of them"""
+
     researcher_list = get_researchers(researcher_id, session)
     committee_list = []
     for researcher in researcher_list:
@@ -89,6 +104,8 @@ def get_committee_list(session, researcher_id=0):
 
 
 def get_patent_list(session, researcher_id=0):
+    """Returns the patent list of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     patent_list = []
 
@@ -103,6 +120,8 @@ def get_patent_list(session, researcher_id=0):
 
 
 def get_conference_management_list(session, researcher_id=0):
+    """Returns the conference management list of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     conference_management_list = []
 
@@ -115,6 +134,8 @@ def get_conference_management_list(session, researcher_id=0):
 
 
 def get_editorial_board_list(session, researcher_id=0):
+    """Returns the editorial board list of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     editorial_board_list = []
 
@@ -127,6 +148,8 @@ def get_editorial_board_list(session, researcher_id=0):
 
 
 def get_researcher_project_or_project_lists(session, get_projects: bool, researcher_id=0):
+    """Return the project list or research_project relationship list of a given researcher or all of them"""
+
     researcher_list = get_researchers(researcher_id, session)
     researcher_project_list = []
     project_list = []
@@ -146,14 +169,20 @@ def get_researcher_project_or_project_lists(session, get_projects: bool, researc
 
 
 def get_project_list(session, researcher_id=0):
+    """Returns the project list of a given researcher or all of them"""
+
     return get_researcher_project_or_project_lists(session, True, researcher_id)
 
 
 def get_researcher_project_list(session, researcher_id=0):
+    """Returns the researche_project relationship list of a given researcher or all of them"""
+
     return get_researcher_project_or_project_lists(session, False, researcher_id)
 
 
 def get_published_book_list(session, researcher_id=0):
+    """Return the published book list of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     published_book_list = []
 
@@ -167,6 +196,8 @@ def get_published_book_list(session, researcher_id=0):
 
 
 def get_published_book_chapter_list(session, researcher_id=0):
+    """Returns the published chapter list of a given researcher or all of them"""
+
     researchers = get_researchers(researcher_id, session)
     published_book_chapter_list = []
 

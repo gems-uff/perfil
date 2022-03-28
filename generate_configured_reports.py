@@ -6,6 +6,9 @@ from configured_reports.write_item_info import write_item_info
 
 
 def report_is_valid(report):
+    """Checks if the items from the a report written by the user are valid. It checks if it's a wrong input or if more
+    than one class/entity, other than "Pesquisador", is in the same report"""
+
     entities_in_report = []
 
     for item in configured_reports[report]:
@@ -28,6 +31,9 @@ def report_is_valid(report):
 
 
 def make_researcher_cartesian_product(item, report):
+    """Checks if an attribute of the researcher class/entity needs to be written as a cartesian production with
+    another class/entity and returns a tuple on the format (bool, user_class.attribute)"""
+
     if item in Pesquisador.__dict__.values():
         for other_item in configured_reports[report]:
             if other_item not in Pesquisador.__dict__.values():
@@ -37,6 +43,8 @@ def make_researcher_cartesian_product(item, report):
 
 
 def write_report_items(col, report, session, worksheet):
+    """For each item in a report calss the function to write it in a specific column"""
+
     researcher_cartesian_product = (False, None)
     for item in configured_reports[report]:
 
@@ -46,6 +54,9 @@ def write_report_items(col, report, session, worksheet):
 
 
 def write_reports(session):
+    """Gets the reports from the config.py file and for each report calls the function to write its items,
+    be it as a new file or as a new sheet. Then calls the function to save the report(s)"""
+
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
 
@@ -66,6 +77,8 @@ def write_reports(session):
 
 
 def save_report(report, workbook):
+    """Checks if there is a report to generate and save it as a .xslx file"""
+
     if len(workbook.sheetnames) < 1:
         print("There isn't any report to generate\n")
         return None

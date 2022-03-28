@@ -28,7 +28,7 @@ researchers_file = resources_path + 'teste.xlsx'
 start_year = 2019
 end_year = 2021
 
-# Reports
+# Reports configured by the user
 reports_as_new_worksheets = False
 
 configured_reports = {

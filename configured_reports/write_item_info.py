@@ -28,8 +28,10 @@ from configured_reports.util import append_lists
 
 
 def write_info(worksheet, col, item, list_info):
+    """Writes the information list received in the received column. Each list item goes in the row below the previous"""
+
     row = 1
-    worksheet.cell(row=row, column=col, value=item)
+    worksheet.cell(row=row, column=col, value=item) # Writes the column's header
 
     for info in list_info:
         row += 1
@@ -37,6 +39,10 @@ def write_info(worksheet, col, item, list_info):
 
 
 def write_item_info(session, item: str, worksheet, col, make_cartesian_product_researcher):
+    """Checks which item is received, gets a list containing the information according with the item, then calls the
+    function to write it. It also receives information to make the cartesian product with researcher's information or
+    not and which other item to make with"""
+
     if item == Pesquisador.nome:
         researchers_list = get_researchers_names(session, make_cartesian_product_researcher)
         write_info(worksheet, col, item, researchers_list)
