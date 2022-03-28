@@ -16,7 +16,7 @@ class ResearcherEditorialBoard(Base):
     researcher_id = Column(Integer, ForeignKey("researcher.id"), primary_key=True)
     journal_name = Column(String, primary_key=True)
     type = Column(Enum(EditorialBoardType), primary_key=True)
-    begin_year = Column(Integer, primary_key=True)
+    start_year = Column(Integer, primary_key=True)
     end_year = Column(Integer)
 
     researchers = relationship("Researcher", backref="journal_editorial_boards")

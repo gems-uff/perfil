@@ -40,20 +40,20 @@ def add_researcher_editorial_board(session, tree, researcher_id):
         other_link = info.get("OUTRO-VINCULO-INFORMADO")
 
         if ("Membro de corpo editorial" in other_link) or ("Revisor de peri" in other_link):
-            begin_year = info.get("ANO-INICIO")
+            start_year = info.get("ANO-INICIO")
             end_year = info.get("ANO-FIM")
             type = editorial_board_type_switch(other_link)
             journal_name = job.get("NOME-INSTITUICAO")
 
             lattes_duplication = session.query(ResearcherEditorialBoard).filter(
-                and_(ResearcherEditorialBoard.researcher_id==researcher_id,
-                     ResearcherEditorialBoard.journal_name==journal_name, ResearcherEditorialBoard.type==type,
-                     ResearcherEditorialBoard.begin_year==begin_year)).all()
+                and_(ResearcherEditorialBoard.researcher_id == researcher_id,
+                     ResearcherEditorialBoard.journal_name == journal_name, ResearcherEditorialBoard.type == type,
+                     ResearcherEditorialBoard.start_year == start_year)).all()
 
             if len(lattes_duplication) > 0: log_primary_key_error("reseacher_editorial_board", researcher_id,
-                                                                  journal_name, type, begin_year)
+                                                                  journal_name, type, start_year)
             else: session.add(ResearcherEditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
-                                                 begin_year=begin_year, end_year=end_year))
+                                                 start_year=start_year, end_year=end_year))
 
 
 def editorial_board_type_switch(other_link):
