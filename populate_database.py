@@ -8,7 +8,7 @@ from database.populate.book import add_researcher_published_books, add_researche
 from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, \
     add_researcher_patents_software
 from database.populate.researcher_and_project import *
-from database.populate.titles_support import add_researcher_advisements, add_researcher_committee
+from database.populate.titles_support import add_researcher_advisements, add_researcher_committees
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers
 from utils.dict_xlsx_utils import create_similarity_file
 
@@ -27,7 +27,7 @@ def lattes(lattes_id, session, google_scholar_id):
             add_journal_papers(session, tree, researcher_id, journals_similarity_dict)
             add_projects(session, tree, project_similarity_dict)
             add_researcher_advisements(session, tree, researcher_id)
-            add_researcher_committee(session, tree, researcher_id)
+            add_researcher_committees(session, tree, researcher_id)
             add_researcher_conference_management(session, tree, researcher_id)
             add_researcher_editorial_board(session, tree, researcher_id)
             add_researcher_published_books(session, tree, researcher_id)
@@ -39,6 +39,7 @@ def update_database_info(session):
     """Updates some informations and relationships after the database is fully populated with all the lattes"""
     add_researcher_project(session)
     add_coauthor_papers(session)
+    add_affiliations(session)
 
 
 def create_similarities_xlsx():

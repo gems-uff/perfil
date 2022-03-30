@@ -39,7 +39,7 @@ def add_researcher_advisements(session, tree, researcher_id):
                                          Degree.NOT_DEFINED, researcher_id)
 
 
-def add_researcher_committee(session, tree, researcher_id):
+def add_researcher_committees(session, tree, researcher_id):
     """Call functions to populate the ReseacherCommittee table"""
     students_judged = tree.xpath("/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO")[0]
     students_judged_bachelor = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-GRADUACAO")
@@ -87,8 +87,7 @@ def add_titles_support_from_element_list(session, element_list, advisor_or_commi
                 else details.get("NOME-DO-ORIENTADO")
 
         college = details.get("NOME-DA-INSTITUICAO") if ((advisor_or_committee in AdvisorOrCommittee.ADVISOR.value) or
-                                                         (
-                                                                 advisor_or_committee in AdvisorOrCommittee.ADVISOR_OTHERS.value)) else details.get(
+                                                         (advisor_or_committee in AdvisorOrCommittee.ADVISOR_OTHERS.value)) else details.get(
             "NOME-INSTITUICAO")
 
         basic_data = element.findall(basic_data_string)[0]
@@ -100,34 +99,39 @@ def add_titles_support_from_element_list(session, element_list, advisor_or_commi
         if (AdvisorOrCommittee.COMMITTEE.value in advisor_or_committee) or \
                 (AdvisorOrCommittee.CIVIL_SERVICE_COMMITTEE.value in advisor_or_committee):
 
-            team = ""
-            for member in element.findall("PARTICIPANTE-BANCA"):
-                team += member.get("NOME-COMPLETO-DO-PARTICIPANTE-DA-BANCA") + ";"
-            team = team[:-1]
-            type = committee_type_switch(degree, nature)
-
-            lattes_duplication = session.query(ResearcherCommittee).filter(
-                and_(researcher_id == ResearcherCommittee.researcher_id, name == ResearcherCommittee.student_name,
-                     type == ResearcherCommittee.type)).all()
-
-            if len(lattes_duplication) > 0:
-                log_primary_key_error("reseacher_committee", researcher_id, name, type)
-            else:
-                session.add(ResearcherCommittee(researcher_id=researcher_id, student_name=name, college=college,
-                                                year=year, title=title, type=type, team=team))
+            add_researcher_committee_in_bd(college, degree, element, name, nature, researcher_id, session, title, year)
 
         else:
-            type = advisor_type_switch(degree, nature)
+            add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id, session, title, year)
 
-            lattes_duplication = session.query(ResearcherAdvisement).filter(
-                and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
-                     ResearcherAdvisement.type == type, ResearcherAdvisement.year == year)).all()
 
-            if type is not None and len(lattes_duplication) == 0:
-                session.add(ResearcherAdvisement(researcher_id=researcher_id, student_name=name, college=college,
-                                                 year=year, title=title, type=type))
-            else:
-                log_primary_key_error("researcher_advisement", researcher_id, name, type, year)
+def add_researcher_committee_in_bd(college, degree, element, name, nature, researcher_id, session, title, year):
+    team = ""
+    for member in element.findall("PARTICIPANTE-BANCA"):
+        team += member.get("NOME-COMPLETO-DO-PARTICIPANTE-DA-BANCA") + ";"
+    team = team[:-1]
+    type = committee_type_switch(degree, nature)
+    lattes_duplication = session.query(ResearcherCommittee).filter(
+        and_(researcher_id == ResearcherCommittee.researcher_id, name == ResearcherCommittee.student_name,
+             type == ResearcherCommittee.type)).all()
+    if len(lattes_duplication) > 0:
+        log_primary_key_error("reseacher_committee", researcher_id, name, type)
+    else:
+        session.add(ResearcherCommittee(researcher_id=researcher_id, student_name=name, college=college,
+                                        year=year, title=title, type=type, team=team))
+
+
+def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id, session, title, year):
+    type = advisor_type_switch(degree, nature)
+    lattes_duplication = session.query(ResearcherAdvisement).filter(
+        and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
+             ResearcherAdvisement.type == type, ResearcherAdvisement.year == year)).all()
+    if type is not None and len(lattes_duplication) == 0:
+        session.add(ResearcherAdvisement(researcher_id=researcher_id, student_name=name, college=college,
+                                         year=year, title=title, type=type))
+    elif len(lattes_duplication) > 0:
+        print(lattes_duplication)
+        log_primary_key_error("researcher_advisement", researcher_id, name, type, year)
 
 
 def advisor_type_switch(degree, nature):

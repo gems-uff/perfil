@@ -16,6 +16,20 @@ researchers_file = resources_path + 'teste.xlsx'
 start_year = 2019
 end_year = 2021
 
+# Minimum similarities
+conferences_minimum_similarity = 0.75
+journals_minimum_similarity = 0.75
+conferences_papers_title_minimum_similarity = 0.9
+journals_papers_title_minimum_similarity = 0.9
+project_name_minimum_similarity = 0.9
+
+# The subject that will be plotted as a red dot in the boxplots.
+subject = {
+    'Nome': 'Leonardo Gresta Paulino Murta',
+    'ID Lattes': '1565296529736448',
+    'ID Scholar': 'VEbJeB8AAAAJ'
+}
+
 # Dictionaries to get the sim-cred points by qualis and venue
 qualis_journal_points = {
     QualisLevel.A1: 1.5,
@@ -41,12 +55,6 @@ qualis_conference_points = {
     QualisLevel.NC: 0.0
 }
 
-# The subject that will be plotted as a red dot in the boxplots.
-subject = {
-    'Nome': 'Leonardo Gresta Paulino Murta',
-    'ID Lattes': '1565296529736448',
-    'ID Scholar': 'VEbJeB8AAAAJ'
-}
 
 # The file with JCR scores
 df = pd.read_excel(resources_path + 'jcr.xlsx')
@@ -59,13 +67,6 @@ conferences_qualis = dict(zip(df_qualis_conferences.title, df_qualis_conferences
 # The file with journals' qualis
 df_qualis_journals = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-journals-2016.xlsx')
 journals_qualis = dict(zip(df_qualis_journals.title, df_qualis_journals.qualis))
-
-# Minimum similarities
-conferences_minimum_similarity = 0.75
-journals_minimum_similarity = 0.75
-conferences_papers_title_minimum_similarity = 0.9
-journals_papers_title_minimum_similarity = 0.9
-project_name_minimum_similarity = 0.6
 
 # The file with conferences' synonyms
 conferences_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'conferences_synonyms.xlsx')
@@ -81,6 +82,11 @@ if not os.path.exists(lattes_dir):
 build_dir = os.getcwd() + os.sep + 'build'
 if not os.path.exists(build_dir):
     os.makedirs(build_dir)
+
+# The directory that contains the affiliation files
+affiliations_dir = resources_path + 'affiliations'
+if not os.path.exists(affiliations_dir):
+    os.makedirs(affiliations_dir)
 
 # The directory that contains the generated figures.
 similarity_dir = output_path + 'similarity_xlsx'

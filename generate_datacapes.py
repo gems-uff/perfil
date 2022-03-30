@@ -6,7 +6,7 @@ from config import generate_datacapes_output_dir, QualisLevel
 from database.database_manager import Researcher, Journal, Conference, JournalPaper
 from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper, jcr_pub_filter, \
-    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper
+    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper, datacapes_paper_filter
 
 
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
@@ -49,10 +49,10 @@ def write_reseachers_production(researchers, session):
     row = 1
     papers = []  # array to get and filter all the papers only once
     for researcher in researchers:
-        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
+        conference_papers = list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.conference_papers))
         row = reseacher_production_paper_iterator(conference_papers, researcher, session, worksheet, row, False)
 
-        journal_papers = list(filter(published_journal_paper,list(filter(scope_years_paper_or_support, researcher.journal_papers))))
+        journal_papers = list(filter(published_journal_paper,list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.journal_papers))))
         row = reseacher_production_paper_iterator(journal_papers, researcher, session, worksheet, row, True)
 
         papers += conference_papers  # Adds the conference papers of the researcher to the list
@@ -205,9 +205,9 @@ def write_researchers_summary(researchers, session):
     write_summary_header(worksheet)
     row = 2  # the header uses the first row
     for researcher in researchers:
-        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
-        journal_papers = list(
-            filter(published_journal_paper, list(filter(scope_years_paper_or_support, researcher.journal_papers))))
+        conference_papers = list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.conference_papers))
+        journal_papers = list(filter(published_journal_paper,
+                                     list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.journal_papers))))
         journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 0), journal_papers))
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)

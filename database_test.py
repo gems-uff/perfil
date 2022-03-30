@@ -6,7 +6,7 @@ from database.database_manager import start_database
 from database.populate.book import *
 from database.populate.other_works import *
 from database.populate.researcher_and_project import *
-from database.populate.titles_support import add_researcher_advisements, add_researcher_committee, ResearcherAdvisement, \
+from database.populate.titles_support import add_researcher_advisements, add_researcher_committees, ResearcherAdvisement, \
     ResearcherCommittee, AdvisementsTypes, CommitteeTypes
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers, Journal, \
     Conference, JournalPaper, ConferencePaper, QualisLevel, PaperNature
@@ -235,7 +235,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test06AddResearcherCommittee(self):
         """Adds all the reseacher committee participations from the .xml file and check if all information is correct"""
-        add_researcher_committee(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
+        add_researcher_committees(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
 
         # BACHELOR
         bachelor_committee = self.session.query(ResearcherCommittee).filter(

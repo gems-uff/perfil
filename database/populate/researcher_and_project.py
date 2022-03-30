@@ -1,6 +1,8 @@
+from os import listdir, sep
+from os.path import isfile, join
 from sqlalchemy import or_
-from database.database_manager import Researcher, Project, ResearcherProject
-from config import project_name_minimum_similarity, projects_synonyms
+from database.database_manager import Researcher, Project, ResearcherProject, Affiliation
+from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir
 from utils.similarity_manager import detect_similar
 
 
@@ -54,6 +56,7 @@ def add_projects(session, tree, similarity_dict):
         project_already_in_the_database = check_if_project_is_in_the_database(session, name, similarity_dict)
 
         if not project_already_in_the_database:
+            name = projects_synonyms[name] if name in projects_synonyms else name
             start_year = project.get("ANO-INICIO")
             end_year = project.get("ANO-FIM")
             team = ""
@@ -84,3 +87,19 @@ def add_researcher_project(session):
         new_researcher_project = ResearcherProject(researcher_id=researcher_id, project_id=project_id)
         new_researcher_project.coordinator = True if researcher_name in project_manager else False
         session.add(new_researcher_project)
+
+
+def add_affiliations(session):
+    """Populates the Affiliation table using the files in the affiliation directory"""
+
+    affiliation_files = [f for f in listdir(affiliations_dir) if isfile(join(affiliations_dir, f))]
+
+    for file in affiliation_files:
+        for researcher_name in open(affiliations_dir + sep + file).readlines():
+
+            researcher = session.query(Researcher).filter(Researcher.name == researcher_name.replace("\n", "")).all()
+
+            if len(researcher) > 0:
+                session.add(Affiliation(researcher=researcher[0].id, year=file))
+                session.flush()
+
