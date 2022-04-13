@@ -6,6 +6,7 @@ from configured_reports.write_item_info import write_item_info
 
 
 def get_entities_in_report(report):
+    """Returns all the entities in a report"""
     entities_in_report = []
 
     for item in configured_reports[report]:
@@ -22,11 +23,10 @@ def get_entities_in_report(report):
 
 
 def report_is_valid(entities_in_report, report):
-    """Checks if the items from the a report written by the user are valid. It checks if it's a wrong input or if more
-    than one class/entity, other than "Pesquisador", is in the same report"""
+    """Checks if a report written by the user is valid"""
 
     if len(entities_in_report) == 0:
-        print("The report \"" + report + "\" is not a valid report because " + str(item) + " is not a valid input\n")
+        print("The report \"" + report + "\" is not a valid report because there is an unacceptable input in it\n")
         return False
 
     if len(entities_in_report) > 1 :
@@ -39,6 +39,9 @@ def report_is_valid(entities_in_report, report):
 
 
 def invalid_report_to_worksheets(entities_in_report, report):
+    """Returns all the entities and their attributes, other than Pesquisador, in a invalid report as a dict's keys to be written in the
+    same workbook as different worksheets"""
+
     entities_as_worksheets = dict()
 
     for entity in entities_in_report:
@@ -57,7 +60,7 @@ def invalid_report_to_worksheets(entities_in_report, report):
 
 def make_researcher_cartesian_product(item, report_list):
     """Checks if an attribute of the researcher class/entity needs to be written as a cartesian production with
-    another class/entity and returns a tuple on the format (bool, user_class.attribute)"""
+    another class/entity and returns a tuple in the format (bool, user_class.attribute)"""
 
     if item in Pesquisador.__dict__.values():
         for other_item in report_list:
@@ -68,7 +71,7 @@ def make_researcher_cartesian_product(item, report_list):
 
 
 def write_report_items(col, report_list, session, worksheet):
-    """For each item in a report calss the function to write it in a specific column"""
+    """For each item in a report calls the function to write it in a specific column"""
 
     researcher_cartesian_product = (False, None)
     for item in report_list:
@@ -79,6 +82,7 @@ def write_report_items(col, report_list, session, worksheet):
 
 
 def write_a_report(report_name, report_list, new_sheet, session, wb):
+    """Writes only one report"""
 
     worksheet = wb.create_sheet(report_name) if new_sheet else wb.active
 
@@ -102,7 +106,7 @@ def write_reports(session):
 
         if not reports_as_new_worksheets: wb = openpyxl.Workbook()
 
-        if (not valid_report) and (not reports_as_new_worksheets) and new_worksheet_if_conflict:
+        if (not valid_report) and (not reports_as_new_worksheets) and new_worksheet_if_conflict and len(entities_in_report) > 0:
             report_to_worksheets = invalid_report_to_worksheets(entities_in_report, report)
 
             wb.remove(wb.active)
