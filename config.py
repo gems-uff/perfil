@@ -30,12 +30,18 @@ end_year = 2021
 
 # Reports configured by the user
 reports_as_new_worksheets = False
+new_worksheet_if_conflict = False
 
 configured_reports = {
     "reporte1Teste": [
         Pesquisador.nome,
         Conferencia.artigo,
+        Periodico.ano,
+        Pesquisador.id_lattes,
         Conferencia.ano,
+        Livro.autores,
+        Pesquisador.ultima_atualizacao_lattes,
+        Patente.tipo
 
     ],
     "reporte2Teste": [
