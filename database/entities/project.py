@@ -25,8 +25,5 @@ class ResearcherProject(Base):
     researcher_id = Column(Integer, ForeignKey('researcher.id'), primary_key=True)
     coordinator = Column(Boolean)
 
-    researchers = relationship("Researcher", backref="projects")
-    projects = relationship("Project", backref="researchers")
-
     def __repr__(self):
         return str(self.__dict__)

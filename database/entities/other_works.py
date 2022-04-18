@@ -57,8 +57,5 @@ class ResearcherPatent(Base):
     patent_id = Column(Integer, ForeignKey('patent.id'), primary_key=True)
     researcher_id = Column(Integer, ForeignKey('researcher.id'), primary_key=True)
 
-    researchers = relationship("Researcher", backref="patents")
-    patents = relationship("Patent", backref="researchers")
-
     def __repr__(self):
         return str(self.__dict__)

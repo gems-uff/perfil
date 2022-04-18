@@ -55,9 +55,6 @@ class ResearcherPublishedBook(Base):
     published_book_id = Column(Integer, ForeignKey('published_book.id'), primary_key=True)
     researcher_id = Column(Integer, ForeignKey('researcher.id'), primary_key=True)
 
-    researchers = relationship("Researcher", backref="published_books")
-    published_books = relationship("PublishedBook", backref="researchers")
-
     def __repr__(self):
         return str(self.__dict__)
 
@@ -67,9 +64,6 @@ class ResearcherPublishedBookChapter(Base):
 
     published_book_chapter_id = Column(Integer, ForeignKey('published_book_chapter.id'), primary_key=True)
     researcher_id = Column(Integer, ForeignKey('researcher.id'), primary_key=True)
-
-    researchers = relationship("Researcher", backref="published_books_chapters")
-    published_books_chapters = relationship("PublishedBookChapter", backref="researchers")
 
     def __repr__(self):
         return str(self.__dict__)

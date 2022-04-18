@@ -1,12 +1,14 @@
 import unittest
 import os
+import config
 from lxml import etree
 from zipfile import ZipFile
 from database.database_manager import start_database
 from database.populate.book import *
 from database.populate.other_works import *
 from database.populate.researcher_and_project import *
-from database.populate.titles_support import add_researcher_advisements, add_researcher_committees, ResearcherAdvisement, \
+from database.populate.titles_support import add_researcher_advisements, add_researcher_committees, \
+    ResearcherAdvisement, \
     ResearcherCommittee, AdvisementsTypes, CommitteeTypes
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers, Journal, \
     Conference, JournalPaper, ConferencePaper, QualisLevel, PaperNature
@@ -43,7 +45,8 @@ class DatabaseTestCase(unittest.TestCase):
     def test02AddJournalPapers(self):
         """Adds the reseacher journal papers and checks if all the information and realtionships with
         venues are correct"""
-        add_journal_papers(session=self.session, tree=self.tree, researcher_id=self.researcher_id, journals_similarity_dict=dict())
+        add_journal_papers(session=self.session, tree=self.tree, researcher_id=self.researcher_id,
+                           journals_similarity_dict=dict())
         journals_papers_database = self.session.query(JournalPaper).all()
 
         journal_paper_one, journal_paper_two = journals_papers_database[0], journals_papers_database[1]
@@ -77,9 +80,9 @@ class DatabaseTestCase(unittest.TestCase):
 
         # Journal - Venue
         # one
-        print(journal_one)
         self.assertEqual(journal_one.name, "Revista Tecnologia da Informação")
-        self.assertEqual(journal_one.qualis, QualisLevel.C) # with a 0.75 similarity the journal matches with REVISTA TECNOLOGIAS NA EDUCAÇÃO which has a C qualis
+        self.assertEqual(journal_one.qualis,
+                         QualisLevel.C)  # with a 0.75 similarity the journal matches with REVISTA TECNOLOGIAS NA EDUCAÇÃO which has a C qualis
         self.assertEqual(journal_one.issn, "1516-9197")
         self.assertEqual(journal_one.jcr, 0)
         # two
@@ -140,7 +143,7 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test04AddProject(self):
         """Adds all the projects on the .xml file and checks if the information is correct"""
-        add_projects(self.session, self.tree, similarity_dict=dict())
+        add_projects(self.session, self.tree, self.researcher_id, similarity_dict=dict())
         projects_database = self.session.query(Project).all()
 
         project_one, project_two = projects_database[0], projects_database[1]
@@ -221,7 +224,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(specialization_advisement.student_name, "Jon Karl Weibull")
         self.assertEqual(specialization_advisement.college, "Universidade Federal do Rio de Janeiro")
         self.assertEqual(specialization_advisement.year, 2009)
-        self.assertEqual(specialization_advisement.title, "Desambiguadores Semânticos Semi-supervisionados: uma análise")
+        self.assertEqual(specialization_advisement.title,
+                         "Desambiguadores Semânticos Semi-supervisionados: uma análise")
 
         undergraduate_research_advisement = self.session.query(ResearcherAdvisement).filter(
             ResearcherAdvisement.type == AdvisementsTypes.UNDERGRATUATE_RESEARCH).all()[0]
@@ -230,8 +234,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(undergraduate_research_advisement.student_name, "Clarissa Bruno Tuxen")
         self.assertEqual(undergraduate_research_advisement.college, "Universidade Federal Fluminense")
         self.assertEqual(undergraduate_research_advisement.year, 2015)
-        self.assertEqual(undergraduate_research_advisement.title,"Análise de Dados Sócio-Econômicos do Corpo Discente "
-                                                                 "da UFF")
+        self.assertEqual(undergraduate_research_advisement.title, "Análise de Dados Sócio-Econômicos do Corpo Discente "
+                                                                  "da UFF")
 
     def test06AddResearcherCommittee(self):
         """Adds all the reseacher committee participations from the .xml file and check if all information is correct"""
@@ -288,9 +292,9 @@ class DatabaseTestCase(unittest.TestCase):
                                               "Medidas para Controle Estatístico de Processos de Software em "
                                               "Organizações de Alta Maturidade")
         self.assertEqual(phd_committee.team, "Leonardo Gresta Paulino Murta;Ana Regina "
-                                            "Cavalcanti da Rocha;Gleison dos Santos "
-                                            "Souza;Ricardo de Almeida Falbo;Geraldo Bonorino "
-                                            "Xexéo")
+                                             "Cavalcanti da Rocha;Gleison dos Santos "
+                                             "Souza;Ricardo de Almeida Falbo;Geraldo Bonorino "
+                                             "Xexéo")
 
         # PHD_QUALIFICATION
         phd_qualification_committee = self.session.query(ResearcherCommittee).filter(
@@ -332,7 +336,6 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(civil_service_examination.team, "Leonardo Gresta Paulino Murta;Regina Maria Maciel "
                                                          "Braga;Aline Pires Vieira de Vasconcelos")
 
-
     def test07AddResearcherProject(self):
         """Adds the relationships between the researcher and the projects and check if they are correct"""
         add_researcher_project(self.session)
@@ -350,16 +353,17 @@ class DatabaseTestCase(unittest.TestCase):
 
     def test08AddCoathoursPapers(self):
         """Adds some coathours as researchers and checks if the relationship are correct"""
-        # ConferencePaper
         researcher_hugo_vidal = Researcher(name="Hugo Vidal Teixeira")
         self.session.add(researcher_hugo_vidal)
         self.session.flush()
         add_coauthor_papers(self.session)
 
-        conference_paper_database_id = \
-            self.session.query(ConferencePaper.id).filter(ConferencePaper.title.contains("LockED")).all()[0]
+        # ConferencePaper
+        if config.normalize_conference_paper:
+            conference_paper_database_id = \
+                self.session.query(ConferencePaper.id).filter(ConferencePaper.title.contains("LockED")).all()[0]
 
-        self.assertEqual(conference_paper_database_id[0], researcher_hugo_vidal.conference_papers[0].id)
+            self.assertEqual(conference_paper_database_id[0], researcher_hugo_vidal.conference_papers[0].id)
 
         # JournalPaper
         researcher_hamilton_oliveira = Researcher(name="Hamilton Oliveira")
@@ -367,13 +371,14 @@ class DatabaseTestCase(unittest.TestCase):
         self.session.flush()
         add_coauthor_papers(self.session)
 
-        journal_paper_database_id_one = \
-            self.session.query(JournalPaper.id).filter(JournalPaper.title.contains("A Caminho da Manuten")).all()[0][0]
-        journal_paper_database_id_two = \
-            self.session.query(JournalPaper.id).filter(JournalPaper.title.contains("Odyssey-SCM")).all()[0][0]
+        if config.normalize_journal_paper:
+            journal_paper_database_id_one = \
+                self.session.query(JournalPaper.id).filter(JournalPaper.title.contains("A Caminho da Manuten")).all()[0][0]
+            journal_paper_database_id_two = \
+                self.session.query(JournalPaper.id).filter(JournalPaper.title.contains("Odyssey-SCM")).all()[0][0]
 
-        self.assertEqual(journal_paper_database_id_one, researcher_hamilton_oliveira.journal_papers[0].id)
-        self.assertEqual(journal_paper_database_id_two, researcher_hamilton_oliveira.journal_papers[1].id)
+            self.assertEqual(journal_paper_database_id_one, researcher_hamilton_oliveira.journal_papers[0].id)
+            self.assertEqual(journal_paper_database_id_two, researcher_hamilton_oliveira.journal_papers[1].id)
 
     def test09AddResearcherConferenceManagement(self):
         """Adds all the conferences managed by the researcher from the .xml file and check if all information is correct"""
@@ -396,7 +401,6 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(conference_managed_two.year, 2009)
         self.assertEqual(conference_managed_two.committee, "Leonardo Gresta Paulino Murta")
 
-
     def test10AddResearcherEditorialBoard(self):
         """Adds all the reseacher jobs in journals from the .xml file and check if all information is correct"""
         add_researcher_editorial_board(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
@@ -417,7 +421,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(editorial_board_job_two.type, EditorialBoardType.REVISER)
         self.assertEqual(editorial_board_job_two.begin_year, 2007)
         self.assertEqual(editorial_board_job_two.end_year, 2007)
-        #BACKREF
+        # BACKREF
         researcher = self.session.query(Researcher).filter(Researcher.id == self.researcher_id).all()[0]
         self.assertEqual(editorial_board_job_one, researcher.journal_editorial_boards[0])
         self.assertEqual(editorial_board_job_two, researcher.journal_editorial_boards[1])
@@ -428,15 +432,12 @@ class DatabaseTestCase(unittest.TestCase):
 
         research_published_books = self.session.query(ResearcherPublishedBook).all()[0]
 
-        # BACKREF
         researcher = self.session.query(Researcher).filter(
             Researcher.id == research_published_books.researcher_id).all()[0]
         book = self.session.query(PublishedBook).filter(
             PublishedBook.id == research_published_books.published_book_id).all()[0]
 
-        self.assertEqual(researcher.published_books[0], book.researchers[0])
-
-        # PUBLISHED_BOOK
+        self.assertEqual(researcher.id, self.researcher_id)
         self.assertEqual(book.id, research_published_books.published_book_id)
         self.assertEqual(book.title, "Proceedings of the 30th Brazilian Symposium on Databases")
         self.assertEqual(book.publisher, "Sociedade Brasileira de Computação")
@@ -456,9 +457,7 @@ class DatabaseTestCase(unittest.TestCase):
         chapter = self.session.query(PublishedBookChapter).filter(
             PublishedBookChapter.id == research_published_chapters.published_book_chapter_id).all()[0]
 
-        self.assertEqual(researcher.published_books_chapters, chapter.researchers)
-
-        # PUBLISHED_BOOK_CHAPTER
+        self.assertEqual(researcher.id, self.researcher_id)
         self.assertEqual(chapter.id, research_published_chapters.published_book_chapter_id)
         self.assertEqual(chapter.title, "Collaborative Software Engineering")
         self.assertEqual(chapter.publisher, "Springer")
@@ -480,7 +479,6 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(researcher_patents[1].researcher_id, 1)
 
         # SOFTWARE
-        self.assertEqual(software.researchers[0].researcher_id, 1)
         self.assertEqual(software.type, PatentType.SOFTWARE)
         self.assertEqual(software.title, "SAPOS - SISTEMA DE APOIO À PÓS-GRADUAÇÃO")
         self.assertEqual(software.authors, "Bruno de Pinho Schettino;Everton Moreth da Silva;Leonardo Gresta Paulino "
@@ -491,7 +489,6 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(software.year, 2013)
 
         # PATENT
-        self.assertEqual(patent.researchers[0].researcher_id, 1)
         self.assertEqual(patent.type, PatentType.PATENT)
         self.assertEqual(patent.title, "CONTROLADOR DE CARGA INTELIGENTE")
         self.assertEqual(patent.authors, "Ricardo Carrano;Celio Vinicius Neves de Albuquerque;Debora Christina "
