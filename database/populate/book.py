@@ -1,22 +1,30 @@
+from sqlalchemy import and_
+from database.entities.researcher import Researcher
 from database.entities.book import PublishedBook, ResearcherPublishedBook, PublishedBookChapter, ResearcherPublishedBookChapter
+from utils.log import log_primary_key_error
 
 
 def get_or_add_book_id(session, basic_data, details, book_authors):
     '''Gets the published book already on the database or adds it'''
     title = basic_data.get("TITULO-DO-LIVRO")
-
-    book_list = session.query(PublishedBook).filter(PublishedBook.title == title).all()
-    if len(book_list) > 0: return book_list[0].id
-
     year = basic_data.get("ANO")
+    doi = basic_data.get("DOI")
+
+    book_list = session.query(PublishedBook).filter(
+        and_(PublishedBook.title == title, PublishedBook.year == year)).all() if doi is None or doi == "" else \
+        session.query(PublishedBook).filter(PublishedBook.doi == doi).all()
+
+    if len(book_list) > 0:
+        return book_list[0].id
+
     publisher = details.get("NOME-DA-EDITORA")
-    authors = ""  #
+    authors = ""
 
     for author in book_authors:
         authors += author.get("NOME-COMPLETO-DO-AUTOR") + ";"
     authors = authors[:-1]
 
-    new_book = PublishedBook(title=title, publisher=publisher, year=year, authors=authors)
+    new_book = PublishedBook(title=title, publisher=publisher, year=year, authors=authors, doi=doi)
     session.add(new_book)
     session.flush()
 
@@ -34,7 +42,16 @@ def add_researcher_published_books(session, tree, researcher_id):
         book_authors = book.findall("AUTORES")
         book_id = get_or_add_book_id(session, basic_data, details, book_authors)
 
-        session.add(ResearcherPublishedBook(published_book_id=book_id, researcher_id=researcher_id))
+
+        relationship_not_in_db = len(session.query(ResearcherPublishedBook).filter(ResearcherPublishedBook.researcher_id == researcher_id,
+                                                                                   ResearcherPublishedBook.published_book_id == book_id).all()) == 0
+
+        if relationship_not_in_db: session.add(ResearcherPublishedBook(published_book_id=book_id, researcher_id=researcher_id))
+        else:
+            researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+            book_name = session.query(PublishedBook.title).filter(PublishedBook.id == book_id).all()[0][0]
+            log_primary_key_error("researcher_published_book", researcher_name, researcher_id, book_id, "(" + book_name + ")")
+
 
 
 def get_or_add_chapter_id(session, basic_data, details, chapter_authors):

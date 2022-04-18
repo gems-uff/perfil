@@ -12,6 +12,7 @@ class Book(Base):
     publisher = Column(String)
     year = Column(Integer)
     authors = Column(String)
+    doi = Column(String)
 
     type = Column(String(50))
 

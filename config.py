@@ -10,11 +10,16 @@ from database.entities.venue import QualisLevel
 # The order of the columns does not matter
 resources_path = os.getcwd() + os.sep + 'resources' + os.sep
 output_path = os.getcwd() + os.sep + 'output' + os.sep
-researchers_file = resources_path + 'teste.xlsx'
+researchers_file = resources_path + 'pgc.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
 start_year = 2019
 end_year = 2021
+
+# Tries to make each input on the database unique
+normalize_conference_paper = False
+normalize_journal_paper = False
+normalize_project = False
 
 # Minimum similarities
 conferences_minimum_similarity = 0.75
@@ -22,6 +27,7 @@ journals_minimum_similarity = 0.75
 conferences_papers_title_minimum_similarity = 0.9
 journals_papers_title_minimum_similarity = 0.9
 project_name_minimum_similarity = 0.9
+datacapes_minimum_similarity_titles = 0.75
 
 # The subject that will be plotted as a red dot in the boxplots.
 subject = {
@@ -55,6 +61,29 @@ qualis_conference_points = {
     QualisLevel.NC: 0.0
 }
 
+# qualis_journal_points = {
+#     QualisLevel.A1: 1.0,
+#     QualisLevel.A2: 0.85,
+#     QualisLevel.B1: 0.7,
+#     QualisLevel.B2: 0.5,
+#     QualisLevel.B3: 0.2,
+#     QualisLevel.B4: 0.1,
+#     QualisLevel.B5: 0.05,
+#     QualisLevel.C: 0.0,
+#     QualisLevel.NC: 0.0
+# }
+#
+# qualis_conference_points = {
+#     QualisLevel.A1: 1.0,
+#     QualisLevel.A2: 0.85,
+#     QualisLevel.B1: 0.7,
+#     QualisLevel.B2: 0.5,
+#     QualisLevel.B3: 0.2,
+#     QualisLevel.B4: 0.1,
+#     QualisLevel.B5: 0.05,
+#     QualisLevel.C: 0.0,
+#     QualisLevel.NC: 0.0
+#}
 
 # The file with JCR scores
 df = pd.read_excel(resources_path + 'jcr.xlsx')

@@ -2,11 +2,12 @@ import openpyxl
 import os
 import populate_database
 from collections import defaultdict
-from config import generate_datacapes_output_dir, QualisLevel
-from database.database_manager import Researcher, Journal, Conference, JournalPaper
+from config import generate_datacapes_output_dir, QualisLevel, datacapes_minimum_similarity_titles
+from database.database_manager import Researcher, Journal, Conference, JournalPaper, Venue
 from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
+from utils.similarity_manager import get_similarity
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper, jcr_pub_filter, \
-    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper, datacapes_paper_filter
+    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper, affiliated_researcher
 
 
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
@@ -49,14 +50,14 @@ def write_reseachers_production(researchers, session):
     row = 1
     papers = []  # array to get and filter all the papers only once
     for researcher in researchers:
-        conference_papers = list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.conference_papers))
+        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
         row = reseacher_production_paper_iterator(conference_papers, researcher, session, worksheet, row, False)
 
-        journal_papers = list(filter(published_journal_paper,list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.journal_papers))))
+        journal_papers = list(filter(published_journal_paper, list(filter(scope_years_paper_or_support, researcher.journal_papers))))
         row = reseacher_production_paper_iterator(journal_papers, researcher, session, worksheet, row, True)
 
-        papers += conference_papers  # Adds the conference papers of the researcher to the list
-        papers += journal_papers  # Adds the journal papers of the researcher to the list
+        papers += list(filter(lambda x: affiliated_researcher(researcher.id, x.year, session), conference_papers))  # Adds the conference papers of the researcher to the list
+        papers += list(filter(lambda x: affiliated_researcher(researcher.id, x.year, session), journal_papers))  # Adds the journal papers of the researcher to the list
 
     wb.save(generate_datacapes_output_dir + os.sep + "producao_docentes.xlsx")
 
@@ -205,10 +206,10 @@ def write_researchers_summary(researchers, session):
     write_summary_header(worksheet)
     row = 2  # the header uses the first row
     for researcher in researchers:
-        conference_papers = list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.conference_papers))
+        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
         journal_papers = list(filter(published_journal_paper,
-                                     list(filter(lambda x: datacapes_paper_filter(x, researcher.id, session), researcher.journal_papers))))
-        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 0), journal_papers))
+                                     list(filter(scope_years_paper_or_support, researcher.journal_papers))))
+        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)
 
@@ -232,7 +233,10 @@ def write_yearly_summary(papers, session):
     for year in papers_by_year:
         conference_papers = list(filter(conference_paper, papers_by_year[year]))
         journal_papers = list(filter(published_journal_paper, list(filter(journal_paper, papers_by_year[year]))))
-        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 0), journal_papers))
+        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
+        if year == 2019:
+            for paper in journal_papers_jcr:
+                print(paper.title)
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, year, row, session, worksheet)
 
@@ -240,13 +244,22 @@ def write_yearly_summary(papers, session):
     wb.save(generate_datacapes_output_dir + os.sep + "sumario_anual.xlsx")
 
 
-def remove_paper_duplicates(papers):
+def remove_paper_duplicates(papers_list, session):
     """Removes duplicates, same title, of the same papers"""
+    papers = list(set(papers_list))
     new_list = papers.copy()
+
     for i in range(len(papers)):
+        venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
         for j in range(i + 1, len(papers)):
-            if (papers[i].title == papers[j].title):
-                new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets removed
+            venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
+            same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name == venue_j.name
+            same_year = papers[i].year == papers[j].year
+
+            if same_venue and same_year and (papers[j] in new_list):
+                if papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles:
+                    new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets remove
+
     return new_list  # the list with only a paper of each
 
 
@@ -257,15 +270,21 @@ def main():
     print("\nGenerating datacapes files...\n")
 
     # writes researchers production
-    papers = remove_paper_duplicates(write_reseachers_production(researchers, session))  # Some files only need a paper of each, they don't make distiction between the researchers
+    papers = remove_paper_duplicates(write_reseachers_production(researchers, session), session)  # Some files only need a paper of each, they don't make distiction between the researchers
+
+    print("producao_docentes.xlsx was generated\n")
     # writes yearly production
     write_yearly_production(papers, session)  # here it sorts the papers by year which is used on the next files
+    print("producao_anual.xlsx was generated\n")
     # writes 4n production
     write_4n_production(papers, session)
+    print("producao_4n.xlsx was generated\n")
     # writes researcher summary
     write_researchers_summary(researchers, session)
+    print("sumario_docentes.xlsx was generated\n")
     # writes yearly summary
     write_yearly_summary(papers, session)
+    print("sumario_anual.xlsx was generated\n")
 
     print("Finished generating the datacapes files\n")
 

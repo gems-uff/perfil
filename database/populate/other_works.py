@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy import and_
 from utils.log import log_primary_key_error
+from database.entities.researcher import Researcher
 from database.entities.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
     ResearcherPatent, Patent, PatentType
 
@@ -25,9 +26,11 @@ def add_researcher_conference_management(session, tree, researcher_id):
             and_(ResearcherConferenceManagement.researcher_id==researcher_id,
                  ResearcherConferenceManagement.title==title, ResearcherConferenceManagement.year == year)).all()
 
-        if len(lattes_duplication) > 0: log_primary_key_error("researcher_conference_management", researcher_id,
-                                                               title, year)
-        else: session.add(ResearcherConferenceManagement(researcher_id=researcher_id, title=title, year=year,
+        if len(lattes_duplication) > 0:
+            researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+            log_primary_key_error("researcher_conference_management", researcher_name, researcher_id, title, year)
+        else:
+            session.add(ResearcherConferenceManagement(researcher_id=researcher_id, title=title, year=year,
                                                          committee=committee))
 
 
@@ -50,9 +53,11 @@ def add_researcher_editorial_board(session, tree, researcher_id):
                      ResearcherEditorialBoard.journal_name==journal_name, ResearcherEditorialBoard.type==type,
                      ResearcherEditorialBoard.begin_year==begin_year)).all()
 
-            if len(lattes_duplication) > 0: log_primary_key_error("reseacher_editorial_board", researcher_id,
-                                                                  journal_name, type, begin_year)
-            else: session.add(ResearcherEditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
+            if len(lattes_duplication) > 0:
+                researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+                log_primary_key_error("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, begin_year)
+            else:
+                session.add(ResearcherEditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
                                                  begin_year=begin_year, end_year=end_year))
 
 

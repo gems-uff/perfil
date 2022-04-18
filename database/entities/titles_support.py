@@ -24,12 +24,13 @@ class CommitteeTypes(enum.Enum):
 class ResearcherAdvisement(Base):
     __tablename__ = "researcher_advisement"
 
-    researcher_id = Column(Integer, ForeignKey("researcher.id"), primary_key=True)
-    student_name = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    student_name = Column(String)
     college = Column(String)
-    year = Column(Integer, primary_key=True)
+    year = Column(Integer)
     title = Column(String)
-    type = Column(Enum(AdvisementsTypes), primary_key=True)
+    type = Column(Enum(AdvisementsTypes))
     # committee = Column(String)
 
     def __repr__(self):
@@ -39,12 +40,13 @@ class ResearcherAdvisement(Base):
 class ResearcherCommittee(Base):
     __tablename__ = "researcher_committee"
 
-    researcher_id = Column(Integer, ForeignKey("researcher.id"), primary_key=True)
-    student_name = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    student_name = Column(String)
     college = Column(String)
     year = Column(Integer)
     title = Column(String)  # if it's a civil service entrance examination, use the name of the job as title
-    type = Column(Enum(CommitteeTypes), primary_key=True)
+    type = Column(Enum(CommitteeTypes))
     team = Column(String)
 
     def __repr__(self):

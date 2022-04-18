@@ -16,6 +16,7 @@ conferences_similarity_dict = dict()
 journals_similarity_dict = dict()
 project_similarity_dict = dict()
 
+
 def lattes(lattes_id, session, google_scholar_id):
     """Populates the database with the lattes info"""
     with ZipFile(lattes_dir + os.sep + str(lattes_id) + '.zip') as zip:
@@ -25,7 +26,7 @@ def lattes(lattes_id, session, google_scholar_id):
             researcher_id = add_researcher(session, tree, google_scholar_id, lattes_id)
             add_conference_papers(session, tree, researcher_id, conferences_similarity_dict)
             add_journal_papers(session, tree, researcher_id, journals_similarity_dict)
-            add_projects(session, tree, project_similarity_dict)
+            add_projects(session, tree, researcher_id, project_similarity_dict)
             add_researcher_advisements(session, tree, researcher_id)
             add_researcher_committees(session, tree, researcher_id)
             add_researcher_conference_management(session, tree, researcher_id)
@@ -63,8 +64,8 @@ def main():
             lattes(profile['ID Lattes'], session, profile['ID Scholar'])
         print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
 
-    print("\nFinished populating the database. \n")
     update_database_info(session)
+    print("\nFinished populating the database. \n")
 
     create_similarities_xlsx()
     return session

@@ -1,9 +1,10 @@
 from os import listdir, sep
 from os.path import isfile, join
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from database.database_manager import Researcher, Project, ResearcherProject, Affiliation
-from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir
+from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, normalize_project
 from utils.similarity_manager import detect_similar
+from utils.log import log_normalize, log_primary_key_error
 
 
 def add_researcher(session, tree, google_scholar_id, lattes_id):
@@ -30,33 +31,35 @@ def check_if_project_is_in_the_database(session, project_name, similarity_dict):
     """Checks if a project is already in the database by looking at it's name or it's name's synonym. If any isn't found,
     checks if there is already a project with similar name in the database"""
     # checks if the exact project name is already on the database
-    if len(session.query(Project).filter(Project.name == project_name).all()) > 0: return True
+    if len(session.query(Project).filter(Project.name == project_name).all()) > 0: return True, project_name
 
     if project_name in projects_synonyms:
-        if len(session.query(Project).filter(Project.name == projects_synonyms[project_name]).all()) > 0: return True
-        return False
+        if len(session.query(Project).filter(Project.name == projects_synonyms[project_name]).all()) > 0: return True, projects_synonyms[project_name]
+        return False, None
 
-    if project_name in similarity_dict: return True
+    if project_name in similarity_dict: return True, similarity_dict[project_name]
 
     projects_database_names = [project_in_bd.name for project_in_bd in session.query(Project.name)]
 
     similar_text_in_db = detect_similar(project_name, projects_database_names, project_name_minimum_similarity, similarity_dict)
-    if similar_text_in_db is not None: return True
+    if similar_text_in_db is not None: return True, similar_text_in_db
 
-    return False
+    return False, None
 
 
-def add_projects(session, tree, similarity_dict):
-    """Populates the Project table"""
+def add_projects(session, tree, researcher_id, similarity_dict):
+    """Populates the Project and ResearcherProject table"""
+
     projects = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE"
                           "-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA")
+    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
     for project in projects:
         name = project.get("NOME-DO-PROJETO")
         project_already_in_the_database = check_if_project_is_in_the_database(session, name, similarity_dict)
 
-        if not project_already_in_the_database:
-            name = projects_synonyms[name] if name in projects_synonyms else name
+        if (not project_already_in_the_database[0]) or (not normalize_project):
+            name = projects_synonyms[name] if name in projects_synonyms and normalize_project else name
             start_year = project.get("ANO-INICIO")
             end_year = project.get("ANO-FIM")
             team = ""
@@ -70,22 +73,45 @@ def add_projects(session, tree, similarity_dict):
             team = team[:-1]
             manager = manager[:-1]
 
-            session.add(Project(name=name, start_year=start_year, end_year=end_year, team=team, manager=manager))
+            new_project = Project(name=name, start_year=start_year, end_year=end_year, team=team, manager=manager)
+            session.add(new_project)
+            session.flush()
+
+            add_one_researcher_project_relationship(new_project, researcher, session)
+
+        else:
+            name = project_already_in_the_database[1]
+            project_in_db = session.query(Project).filter(Project.name == name).all()[0]
+            add_one_researcher_project_relationship(project_in_db, researcher, session)
+            log_normalize(project_in_db.name, researcher.id, researcher.name)
 
 
 def add_researcher_project(session):
-    """Populates the ResearcherProject relationship"""
-    researchers_in_projects = session.query(Researcher.id, Researcher.name, Project.id, Project.manager).filter(
-        or_(Project.team.contains(Researcher.name), Project.manager.contains(Researcher.name))).all()
+    """Updates the ResearcherProject relationship for researchers which didn't have the relationship"""
 
-    for relation in researchers_in_projects:
-        researcher_id = relation[0]
-        researcher_name = relation[1]
-        project_id = relation[2]
-        project_manager = relation[3]
+    if normalize_project:
 
-        new_researcher_project = ResearcherProject(researcher_id=researcher_id, project_id=project_id)
-        new_researcher_project.coordinator = True if researcher_name in project_manager else False
+        researchers_in_projects = session.query(Researcher, Project).filter(
+            or_(Project.team.contains(Researcher.name), Project.manager.contains(Researcher.name))).all()
+
+        for relation in researchers_in_projects:
+            researcher = relation[0]
+            project = relation[1]
+
+            add_one_researcher_project_relationship(project, researcher, session)
+            log_normalize(project.name, researcher.id, researcher.name)
+
+
+def add_one_researcher_project_relationship(project, researcher, session):
+    """Adds only one ResearcherProject relationship"""
+
+    relationship_is_not_in_db = len(session.query(ResearcherProject).filter(
+        and_(ResearcherProject.researcher_id == researcher.id, ResearcherProject.project_id == project.id)).all()) == 0
+
+    if relationship_is_not_in_db:
+
+        new_researcher_project = ResearcherProject(researcher_id=researcher.id, project_id=project.id)
+        new_researcher_project.coordinator = True if researcher.name in project.manager else False
         session.add(new_researcher_project)
 
 

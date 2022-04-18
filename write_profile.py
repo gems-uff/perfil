@@ -127,24 +127,27 @@ def scholar(id):
     Keyword arguments:
     id -- the 12-character code associated with a Google Scholar profile
     """
+
     profile = {}
-    url = 'https://scholar.google.com/citations?user=' + str(id)
-    page = urllib.request.urlopen(url)
-    soup = BeautifulSoup(page, 'html.parser')
 
-    indexes = soup.find_all("td", "gsc_rsb_std")
-    profile['Citações (total)'] = int(indexes[0].string)
-    profile['H-Index (total)'] = int(indexes[2].string)
+    if id is not None and id.strip() != "":
+        url = 'https://scholar.google.com/citations?user=' + str(id)
+        page = urllib.request.urlopen(url)
+        soup = BeautifulSoup(page, 'html.parser')
 
-    citations = soup.find_all("span", "gsc_g_al")
-    sum = 0
-    current_year = datetime.now().year
-    for i in range(-(current_year - end_year + 1), -(min(current_year - start_year + 1, len(citations)) + 1), -1):
-        try:
-            sum += int(citations[i].string)
-        except:
-            pass
-    profile['Citações'] = sum
+        indexes = soup.find_all("td", "gsc_rsb_std")
+        profile['Citações (total)'] = int(indexes[0].string)
+        profile['H-Index (total)'] = int(indexes[2].string)
+
+        citations = soup.find_all("span", "gsc_g_al")
+        sum = 0
+        current_year = datetime.now().year
+        for i in range(-(current_year - end_year + 1), -(min(current_year - start_year + 1, len(citations)) + 1), -1):
+            try:
+                sum += int(citations[i].string)
+            except:
+                pass
+        profile['Citações'] = sum
 
     return profile
 

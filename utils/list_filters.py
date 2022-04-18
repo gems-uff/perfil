@@ -5,20 +5,14 @@ from database.database_manager import Paper, JournalPaper, Journal, ResearcherPr
 from database.entities.paper import PaperNature
 
 
-def affiliated_researcher(researcher_id, year, session):
-    """Auxiliary function to the datacapes_paper_filter function"""
-    return len(session.query(Affiliation).filter(and_(Affiliation.year == year, Affiliation.researcher == researcher_id)).all()) > 0
+def affiliated_researcher(researcher_id, paper_year, session):
+    """filter function to get only the papers within the years which the researcher was affiliated"""
+    return len(session.query(Affiliation).filter(and_(Affiliation.year == paper_year, Affiliation.researcher == researcher_id)).all()) > 0
 
 
 def scope_years_paper_or_support(paper_or_support):
     """filter function to get only database objects within the years specified"""
     return start_year <= paper_or_support.year <= end_year
-
-
-def datacapes_paper_filter(paper, researcher_id, session):
-    """filter function to get only the papers within the years specified by the user
-    which the researcher was affiliated"""
-    return scope_years_paper_or_support(paper) and affiliated_researcher(researcher_id, paper.year, session)
 
 
 def scope_years_researcher_project(research_project: ResearcherProject, session):

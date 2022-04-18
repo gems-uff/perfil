@@ -2,6 +2,7 @@ import uuid
 from enum import Enum
 from sqlalchemy import or_, not_, and_
 from database.entities.titles_support import ResearcherAdvisement, AdvisementsTypes, CommitteeTypes, ResearcherCommittee
+from database.entities.researcher import Researcher
 from utils.log import log_primary_key_error
 
 
@@ -25,7 +26,11 @@ class Degree(Enum):
 
 def add_researcher_advisements(session, tree, researcher_id):
     """Call functions to populate the ResearcherAdvisement table"""
-    students_advised = tree.xpath("/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS")[0]
+    students_advised = None
+    try:
+        students_advised = tree.xpath("/CURRICULO-VITAE/OUTRA-PRODUCAO/ORIENTACOES-CONCLUIDAS")[0]
+    except:
+        return
 
     students_advised_masters = students_advised.findall("ORIENTACOES-CONCLUIDAS-PARA-MESTRADO")
     students_advised_phds = students_advised.findall("ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO")
@@ -41,12 +46,19 @@ def add_researcher_advisements(session, tree, researcher_id):
 
 def add_researcher_committees(session, tree, researcher_id):
     """Call functions to populate the ReseacherCommittee table"""
-    students_judged = tree.xpath("/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO")[0]
+    students_judged = None
+    try:
+        students_judged = tree.xpath("/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-TRABALHOS-CONCLUSAO")[0]
+    except:
+        return
+
     students_judged_bachelor = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-GRADUACAO")
     students_judged_specialization = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-APERFEICOAMENTO-ESPECIALIZACAO")
     students_judged_qualification = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-EXAME-QUALIFICACAO")
     students_judged_masters = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-MESTRADO")
     students_judged_phds = students_judged.findall("PARTICIPACAO-EM-BANCA-DE-DOUTORADO")
+    civil_servants_judged = tree.xpath("/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-JULGADORA/BANCA"
+                                       "-JULGADORA-PARA-CONCURSO-PUBLICO")
 
     add_titles_support_from_element_list(session, students_judged_bachelor, AdvisorOrCommittee.COMMITTEE,
                                          Degree.BACHELOR, researcher_id)
@@ -58,9 +70,6 @@ def add_researcher_committees(session, tree, researcher_id):
                                          researcher_id)
     add_titles_support_from_element_list(session, students_judged_phds, AdvisorOrCommittee.COMMITTEE, Degree.PHD,
                                          researcher_id)
-
-    civil_servants_judged = tree.xpath("/CURRICULO-VITAE/DADOS-COMPLEMENTARES/PARTICIPACAO-EM-BANCA-JULGADORA/BANCA"
-                                       "-JULGADORA-PARA-CONCURSO-PUBLICO")
 
     add_titles_support_from_element_list(session, civil_servants_judged, AdvisorOrCommittee.CIVIL_SERVICE_COMMITTEE,
                                          Degree.NOT_DEFINED, researcher_id)
@@ -114,8 +123,14 @@ def add_researcher_committee_in_bd(college, degree, element, name, nature, resea
     lattes_duplication = session.query(ResearcherCommittee).filter(
         and_(researcher_id == ResearcherCommittee.researcher_id, name == ResearcherCommittee.student_name,
              type == ResearcherCommittee.type)).all()
+
+    for committee in lattes_duplication:
+        if committee.title != title: # pode ter mesmo titulo, mas 2 defesas no ano
+            lattes_duplication.remove(committee)
+
     if len(lattes_duplication) > 0:
-        log_primary_key_error("reseacher_committee", researcher_id, name, type)
+        researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+        log_primary_key_error("reseacher_committee", researcher_name, researcher_id, name, type)
     else:
         session.add(ResearcherCommittee(researcher_id=researcher_id, student_name=name, college=college,
                                         year=year, title=title, type=type, team=team))
@@ -126,12 +141,16 @@ def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id
     lattes_duplication = session.query(ResearcherAdvisement).filter(
         and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
              ResearcherAdvisement.type == type, ResearcherAdvisement.year == year)).all()
+
+    for advisement in lattes_duplication:
+        if advisement.title != title: lattes_duplication.remove(advisement)
+
     if type is not None and len(lattes_duplication) == 0:
         session.add(ResearcherAdvisement(researcher_id=researcher_id, student_name=name, college=college,
                                          year=year, title=title, type=type))
     elif len(lattes_duplication) > 0:
-        print(lattes_duplication)
-        log_primary_key_error("researcher_advisement", researcher_id, name, type, year)
+        researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+        log_primary_key_error("researcher_advisement", researcher_name, researcher_id, name, type, year)
 
 
 def advisor_type_switch(degree, nature):
