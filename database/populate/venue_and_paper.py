@@ -217,7 +217,11 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
 
         year = int(basic_data.get(year_attribute))
         first_page = paper_details.get("PAGINA-INICIAL")
+        try: first_page = int(first_page)
+        except: pass
         last_page = paper_details.get("PAGINA-FINAL")
+        try: last_page = int(last_page)
+        except: pass
         authors = ""
         venue = get_or_add_paper_venue(session, details_attribute, paper_details, similarity_dict)
 
