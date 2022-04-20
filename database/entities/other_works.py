@@ -13,10 +13,11 @@ class EditorialBoardType(enum.Enum):
 class ResearcherEditorialBoard(Base):
     __tablename__ = "reseacher_editorial_board"
 
-    researcher_id = Column(Integer, ForeignKey("researcher.id"), primary_key=True)
-    journal_name = Column(String, primary_key=True)
-    type = Column(Enum(EditorialBoardType), primary_key=True)
-    begin_year = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    journal_name = Column(String)
+    type = Column(Enum(EditorialBoardType))
+    begin_year = Column(Integer)
     end_year = Column(Integer)
 
     researchers = relationship("Researcher", backref="journal_editorial_boards")
@@ -28,9 +29,10 @@ class ResearcherEditorialBoard(Base):
 class ResearcherConferenceManagement(Base):
     __tablename__ = "researcher_conference_management"
 
-    researcher_id = Column(Integer, ForeignKey("researcher.id"), primary_key=True)
-    title = Column(String, primary_key=True) #the name of the job at the conference
-    year = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    title = Column(String) #the name of the job at the conference
+    year = Column(Integer)
     committee = Column(String)
 
 

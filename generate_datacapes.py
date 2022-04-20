@@ -7,7 +7,11 @@ from database.database_manager import Researcher, Journal, Conference, JournalPa
 from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
 from utils.similarity_manager import get_similarity
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper, jcr_pub_filter, \
-    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper, affiliated_researcher
+    qualis_level_journal, qualis_level_conference, conference_paper, journal_paper, affiliated_researcher, completed_paper_filter
+
+
+def filter_completed_scope_years_papers(paper_list):
+    return list(filter(completed_paper_filter, list(filter(scope_years_paper_or_support, paper_list))))
 
 
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
@@ -30,7 +34,7 @@ def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_
         worksheet.cell(row=row, column=10+column_number_additional, value=get_qualis_points(is_journal_paper, venue.qualis) if venue.qualis is not None else "null")
 
 
-def reseacher_production_paper_iterator(array_papers, researcher, session, worksheet, row, is_journal_paper : bool):
+def researcher_production_paper_iterator(array_papers, researcher, session, worksheet, row, is_journal_paper : bool):
     """For each paper of a given researcher calls the function to write its info"""
     for i in range(len(array_papers)):
         paper = array_papers[i]
@@ -43,18 +47,18 @@ def reseacher_production_paper_iterator(array_papers, researcher, session, works
     return row  # returns the last roll after all the papers' info
 
 
-def write_reseachers_production(researchers, session):
+def write_researchers_production(researchers, session):
     """Writes the producao_docentes.xlsx file"""
     wb = openpyxl.Workbook()
     worksheet = wb.active
     row = 1
     papers = []  # array to get and filter all the papers only once
     for researcher in researchers:
-        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
-        row = reseacher_production_paper_iterator(conference_papers, researcher, session, worksheet, row, False)
+        conference_papers = filter_completed_scope_years_papers(researcher.conference_papers)
+        row = researcher_production_paper_iterator(conference_papers, researcher, session, worksheet, row, False)
 
-        journal_papers = list(filter(published_journal_paper, list(filter(scope_years_paper_or_support, researcher.journal_papers))))
-        row = reseacher_production_paper_iterator(journal_papers, researcher, session, worksheet, row, True)
+        journal_papers = list(filter(published_journal_paper, filter_completed_scope_years_papers(researcher.journal_papers)))
+        row = researcher_production_paper_iterator(journal_papers, researcher, session, worksheet, row, True)
 
         papers += list(filter(lambda x: affiliated_researcher(researcher.id, x.year, session), conference_papers))  # Adds the conference papers of the researcher to the list
         papers += list(filter(lambda x: affiliated_researcher(researcher.id, x.year, session), journal_papers))  # Adds the journal papers of the researcher to the list
@@ -206,9 +210,8 @@ def write_researchers_summary(researchers, session):
     write_summary_header(worksheet)
     row = 2  # the header uses the first row
     for researcher in researchers:
-        conference_papers = list(filter(scope_years_paper_or_support, researcher.conference_papers))
-        journal_papers = list(filter(published_journal_paper,
-                                     list(filter(scope_years_paper_or_support, researcher.journal_papers))))
+        conference_papers = filter_completed_scope_years_papers(researcher.conference_papers)
+        journal_papers = list(filter(published_journal_paper, filter_completed_scope_years_papers(researcher.journal_papers)))
         journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)
@@ -232,11 +235,8 @@ def write_yearly_summary(papers, session):
 
     for year in papers_by_year:
         conference_papers = list(filter(conference_paper, papers_by_year[year]))
-        journal_papers = list(filter(published_journal_paper, list(filter(journal_paper, papers_by_year[year]))))
+        journal_papers = list(filter(journal_paper, papers_by_year[year]))
         journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
-        if year == 2019:
-            for paper in journal_papers_jcr:
-                print(paper.title)
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, year, row, session, worksheet)
 
@@ -253,11 +253,11 @@ def remove_paper_duplicates(papers_list, session):
         venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
         for j in range(i + 1, len(papers)):
             venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
-            same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name == venue_j.name
+            same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name.lower() == venue_j.name.lower()
             same_year = papers[i].year == papers[j].year
 
-            if same_venue and same_year and (papers[j] in new_list):
-                if papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles:
+            if same_venue and same_year and (papers[j] in new_list) \
+                and (papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles):
                     new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets remove
 
     return new_list  # the list with only a paper of each
@@ -270,7 +270,7 @@ def main():
     print("\nGenerating datacapes files...\n")
 
     # writes researchers production
-    papers = remove_paper_duplicates(write_reseachers_production(researchers, session), session)  # Some files only need a paper of each, they don't make distiction between the researchers
+    papers = remove_paper_duplicates(write_researchers_production(researchers, session), session)  # Some files only need a paper of each, they don't make distiction between the researchers
 
     print("producao_docentes.xlsx was generated\n")
     # writes yearly production

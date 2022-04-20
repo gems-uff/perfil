@@ -6,7 +6,7 @@ from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperN
 from database.entities.researcher import Researcher
 from database.entities.venue import Conference, Journal, QualisLevel
 from utils.similarity_manager import detect_similar, get_similarity
-from utils.log import log_normalize
+from utils.log import log_normalize, log_possible_lattes_duplication
 
 def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
     """Gets the qualis value of a conference or journal from the xlsx qualis file"""
@@ -129,6 +129,14 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
             and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
             or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
 
+        # Lattes duplication
+        for this_researcher_paper_in_db in researcher.journal_papers:
+            if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
+                    or (this_researcher_paper_in_db.title.lower() == paper.title.lower() and this_researcher_paper_in_db.nature == paper.nature):
+                log_possible_lattes_duplication("researcher_journal_paper", researcher.name, researcher_id, this_researcher_paper_in_db.id,
+                                                this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
+                break
+
         # journal_papers_in_db = session.query(JournalPaper).filter(
         #     and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
         #     or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
@@ -167,6 +175,14 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
             and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
             or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None, paper.doi is None)).all()
 
+        # Lattes duplication
+        for this_researcher_paper_in_db in researcher.conference_papers:
+            if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
+                    or (this_researcher_paper_in_db.title.lower() == paper.title.lower() and this_researcher_paper_in_db.nature == paper.nature):
+                log_possible_lattes_duplication("researcher_conference_paper", researcher.name, researcher_id, this_researcher_paper_in_db.id,
+                                                this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
+                break
+
         # conference_papers_in_db = session.query(ConferencePaper).filter(
         #     and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
         #     or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None)).all()
@@ -199,7 +215,7 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
         doi = basic_data.get("DOI") if basic_data.get("DOI") != "" else None
         nature = nature_switch(basic_data.get("NATUREZA"))
 
-        year = basic_data.get(year_attribute)
+        year = int(basic_data.get(year_attribute))
         first_page = paper_details.get("PAGINA-INICIAL")
         last_page = paper_details.get("PAGINA-FINAL")
         authors = ""

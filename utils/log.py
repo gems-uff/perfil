@@ -13,7 +13,21 @@ def log_primary_key_error(table_name: str, researcher_name: str, *keys):
     setup_log_file()
 
     message = "Function: " + inspect.stack()[1][3] + \
-              ". The table " + table_name + " already has an entry with the following primary key: "
+              ". The table " + table_name + " already has an entry with the following data: "
+
+    for key in keys:
+        message += str(key) + " "
+    message = message[:-1] + ". Researcher's Lattes: " + researcher_name
+    logging.warning(message)
+
+
+def log_possible_lattes_duplication(table_name: str, researcher_name: str, *keys):
+    '''Adds a new lattes duplication warning to the log file'''
+
+    setup_log_file()
+
+    message = "Function: " + inspect.stack()[1][3] + \
+              ". There is a possible duplication in the table " + table_name + " with the following data: "
 
     for key in keys:
         message += str(key) + " "

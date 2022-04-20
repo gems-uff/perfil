@@ -1,10 +1,10 @@
 from os import listdir, sep
 from os.path import isfile, join
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, func
 from database.database_manager import Researcher, Project, ResearcherProject, Affiliation
 from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, normalize_project
 from utils.similarity_manager import detect_similar
-from utils.log import log_normalize, log_primary_key_error
+from utils.log import log_normalize, log_primary_key_error, log_possible_lattes_duplication
 
 
 def add_researcher(session, tree, google_scholar_id, lattes_id):
@@ -31,7 +31,7 @@ def check_if_project_is_in_the_database(session, project_name, similarity_dict):
     """Checks if a project is already in the database by looking at it's name or it's name's synonym. If any isn't found,
     checks if there is already a project with similar name in the database"""
     # checks if the exact project name is already on the database
-    if len(session.query(Project).filter(Project.name == project_name).all()) > 0: return True, project_name
+    if len(session.query(Project).filter(func.lower(Project.name) == func.lower(project_name)).all()) > 0: return True, project_name
 
     if project_name in projects_synonyms:
         if len(session.query(Project).filter(Project.name == projects_synonyms[project_name]).all()) > 0: return True, projects_synonyms[project_name]
@@ -53,13 +53,20 @@ def add_projects(session, tree, researcher_id, similarity_dict):
     projects = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE"
                           "-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA")
     researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
+    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
 
     for project in projects:
         name = project.get("NOME-DO-PROJETO")
         project_already_in_the_database = check_if_project_is_in_the_database(session, name, similarity_dict)
 
+        if project_already_in_the_database[0]:
+            this_researcher_projects_relationship = session.query(ResearcherProject.project_id).filter(ResearcherProject.researcher_id == researcher_id)
+            this_researcher_projects_in_db = session.query(Project).filter(func.lower(Project.name) == func.lower(name), Project.id.in_(this_researcher_projects_relationship))
+            for project_in_db in this_researcher_projects_in_db:
+                log_possible_lattes_duplication("researcher_project", researcher_name, researcher_id, project_in_db.id, name)
+
         if (not project_already_in_the_database[0]) or (not normalize_project):
-            name = projects_synonyms[name] if name in projects_synonyms and normalize_project else name
+            name = project_already_in_the_database[1] if project_already_in_the_database[1] is not None and normalize_project else name
             start_year = project.get("ANO-INICIO")
             end_year = project.get("ANO-FIM")
             team = ""
@@ -80,6 +87,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
             add_one_researcher_project_relationship(new_project, researcher, session)
 
         else:
+            # TODO normalize
             name = project_already_in_the_database[1]
             project_in_db = session.query(Project).filter(Project.name == name).all()[0]
             add_one_researcher_project_relationship(project_in_db, researcher, session)
