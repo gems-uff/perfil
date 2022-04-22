@@ -20,6 +20,9 @@ end_year = 2021
 normalize_conference_paper = False
 normalize_journal_paper = False
 normalize_project = False
+normalize_book = False
+normalize_chapter = False
+normalize_patent = False
 
 # Minimum similarities
 conferences_minimum_similarity = 0.75

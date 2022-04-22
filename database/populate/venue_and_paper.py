@@ -125,10 +125,6 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
         paper = paper_venue[0]
         venue = paper_venue[1]
 
-        journal_papers_in_db = session.query(JournalPaper).filter(
-            and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
-            or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
-
         # Lattes duplication
         for this_researcher_paper_in_db in researcher.journal_papers:
             if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
@@ -137,25 +133,25 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
                                                 this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
                 break
 
-        # journal_papers_in_db = session.query(JournalPaper).filter(
-        #     and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
-        #     or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
+        # Normalize
+        journal_papers_in_db = session.query(JournalPaper).filter(
+            and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
+            or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
 
-        if len(journal_papers_in_db) == 0 or (not normalize_conference_paper):
-
-            accepted = not published
-            new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
-                                             first_page=paper.first_page, last_page=paper.last_page,
-                                             authors=paper.authors, venue=venue.id, accepted=accepted)
-            session.flush()
-            new_journal_paper.researchers.append(researcher)
-        else:
+        if normalize_journal_paper and (len(journal_papers_in_db) > 0):
             # for each paper paper found in the db, adds the researcher_journal_paper relationship
             for journal_paper in journal_papers_in_db:
                 if researcher.name not in journal_paper.authors: journal_paper.authors += ";" + researcher.name
                 journal_paper.researchers.append(researcher)
                 session.flush()
                 log_normalize(journal_paper.title, researcher.id, researcher.name)
+        else:
+            accepted = not published
+            new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
+                                             first_page=paper.first_page, last_page=paper.last_page,
+                                             authors=paper.authors, venue=venue.id, accepted=accepted)
+            session.flush()
+            new_journal_paper.researchers.append(researcher)
 
 
 def add_conference_papers(session, tree, researcher_id, conferences_similarity_dict):
@@ -171,10 +167,6 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
         paper = paper_venue[0]
         venue = paper_venue[1]
 
-        conference_papers_in_db = session.query(ConferencePaper).filter(
-            and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
-            or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None, paper.doi is None)).all()
-
         # Lattes duplication
         for this_researcher_paper_in_db in researcher.conference_papers:
             if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
@@ -183,23 +175,24 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
                                                 this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
                 break
 
-        # conference_papers_in_db = session.query(ConferencePaper).filter(
-        #     and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
-        #     or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None)).all()
+        # Normalize
+        conference_papers_in_db = session.query(ConferencePaper).filter(
+            and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
+            or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None, paper.doi is None)).all()
 
-        if len(conference_papers_in_db) == 0 or (not normalize_journal_paper):
-            new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
-                                                   year=paper.year, first_page=paper.first_page,
-                                                   last_page=paper.last_page, authors=paper.authors, venue=venue.id)
-            session.flush()
-            new_conference_paper.researchers.append(researcher)
-        else:
+        if normalize_conference_paper and (len(conference_papers_in_db) > 0):
             # for each paper paper found in the db, adds the researcher_conference_paper relationship
             for conference_paper in conference_papers_in_db:
                 if researcher.name not in conference_paper.authors: conference_paper.authors += ";" + researcher.name
                 conference_paper.researchers.append(researcher)
                 session.flush()
                 log_normalize(conference_paper.title, researcher.id, researcher.name)
+        else:
+            new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
+                                                   year=paper.year, first_page=paper.first_page,
+                                                   last_page=paper.last_page, authors=paper.authors, venue=venue.id)
+            session.flush()
+            new_conference_paper.researchers.append(researcher)
 
 
 def get_papers(element_list, basic_data_attribute, details_attribute, title_attribute, year_attribute, session,

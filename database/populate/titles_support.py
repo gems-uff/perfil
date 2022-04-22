@@ -3,7 +3,7 @@ from enum import Enum
 from sqlalchemy import or_, not_, and_, func
 from database.entities.titles_support import ResearcherAdvisement, AdvisementsTypes, CommitteeTypes, ResearcherCommittee
 from database.entities.researcher import Researcher
-from utils.log import log_primary_key_error, log_possible_lattes_duplication
+from utils.log import log_possible_lattes_duplication
 
 
 class AdvisorOrCommittee(Enum):
@@ -125,10 +125,6 @@ def add_researcher_committee_in_bd(college, degree, element, name, nature, resea
         and_(researcher_id == ResearcherCommittee.researcher_id, name == ResearcherCommittee.student_name,
              type == ResearcherCommittee.type, year == ResearcherCommittee.year)).all()
 
-    # for committee in lattes_duplication:
-    #     if committee.title != title: # pode ter mesmo titulo, mas 2 defesas no ano
-    #         lattes_duplication.remove(committee) #TODO somente ver se for normalizar
-
     if len(lattes_duplication) > 0:
         researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
         log_possible_lattes_duplication("reseacher_committee", researcher_name, researcher_id, name, type, year)
@@ -144,9 +140,6 @@ def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id
         and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
              ResearcherAdvisement.type == type, ResearcherAdvisement.year == year,
              func.lower(ResearcherAdvisement.title) == func.lower(title))).all()
-
-    # for advisement in lattes_duplication:
-    #     if advisement.title != title: lattes_duplication.remove(advisement) #TODO somente ver se for normalizar
 
     if len(lattes_duplication) > 0:
         researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]

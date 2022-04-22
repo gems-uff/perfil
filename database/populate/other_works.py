@@ -1,9 +1,10 @@
 import uuid
 from sqlalchemy import and_, func
-from utils.log import log_primary_key_error, log_possible_lattes_duplication
+from utils.log import log_possible_lattes_duplication, log_normalize
 from database.entities.researcher import Researcher
 from database.entities.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
     ResearcherPatent, Patent, PatentType
+from config import normalize_patent
 
 
 def add_researcher_conference_management(session, tree, researcher_id):
@@ -73,29 +74,33 @@ def editorial_board_type_switch(other_link):
 def add_researcher_patents_software(session, tree, researcher_id):
     '''Adds all the software pantents or ordinary patents from a lattes .xml file'''
     programs = tree.xpath("/CURRICULO-VITAE/PRODUCAO-TECNICA/SOFTWARE")
+    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
 
     for program in programs:
-        program_patent = get_or_add_patent(session, program, True)
+        program_patent = get_or_add_patent(session, program, True, researcher_id, researcher_name)
 
-        check_lattes_duplication_patent(program_patent, researcher_id, session)
+        check_lattes_duplication_patent(program_patent, researcher_id, researcher_name, session)
 
         if program_patent is not None:
-            session.add(ResearcherPatent(patent_id=program_patent.id, researcher_id=researcher_id))
-            session.flush()
+            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher_id,
+                                                          ResearcherPatent.patent_id == program_patent.id).all()) == 0:
+                session.add(ResearcherPatent(patent_id=program_patent.id, researcher_id=researcher_id))
+                session.flush()
 
     patents = tree.xpath("/CURRICULO-VITAE/PRODUCAO-TECNICA/PATENTE")
 
     for patent in patents:
-        patent_in_db = get_or_add_patent(session, patent, False)
+        patent_in_db = get_or_add_patent(session, patent, False, researcher_id, researcher_name)
 
-        check_lattes_duplication_patent(patent_in_db, researcher_id, session)
+        check_lattes_duplication_patent(patent_in_db, researcher_id, researcher_name, session)
 
         if patent_in_db is not None:
-            session.add(ResearcherPatent(patent_id=patent_in_db.id, researcher_id=researcher_id))
-            session.flush()
+            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher_id, ResearcherPatent.patent_id == patent_in_db.id).all()) == 0:
+                session.add(ResearcherPatent(patent_id=patent_in_db.id, researcher_id=researcher_id))
+                session.flush()
 
 
-def get_or_add_patent(session, patent, software_patent: bool):
+def get_or_add_patent(session, patent, software_patent: bool, researcher_id, researcher_name):
     '''Gets a patent already on the database or adds it'''
     basic_data = None
     patent_details = None
@@ -120,8 +125,10 @@ def get_or_add_patent(session, patent, software_patent: bool):
 
     patent_list = session.query(Patent).filter(Patent.number == number).all()
 
-    # if len(patent_list) > 0:
-    #     return patent_list[0].id # TODO normalize
+    # Normalize
+    if normalize_patent and (len(patent_list) > 0):
+        log_normalize(patent_list[0].number, researcher_id, researcher_name)
+        return patent_list[0]
 
     year = None
     type = None
@@ -144,10 +151,9 @@ def get_or_add_patent(session, patent, software_patent: bool):
     return new_patent
 
 
-def check_lattes_duplication_patent(patent, researcher_id, session):
+def check_lattes_duplication_patent(patent, researcher_id, researcher_name, session):
     this_researcher_patent_relationship = session.query(ResearcherPatent.patent_id).filter(ResearcherPatent.researcher_id == researcher_id)
     this_researcher_patents_in_db = session.query(Patent).filter(Patent.number == patent.number, Patent.id.in_(this_researcher_patent_relationship)).all()
-    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
 
     for patent_in_db in this_researcher_patents_in_db:
         log_possible_lattes_duplication("researcher_patent", researcher_name, researcher_id, patent_in_db.id,

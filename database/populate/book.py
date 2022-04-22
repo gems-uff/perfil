@@ -1,10 +1,11 @@
 from sqlalchemy import or_, and_, func
 from database.entities.researcher import Researcher
 from database.entities.book import PublishedBook, ResearcherPublishedBook, PublishedBookChapter, ResearcherPublishedBookChapter
-from utils.log import log_primary_key_error, log_possible_lattes_duplication
+from utils.log import log_possible_lattes_duplication, log_normalize
+from config import normalize_book, normalize_chapter
 
 
-def get_or_add_book_id(session, basic_data, details, book_authors):
+def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id, researcher_name):
     '''Gets the published book already on the database or adds it'''
     title = basic_data.get("TITULO-DO-LIVRO")
     year = basic_data.get("ANO")
@@ -14,8 +15,10 @@ def get_or_add_book_id(session, basic_data, details, book_authors):
         and_(func.lower(PublishedBook.title) == func.lower(title), PublishedBook.year == year)).all() if doi is None or doi == "" else \
         session.query(PublishedBook).filter(PublishedBook.doi == doi).all()
 
-    # if len(book_list) > 0:
-    #     return book_list[0] # TODO normalize
+    # Normalize
+    if normalize_book and (len(book_list) > 0):
+        log_normalize(book_list[0].title, researcher_id, researcher_name)
+        return book_list[0]
 
     publisher = details.get("NOME-DA-EDITORA")
     authors = ""
@@ -41,13 +44,7 @@ def add_researcher_published_books(session, tree, researcher_id):
         basic_data = book.findall("DADOS-BASICOS-DO-LIVRO")[0]
         details = book.findall("DETALHAMENTO-DO-LIVRO")[0]
         book_authors = book.findall("AUTORES")
-        added_book = get_or_add_book_id(session, basic_data, details, book_authors)
-
-
-        # if not normalize, it will always be True, because the added_book is going to be a new one
-        relationship_not_in_db = len(session.query(ResearcherPublishedBook).filter(ResearcherPublishedBook.researcher_id == researcher_id,
-                                                                                   ResearcherPublishedBook.published_book_id == added_book.id).all()) == 0
-
+        added_book = get_or_add_book_id(session, basic_data, details, book_authors, researcher_id, researcher_name)
 
         # Lattes duplication
         this_researcher_books_relationship = session.query(ResearcherPublishedBook.published_book_id).filter(ResearcherPublishedBook.researcher_id == researcher_id)
@@ -58,16 +55,16 @@ def add_researcher_published_books(session, tree, researcher_id):
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             book_in_bd.id, book_in_bd.title, book_in_bd.year, book_in_bd.doi)
 
+        # If not normalize, it will always be True, because the added_book is going to be a new one
+        relationship_not_in_db = len(session.query(ResearcherPublishedBook).filter(ResearcherPublishedBook.researcher_id == researcher_id,
+                                                                                   ResearcherPublishedBook.published_book_id == added_book.id).all()) == 0
+
         if relationship_not_in_db:
             session.add(ResearcherPublishedBook(published_book_id=added_book.id, researcher_id=researcher_id))
             session.flush()
-        # else: # TODO normalize
-        #     researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
-        #     book_name = session.query(PublishedBook.title).filter(PublishedBook.id == added_book.id).all()[0][0]
-        #     log_primary_key_error("researcher_published_book", researcher_name, researcher_id, added_book.id, "(" + book_name + ")")
 
 
-def get_or_add_chapter_id(session, basic_data, details, chapter_authors):
+def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researcher_id, researcher_name):
     '''Gets a chapter from a published book already on the database or adds the chapter'''
     chapter_title = basic_data.get("TITULO-DO-CAPITULO-DO-LIVRO")
     year = basic_data.get("ANO")
@@ -77,8 +74,10 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors):
                                                               PublishedBookChapter.year == year).all() if doi is None \
         else session.query(PublishedBookChapter).filter(func.lower(PublishedBookChapter.doi == doi)).all()
 
-    # if len(chapter_list) > 0: #TODO normalize
-    #     return chapter_list[0]
+    # Normalize
+    if normalize_chapter and (len(chapter_list) > 0):  # Normalize
+        log_normalize(chapter_list[0].title, researcher_id, researcher_name)
+        return chapter_list[0]
 
     publisher = details.get("NOME-DA-EDITORA")
     book_title = details.get("TITULO-DO-LIVRO")
@@ -106,7 +105,7 @@ def add_researcher_published_chapters(session, tree, researcher_id):
         basic_data = chapter.findall("DADOS-BASICOS-DO-CAPITULO")[0]
         details = chapter.findall("DETALHAMENTO-DO-CAPITULO")[0]
         chapter_authors = chapter.findall("AUTORES")
-        added_chapter = get_or_add_chapter_id(session, basic_data, details, chapter_authors)
+        added_chapter = get_or_add_chapter_id(session, basic_data, details, chapter_authors, researcher_id, researcher_name)
 
         # Lattes duplication
         this_researcher_chapters_relationship = session.query(ResearcherPublishedBookChapter.published_book_chapter_id).filter(ResearcherPublishedBookChapter.researcher_id == researcher_id)
@@ -117,5 +116,9 @@ def add_researcher_published_chapters(session, tree, researcher_id):
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             chapter_in_bd.id, chapter_in_bd.chapter_title, chapter_in_bd.year, chapter_in_bd.doi)
 
-        session.add(ResearcherPublishedBookChapter(published_book_chapter_id=added_chapter.id, researcher_id=researcher_id))
-        session.flush()
+        # If not normalize, it will always be True, because the added_chapter is going to be a new one
+        relationship_not_in_db = len(session.query(ResearcherPublishedBookChapter).filter(ResearcherPublishedBookChapter.researcher_id == researcher_id, ResearcherPublishedBookChapter.published_book_chapter_id == added_chapter.id).all()) == 0
+
+        if relationship_not_in_db:
+            session.add(ResearcherPublishedBookChapter(published_book_chapter_id=added_chapter.id, researcher_id=researcher_id))
+            session.flush()
