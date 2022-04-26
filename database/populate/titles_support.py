@@ -138,8 +138,7 @@ def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id
 
     lattes_duplication = session.query(ResearcherAdvisement).filter(
         and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
-             ResearcherAdvisement.type == type, ResearcherAdvisement.year == year,
-             func.lower(ResearcherAdvisement.title) == func.lower(title))).all()
+             ResearcherAdvisement.type == type, ResearcherAdvisement.year == year)).all()
 
     if len(lattes_duplication) > 0:
         researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]

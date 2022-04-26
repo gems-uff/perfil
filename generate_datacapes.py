@@ -250,15 +250,20 @@ def remove_paper_duplicates(papers_list, session):
     new_list = papers.copy()
 
     for i in range(len(papers)):
-        venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
-        for j in range(i + 1, len(papers)):
-            venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
-            same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name.lower() == venue_j.name.lower()
-            same_year = papers[i].year == papers[j].year
+        if papers[i] in new_list:
+            venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
+            for j in range(i + 1, len(papers)):
+                venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
+                same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name.lower() == venue_j.name.lower()
+                same_year = papers[i].year == papers[j].year
 
-            if same_venue and same_year and (papers[j] in new_list) \
-                and (papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles):
-                    new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets remove
+                if same_venue and same_year and (papers[j] in new_list) \
+                        and (papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles):
+
+                    if isinstance(papers[i], JournalPaper) and isinstance(papers[j], JournalPaper) and (venue_i.jcr < venue_j.jcr) and (papers[i] in new_list):
+                        new_list.remove(papers[i])  # removes the paper with the wrong issn
+                    else:
+                        new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets remove
 
     return new_list  # the list with only a paper of each
 
