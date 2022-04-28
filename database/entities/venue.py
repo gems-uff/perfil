@@ -39,7 +39,6 @@ class Conference(Venue):
 
     id = Column(Integer, ForeignKey("venue.id"), primary_key=True)
     acronym = Column(String)
-    h5 = Column(String)
 
     __mapper_args__ = {
         "polymorphic_identity": "conference"

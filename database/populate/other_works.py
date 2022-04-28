@@ -45,7 +45,7 @@ def add_researcher_editorial_board(session, tree, researcher_id):
         other_link = info.get("OUTRO-VINCULO-INFORMADO")
 
         if ("Membro de corpo editorial" in other_link) or ("Revisor de peri" in other_link):
-            begin_year = info.get("ANO-INICIO")
+            start_year = info.get("ANO-INICIO")
             end_year = info.get("ANO-FIM")
             type = editorial_board_type_switch(other_link)
             journal_name = job.get("NOME-INSTITUICAO")

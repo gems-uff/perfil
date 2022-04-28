@@ -2,6 +2,18 @@ import os
 import pandas as pd
 from utils.dict_xlsx_utils import create_synonyms_dictionary
 from database.entities.venue import QualisLevel
+from configured_reports.user_classes.banca import Banca
+from configured_reports.user_classes.capitulo import Capitulo
+from configured_reports.user_classes.conferencia import Conferencia
+from configured_reports.user_classes.corpo_editorial import Corpo_Editorial
+from configured_reports.user_classes.livro import Livro
+from configured_reports.user_classes.organizacao_evento import Organizacao_Evento
+from configured_reports.user_classes.orientacao import Orientacao
+from configured_reports.user_classes.patente import Patente
+from configured_reports.user_classes.periodico import Periodico
+from configured_reports.user_classes.pesquisador import Pesquisador
+from configured_reports.user_classes.projeto import Projeto
+from configured_reports.user_classes.artigo import Artigo
 
 # The expected input file must have the following columns:
 # "ID Lattes" containing the 16-digit number associated with a Lattes CV 
@@ -15,6 +27,13 @@ researchers_file = resources_path + 'teste.xlsx'
 # The first and last years, inclusive, for collecting metrics.
 start_year = 2019
 end_year = 2021
+
+# The subject that will be plotted as a red dot in the boxplots.
+subject = {
+    'Nome': 'Leonardo Gresta Paulino Murta',
+    'ID Lattes': '1565296529736448',
+    'ID Scholar': 'VEbJeB8AAAAJ'
+}
 
 # Tries to make each input on the database unique
 normalize_conference_paper = False
@@ -32,11 +51,17 @@ journals_papers_title_minimum_similarity = 0.9
 project_name_minimum_similarity = 0.9
 datacapes_minimum_similarity_titles = 0.75
 
-# The subject that will be plotted as a red dot in the boxplots.
-subject = {
-    'Nome': 'Leonardo Gresta Paulino Murta',
-    'ID Lattes': '1565296529736448',
-    'ID Scholar': 'VEbJeB8AAAAJ'
+# Reports configured by the user
+reports_as_new_worksheets = False
+new_worksheet_if_conflict = False
+
+configured_reports = {
+    "reporte1Teste": [
+        Pesquisador.nome,
+        Periodico.artigo,
+        Periodico.ano,
+
+    ],
 }
 
 # Dictionaries to get the sim-cred points by qualis and venue
@@ -133,3 +158,7 @@ if not os.path.exists(generate_reseacher_paper_and_title_info_output_dir):
 generate_datacapes_output_dir = output_path + 'datacapes'
 if not os.path.exists(generate_datacapes_output_dir):
     os.makedirs(generate_datacapes_output_dir)
+
+generate_reports_output_dir = output_path + 'configured_reports'
+if not os.path.exists(generate_reports_output_dir):
+    os.makedirs(generate_reports_output_dir)

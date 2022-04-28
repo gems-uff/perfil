@@ -413,13 +413,13 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(editorial_board_job_one.researcher_id, 1)
         self.assertEqual(editorial_board_job_one.journal_name, "Journal of The Brazilian Computer Society (Online)")
         self.assertEqual(editorial_board_job_one.type, EditorialBoardType.EDITORIAL_BOARD)
-        self.assertEqual(editorial_board_job_one.begin_year, 2013)
+        self.assertEqual(editorial_board_job_one.start_year, 2013)
         self.assertEqual(editorial_board_job_one.end_year, "")
         # REVISER
         self.assertEqual(editorial_board_job_two.researcher_id, 1)
         self.assertEqual(editorial_board_job_two.journal_name, "Software and Systems Modeling (1619-1366)")
         self.assertEqual(editorial_board_job_two.type, EditorialBoardType.REVISER)
-        self.assertEqual(editorial_board_job_two.begin_year, 2007)
+        self.assertEqual(editorial_board_job_two.start_year, 2007)
         self.assertEqual(editorial_board_job_two.end_year, 2007)
         # BACKREF
         researcher = self.session.query(Researcher).filter(Researcher.id == self.researcher_id).all()[0]
