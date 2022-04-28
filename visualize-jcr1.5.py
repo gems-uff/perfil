@@ -1,6 +1,6 @@
 import pandas as pd
 
-import populate
+import populate_database
 from config import subject, researchers_file, build_dir
 from visualize import boxplot
 
