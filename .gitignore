@@ -9,6 +9,7 @@ build/
 
 # User-specific stuff
 .idea/**/workspace.xml
+__pycache__/
 
 # Django stuff:
 *.log
