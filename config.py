@@ -28,12 +28,6 @@ researchers_file = resources_path + 'teste.xlsx'
 start_year = 2019
 end_year = 2021
 
-# The subject that will be plotted as a red dot in the boxplots.
-subject = {
-    'Nome': 'Leonardo Gresta Paulino Murta',
-    'ID Lattes': '1565296529736448',
-    'ID Scholar': 'VEbJeB8AAAAJ'
-}
 
 # Tries to make each input on the database unique
 normalize_conference_paper = False
@@ -50,6 +44,13 @@ conferences_papers_title_minimum_similarity = 0.9
 journals_papers_title_minimum_similarity = 0.9
 project_name_minimum_similarity = 0.9
 datacapes_minimum_similarity_titles = 0.75
+
+# The subject that will be plotted as a red dot in the boxplots.
+subject = {
+    'Nome': 'Leonardo Gresta Paulino Murta',
+    'ID Lattes': '1565296529736448',
+    'ID Scholar': 'VEbJeB8AAAAJ'
+}
 
 # Reports configured by the user
 reports_as_new_worksheets = False

@@ -14,14 +14,14 @@ from utils.list_filters import completed_paper_filter, jcr_pub_filter, scope_yea
 
 def lattes_full(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
                 masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement, phd_committee,
-                profile, projects_coordinated, projects_participated, researcher):
+                profile, projects_coordinated, projects_participated):
     """Populates the profile dictionary with information from all years"""
 
     new_profile = profile
 
     new_profile['Participações em Projetos (total)'] = len(projects_participated)
     new_profile['Projetos Coordenados (total)'] = len(projects_coordinated)
-    new_profile['Projetos (total)'] = len(researcher.projects)
+    new_profile['Projetos (total)'] = new_profile['Participações em Projetos (total)'] + new_profile['Projetos Coordenados (total)']
 
     new_profile['Orientações de Mestrado (total)'] = len(masters_advisement)
     new_profile['Orientações de Doutorado (total)'] = len(phd_advisement)
@@ -50,7 +50,7 @@ def lattes_scope_years(completed_and_published_journal_papers, completed_confere
 
     new_profile['Participações em Projetos'] = len(list(filter(lambda x: scope_years_researcher_project(x, session), projects_participated)))
     new_profile['Projetos Coordenados'] = len(list(filter(lambda x: scope_years_researcher_project(x, session), projects_coordinated)))
-    new_profile['Projetos'] = len(list(filter(lambda x: scope_years_researcher_project(x, session), researcher.projects)))
+    new_profile['Projetos'] = new_profile['Participações em Projetos'] + new_profile['Projetos Coordenados']
 
     new_profile['Orientações de Mestrado'] = len(list(filter(scope_years_paper_or_support, masters_advisement)))
     new_profile['Orientações de Doutorado'] = len(list(filter(scope_years_paper_or_support, phd_advisement)))
@@ -109,7 +109,7 @@ def lattes(researcher, session):
 
     profile = lattes_full(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
                 masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement, phd_committee,
-                profile, projects_coordinated, projects_participated, researcher)
+                profile, projects_coordinated, projects_participated)
 
     profile = lattes_scope_years(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
                        masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement,

@@ -54,13 +54,13 @@ def add_researcher_editorial_board(session, tree, researcher_id):
             lattes_duplication = session.query(ResearcherEditorialBoard).filter(
                 and_(ResearcherEditorialBoard.researcher_id == researcher_id,
                      func.lower(ResearcherEditorialBoard.journal_name) == func.lower(journal_name), ResearcherEditorialBoard.type == type,
-                     ResearcherEditorialBoard.begin_year == begin_year)).all()
+                     ResearcherEditorialBoard.start_year == start_year)).all()
 
             if len(lattes_duplication) > 0:
-                log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, begin_year)
+                log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, start_year)
 
             session.add(ResearcherEditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
-                                                 begin_year=begin_year, end_year=end_year))
+                                                 start_year=start_year, end_year=end_year))
 
 
 def editorial_board_type_switch(other_link):

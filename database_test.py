@@ -132,14 +132,13 @@ class DatabaseTestCase(unittest.TestCase):
                                               "Software (IDEAS)")
         self.assertEqual(conference_one.qualis, None)
         self.assertEqual(conference_one.acronym, "IDEAS")
-        self.assertEqual(conference_one.h5, None)
 
         # two
         self.assertEqual(conference_two.name,
                          "International Conference on Internet Computing and Internet of Things (ICOMP)")
         self.assertEqual(conference_two.qualis, QualisLevel.B5)
         self.assertEqual(conference_two.acronym, "ICOMP")
-        self.assertEqual(conference_two.h5, None)
+
 
     def test04AddProject(self):
         """Adds all the projects on the .xml file and checks if the information is correct"""

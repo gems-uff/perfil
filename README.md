@@ -78,6 +78,13 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python generate_datacapes.py`
 
+16. Use generate_configured_reports.py para gerar relatórios personalizados. Para faze-lo basta preencher o dicionário "configured_reports" em [config.py](/config.py) com as chaves as quais deseja que o nome dos relatórios sejam(strings) e seus valores como listas/vetores de atributos das entidades/classes que se quer as informações. Os arquivos gerados podem ser encontrados na pasta "output/configured_reports". 
+     * A variável "reports_as_new_worksheets", em [config.py](/config.py), pode ser colocada como True caso queira todos os relátorios como abas de um único arquivo com o nome de "configured_reports.xlsx". 
+     * A váriavel "new_worksheet_if_conflict", também em [config.py](/config.py), pode ser colocada como True caso deseje que conflitos no mesmo relátorio, isso é, mais de uma entidade/classe sem ser "Pesquisador", sejam escritos em abas diferentes.
+     * As entidades/classes disponíveis para se consultar são: Banca, Capitulo, Conferencia, Corpo_Editorial, Livro, Organizacao_Evento, Orientacao, Patente, Periodico, Pesquisador, Projeto, Artigo. Sendo que Artigo engloba informações em comum sobre Periodico e Conferencia, mas é considerado como outra entidade em caso de conflito. 
+
+`~/perfil$ python generate_configured_reports.py`
+
 ## Execução dos testes:
 
 1. Entre no diretório do projeto:
@@ -99,6 +106,9 @@ Script de teste para verificar se os dados do lattes estão sendo coletados e co
 
 ### download.py
 Script para auxiliar o usuário baixar os lattes dos pesquisadores no arquivo de pesquisadores.
+
+### generate_configured_reports.py
+Script com a funcionalidade de gerar relátorios personalizados pelo o usuário de acordo com as variáveis configured_reports, reports_as_new_worksheets e new_worksheet_if_conflict usando dados dos currículos Lattes.
 
 ### generate_datacapes.py
 Script para gerar relatórios de um programa de pós-graduação conforme pedido pela CAPES. Os relatórios são baseados nas publicações em periódicos e conferências e seus respectivos Qualis, usando apenas os pesquisadores afiliados naquele ano.
@@ -131,7 +141,11 @@ Script com a funcionalidade de preencher as informações dos pesquisadores do a
 * **conferences_papers_title_minimum_similarity** : similaridade mínima entre os títulos de publicações em conferência para o software considerar eles os mesmos (valor entre 0 e 1).
 * **journals_papers_title_minimum_similarity** : similaridade mínima entre os títulos de publicações em periódicos para o software considerar eles os mesmos (valor entre 0 e 1).
 * **project_name_minimum_similarity** : similaridade mínima entre os nomes de projetos para o software considerar eles os mesmos (valor entre 0 e 1).
+* **datacapes_minimum_similarity_titles**: similaridade mínima entre os títulos de publicações para o software considerar eles os mesmos ao separar os artigos para o relatório de produção anual no script [generate_datacapes.py](/generate_datacapes.py).
 * **subject** : pesquisador a ser destacado quando se gerar as boxplots.
+* **reports_as_new_worksheets** : Se for atribuído o valor de True, ao rodar o script [generate_configured_reports.py](generate_configured_reports.py), ao invés de a saída ser um arquivo para cada relatório, ela será um único arquivo, com o nome de "configured_reports.xlsx", com os relatórios como abas dele.
+* **new_worksheet_if_conflict** : Se for atribuído o valor de True, ao rodar o script [generate_configured_reports.py](generate_configured_reports.py), ao acontecer um conflito em um relatório, ou seja, duas entidades/classes sem ser "Pesquisador" no mesmo relatório, ao invés de reportar erro, o software irá colocar cada entidade conflitante em uma aba do arquivo fazendo produto cartesiano com "Pesquisador" caso o mesmo foi requisitado no relátorio.
+* **configured_reports** : Dicionário o qual suas chaves devem ser strings e seus valores listas/vetores com os atributos das classes/entidades os quais o usuário deseja gerar um relatório os contendo.
 * **qualis_journal_points**: o valor dos pontos de cada nível de Qualis de publicações em periódicos de acordo com a regra para credenciamento como Docente Permanente do PGC
 * **qualis_conference_points**: o valor dos pontos de cada nível de Qualis de publicações em conferências de acordo com a regra para credenciamento como Docente Permanente do PGC
 
