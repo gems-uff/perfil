@@ -110,7 +110,7 @@ def add_researcher_published_chapters(session, tree, researcher_id):
         # Lattes duplication
         this_researcher_chapters_relationship = session.query(ResearcherPublishedBookChapter.published_book_chapter_id).filter(ResearcherPublishedBookChapter.researcher_id == researcher_id)
         this_researcher_chapters_in_db = session.query(PublishedBookChapter).filter(
-            or_(and_(PublishedBookChapter.doi == added_chapter.doi, added_chapter.doi is not None, PublishedBookChapter.doi != ""), and_(PublishedBookChapter.year == added_chapter.year, func.lower(PublishedBookChapter.title) == func.lower(added_chapter.title))),
+            or_(and_(PublishedBookChapter.doi == added_chapter.doi, added_chapter.doi is not None, PublishedBookChapter.doi != ""), and_(PublishedBookChapter.year == added_chapter.year, func.lower(PublishedBookChapter.chapter_title) == func.lower(added_chapter.chapter_title))),
             PublishedBookChapter.id.in_(this_researcher_chapters_relationship)).all()
         for chapter_in_bd in this_researcher_chapters_in_db:
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
