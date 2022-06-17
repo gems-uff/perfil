@@ -203,16 +203,22 @@ def main():
     session = populate_database.main()
     researchers = session.query(Researcher).all()
 
-    print("Starting to write the profile(s)")
+    print("Starting to write the profile(s)\n")
 
+    print("Getting Google Scholar info for each researcher...")
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
     researcher_count = 1
     for researcher in researchers:
+        if not researcher_count % 6:
+            print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
+            time.sleep(10)
         profile = generate_researcher_profile_dict(researcher, session)
+        print('{:.0f}%...'.format((researcher_count) / len(researchers) * 100), end="", flush=True)
         for key, value in profile.items():
             df.at[researcher_count-1, key] = value
 
         researcher_count += 1
+    print("Finished getting Google Scholar info\n")
 
     df.to_excel(researchers_file, index=False)
 
