@@ -85,6 +85,10 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python generate_configured_reports.py`
 
+17. Use generate_collaboration_graphs.py para visualizar grafos referentes a colaboração entre os pesquisadores dentro do horizonte de coleta. As variáveis "collaboration_graphs_alpha" e "collaboration_graphs_alpha_decay" em [config.py](/config.py) configuram a intensidade da força de expansão do grafo a partir do centro. Para visualizar a saída acesse http://127.0.0.1:5000/ com o script executando. 
+
+`~/perfil$ python generate_collaboration_graphs.py`
+
 ## Execução dos testes:
 
 1. Entre no diretório do projeto:
@@ -106,6 +110,10 @@ Script de teste para verificar se os dados do lattes estão sendo coletados e co
 
 ### download.py
 Script para auxiliar o usuário baixar os lattes dos pesquisadores no arquivo de pesquisadores.
+
+### generate_configured_reports.py
+
+Script com a funcionalidade de gerar grafos que representam a colaboração na autoria de artigos entre os pesquisadores e sua intensidade durante o período do horizonte de coleta.
 
 ### generate_configured_reports.py
 Script com a funcionalidade de gerar relátorios personalizados pelo o usuário de acordo com as variáveis configured_reports, reports_as_new_worksheets e new_worksheet_if_conflict usando dados dos currículos Lattes.
@@ -148,6 +156,8 @@ Script com a funcionalidade de preencher as informações dos pesquisadores do a
 * **configured_reports** : Dicionário o qual suas chaves devem ser strings e seus valores listas/vetores com os atributos das classes/entidades os quais o usuário deseja gerar um relatório os contendo.
 * **qualis_journal_points**: o valor dos pontos de cada nível de Qualis de publicações em periódicos de acordo com a regra para credenciamento como Docente Permanente do PGC
 * **qualis_conference_points**: o valor dos pontos de cada nível de Qualis de publicações em conferências de acordo com a regra para credenciamento como Docente Permanente do PGC
+* **collaboration_graphs_alpha**: o valor da força inicial em que os nós dos grafos do script [generate_collaboration_graphs.py](generate_collaboration_graphs.py) se expandem do centro. Seu valor deve ser entre 0 e 1.
+* **collaboration_graphs_alpha_decay**: o valor em que a força inicial dos nós dos grafos do script [generate_collaboration_graphs.py](generate_collaboration_graphs.py) se torna zero, ou seja, a taxa de decaimento até os nós pararem de se mover. Seu valor deve ser entre 0 e 1.
 
 ## Arquivos
 
@@ -167,3 +177,7 @@ Os arquivos de afiliados se encontran na pasta [/resources/affiliations](/resour
 * O arquivo exibe as referências cruzadas ocorridas caso alguma(s) das variáveis normalize_conference_paper, normalize_journal_paper, normalize_project, normalize_book, normalize_chapter, normalize_patent (em [config.py](config.py)) estiver(em) atribuída(s) com True.
 
 A cada execução recomenda-se apagar o arquivo, pois ele é incremental.
+
+## Referências
+
+O código do arquivo [index.html](/collaboration_graphs/templates/index.html) usou como base o código disponível em: https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8
