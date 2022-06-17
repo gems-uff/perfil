@@ -315,7 +315,7 @@ def write_item_info(session, item: str, worksheet, col, make_cartesian_product_r
         editorial_board_type_list = get_editorial_board_type_list(session)
         write_info(worksheet, col, item, editorial_board_type_list)
 
-    elif item == Corpo_Editorial.inico:
+    elif item == Corpo_Editorial.inicio:
         editorial_board_start_list = get_editorial_board_start_year_list(session)
         write_info(worksheet, col, item, editorial_board_start_list)
 

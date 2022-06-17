@@ -114,6 +114,11 @@ qualis_conference_points = {
 #     QualisLevel.NC: 0.0
 #}
 
+# The speed at which the nodes expand further from the center of the graph
+collaboration_graphs_alpha = 0.3
+# The rate at which the nodes speed approaches 0
+collaboration_graphs_alpha_decay = 0.2
+
 # The file with JCR scores
 df = pd.read_excel(resources_path + 'jcr.xlsx')
 jcr = dict(zip(df.issn, df.impact))
@@ -146,7 +151,7 @@ affiliations_dir = resources_path + 'affiliations'
 if not os.path.exists(affiliations_dir):
     os.makedirs(affiliations_dir)
 
-# The directory that contains the generated figures.
+# The directory that contains the similarity files.
 similarity_dir = output_path + 'similarity_xlsx'
 if not os.path.exists(similarity_dir):
     os.makedirs(similarity_dir)

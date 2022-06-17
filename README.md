@@ -125,7 +125,7 @@ Script que gera as boxplots baseado no arquivo de pesquisadores já preenchido p
 ### write_profile.py
 Script com a funcionalidade de preencher as informações dos pesquisadores do arquivo de pesquisadores no mesmo. Usa os dados do Lattes e do Google Scholar.
 
-## Váriaveis do arquivo script.py
+## Váriaveis do arquivo config.py
 
 * **researchers_file** : váriavel com o caminho do arquivo de pesquisadores.
 * **start_year** : ano inicial do horizonte de coleta(inclusive).
