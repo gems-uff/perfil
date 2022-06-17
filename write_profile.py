@@ -211,9 +211,7 @@ def main():
         profile = generate_researcher_profile_dict(researcher, session)
         for key, value in profile.items():
             df.at[researcher_count-1, key] = value
-        if not researcher_count%5:
-            print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
-            time.sleep(10)
+
         researcher_count += 1
 
     df.to_excel(researchers_file, index=False)
