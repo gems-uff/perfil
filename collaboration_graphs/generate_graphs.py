@@ -12,20 +12,26 @@ def link_in_links(link_list, researcher_name, coauthor):
     return False
 
 
+def add_link(coauthor, links, researcher_name, researchers_in_db):
+    if (coauthor != researcher_name) and (coauthor in researchers_in_db) and not link_in_links(links, researcher_name, coauthor):  # creates the link
+        link = dict()
+        link["source"] = researcher_name
+        link["target"] = coauthor
+        link["weight"] = 1
+        links.append(link)
+
+
 def populate_links(graphs, researcher_name, paper_list, researchers_in_db):
     """Populates the links of all collaboration digraphs"""
 
     for paper in paper_list:
-        if paper.year in graphs:
-            links = graphs[paper.year]["links"]
+        if str(paper.year) in graphs:
+            links_year = graphs[str(paper.year)]["links"]
+            links_all = graphs["Tudo"]["links"]
 
             for coauthor in paper.authors.split(";"):
-                if (coauthor != researcher_name) and (coauthor in researchers_in_db) and not link_in_links(links, researcher_name, coauthor):  # creates the link
-                    link = dict()
-                    link["source"] = researcher_name
-                    link["target"] = coauthor
-                    link["weight"] = 1
-                    links.append(link)
+                add_link(coauthor, links_year, researcher_name, researchers_in_db)
+                add_link(coauthor, links_all, researcher_name, researchers_in_db)
 
 
 def digraph_to_graph(graphs):
@@ -57,10 +63,15 @@ def generate_graphs(session):
 
     graphs = dict()
     for year in range(start_year, end_year + 1):
-        graphs[year] = {
+        graphs[str(year)] = {
             "nodes": [],
             "links": []
         }
+
+    graphs["Tudo"] = {
+        "nodes": [],
+        "links": []
+    }
 
     researchers_in_db = session.query(Researcher).all()
     researchers_names = [researcher.name for researcher in researchers_in_db]
