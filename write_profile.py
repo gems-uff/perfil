@@ -118,7 +118,7 @@ def lattes(researcher, session):
     return profile
 
 
-def scholar(id):
+def scholar(researcher):
     """Collects the following metrics from Google Scholar:
     - Citações *
     - H-Index
@@ -128,18 +128,25 @@ def scholar(id):
     id -- the 12-character code associated with a Google Scholar profile
     """
 
+    google_scholar_id = researcher.google_scholar_id
     profile = {}
 
-    if id is not None and id.strip() != "":
-        url = 'https://scholar.google.com/citations?user=' + str(id)
-        page = urllib.request.urlopen(url)
-        soup = BeautifulSoup(page, 'html.parser')
+    if google_scholar_id is not None and google_scholar_id.strip() != "":
 
-        indexes = soup.find_all("td", "gsc_rsb_std")
-        profile['Citações (total)'] = int(indexes[0].string)
-        profile['H-Index (total)'] = int(indexes[2].string)
+        try:
+            url = 'https://scholar.google.com/citations?user=' + str(google_scholar_id)
+            page = urllib.request.urlopen(url)
+            soup = BeautifulSoup(page, 'html.parser')
 
-        citations = soup.find_all("span", "gsc_g_al")
+            indexes = soup.find_all("td", "gsc_rsb_std")
+            profile['Citações (total)'] = int(indexes[0].string)
+            profile['H-Index (total)'] = int(indexes[2].string)
+
+            citations = soup.find_all("span", "gsc_g_al")
+        except:
+            print("Erro while trying to get " + researcher.name + "'s Google Scholar info")
+            return profile
+
         sum = 0
         current_year = datetime.now().year
         for i in range(-(current_year - end_year + 1), -(min(current_year - start_year + 1, len(citations)) + 1), -1):
@@ -193,7 +200,7 @@ def normalized(profile):
 def generate_researcher_profile_dict(researcher: Researcher, session):
     """Generates and populates the profile dictionary of a researcher"""
     profile = lattes(researcher, session)
-    profile.update(scholar(researcher.google_scholar_id))
+    profile.update(scholar(researcher))
     profile.update(normalized(profile))
 
     return profile
