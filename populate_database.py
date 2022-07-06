@@ -50,18 +50,20 @@ def create_similarities_xlsx():
     create_similarity_file(journals_similarity_dict, similarity_dir+os.sep+"journals_similar")
 
 
-def main():
+def main(one_researcher_profile = None):
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
-    max = len(df)
+    max = len(df) if one_researcher_profile is None else 1
     print('Processing', max, 'researchers...\n')
     # database_schema_png()
     session = start_database(False)
 
     for i, row in df.iterrows():
-        profile = row.to_dict()
+        profile = row.to_dict() if one_researcher_profile == None else one_researcher_profile
         print(profile['Nome'] + '...')
         if not pd.isnull(profile['ID Lattes']):
             lattes(profile['ID Lattes'], session, profile['ID Scholar'])
+            if one_researcher_profile is not None: break
+
         print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
 
     update_database_info(session)

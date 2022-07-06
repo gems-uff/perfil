@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import populate_database
+from database.database_manager import Researcher
 from config import subject, researchers_file, build_dir
+from write_profile import generate_researcher_profile_dict
 
 
 def boxplot(df, subject, metrics, file, legends=None, vert=True, rows=1):
@@ -59,7 +61,8 @@ def boxplot(df, subject, metrics, file, legends=None, vert=True, rows=1):
 
 def main():
     # Comment the line bellow to remove the red dot indicating the performance of the subject in the following boxplot
-    # subject.update(populate.all(subject['ID Lattes'], subject['ID Scholar']))
+    # session = populate_database.main(subject)
+    # subject.update(generate_researcher_profile_dict(session.query(Researcher).all()[0], session))
     # print('Red dot representing', subject["Nome"])
 
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
@@ -123,6 +126,7 @@ def main():
     ]
     metrics = [e.replace('\n', ' ') + ' (anual)' for e in legends]
     boxplot(df, subject, metrics, 'fig-anual.png', legends, rows=2)
+
 
 if __name__ == "__main__":
    main()
