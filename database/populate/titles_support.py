@@ -153,7 +153,7 @@ def advisor_type_switch(degree, nature):
     type_others = {
         "TRABALHO_DE_CONCLUSAO_DE_CURSO_GRADUACAO": AdvisementsTypes.BACHELOR,
         "MONOGRAFIA_DE_CONCLUSAO_DE_CURSO_APERFEICOAMENTO_E_ESPECIALIZACAO": AdvisementsTypes.SPECIALIZATION,
-        "INICIACAO_CIENTIFICA": AdvisementsTypes.UNDERGRATUATE_RESEARCH
+        "INICIACAO_CIENTIFICA": AdvisementsTypes.UNDERGRADUATE_RESEARCH
     }
 
     if "" == degree and nature in type_others: return type_others[nature]

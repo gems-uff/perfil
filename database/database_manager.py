@@ -8,7 +8,7 @@ from database.entities.titles_support import ResearcherAdvisement, ResearcherCom
 from database.entities.project import Project, ResearcherProject
 from database.entities.researcher import Researcher, Affiliation
 from database.entities.paper import Paper, JournalPaper, ConferencePaper, journal_association_table, conference_association_table
-from database.entities.book import Book, PublishedBook, PublishedBookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
+from database.entities.book import BookManuscript, Book, BookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
 from database.entities.other_works import Patent, ResearcherEditorialBoard, ResearcherConferenceManagement, ResearcherPatent
 
 

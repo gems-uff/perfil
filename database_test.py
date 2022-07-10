@@ -227,7 +227,7 @@ class DatabaseTestCase(unittest.TestCase):
                          "Desambiguadores Semânticos Semi-supervisionados: uma análise")
 
         undergraduate_research_advisement = self.session.query(ResearcherAdvisement).filter(
-            ResearcherAdvisement.type == AdvisementsTypes.UNDERGRATUATE_RESEARCH).all()[0]
+            ResearcherAdvisement.type == AdvisementsTypes.UNDERGRADUATE_RESEARCH).all()[0]
 
         self.assertEqual(undergraduate_research_advisement.researcher_id, 1)
         self.assertEqual(undergraduate_research_advisement.student_name, "Clarissa Bruno Tuxen")
@@ -433,8 +433,8 @@ class DatabaseTestCase(unittest.TestCase):
 
         researcher = self.session.query(Researcher).filter(
             Researcher.id == research_published_books.researcher_id).all()[0]
-        book = self.session.query(PublishedBook).filter(
-            PublishedBook.id == research_published_books.published_book_id).all()[0]
+        book = self.session.query(Book).filter(
+            Book.id == research_published_books.published_book_id).all()[0]
 
         self.assertEqual(researcher.id, self.researcher_id)
         self.assertEqual(book.id, research_published_books.published_book_id)
@@ -453,8 +453,8 @@ class DatabaseTestCase(unittest.TestCase):
         # BACKREF
         researcher = self.session.query(Researcher).filter(
             Researcher.id == research_published_chapters.researcher_id).all()[0]
-        chapter = self.session.query(PublishedBookChapter).filter(
-            PublishedBookChapter.id == research_published_chapters.published_book_chapter_id).all()[0]
+        chapter = self.session.query(BookChapter).filter(
+            BookChapter.id == research_published_chapters.published_book_chapter_id).all()[0]
 
         self.assertEqual(researcher.id, self.researcher_id)
         self.assertEqual(chapter.id, research_published_chapters.published_book_chapter_id)

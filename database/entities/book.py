@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from database.base import Base
 
 
-class Book(Base):
+class BookManuscript(Base):
     __tablename__ = "book"
 
     id = Column(Integer, primary_key=True)
@@ -25,7 +25,7 @@ class Book(Base):
         return str(self.__dict__)
 
 
-class PublishedBook(Book):
+class Book(BookManuscript):
     __tablename__ = "published_book"
 
     id = Column(Integer, ForeignKey("book.id"), primary_key=True)
@@ -38,7 +38,7 @@ class PublishedBook(Book):
         return str(self.__dict__)
 
 
-class PublishedBookChapter(Book):
+class BookChapter(BookManuscript):
     __tablename__ = "published_book_chapter"
 
     id = Column(Integer, ForeignKey("book.id"), primary_key=True)

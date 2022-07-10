@@ -8,7 +8,7 @@ class AdvisementsTypes(enum.Enum):
     MASTER = "mestrado"
     PHD = "doutorado"
     SPECIALIZATION = "especialização"
-    UNDERGRATUATE_RESEARCH = "iniciação científica"
+    UNDERGRADUATE_RESEARCH = "iniciação científica"
 
 
 class CommitteeTypes(enum.Enum):

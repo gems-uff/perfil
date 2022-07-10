@@ -1,6 +1,6 @@
 from sqlalchemy import or_, and_, func
 from database.entities.researcher import Researcher
-from database.entities.book import PublishedBook, ResearcherPublishedBook, PublishedBookChapter, ResearcherPublishedBookChapter
+from database.entities.book import Book, ResearcherPublishedBook, BookChapter, ResearcherPublishedBookChapter
 from utils.log import log_possible_lattes_duplication, log_normalize
 from config import normalize_book, normalize_chapter
 
@@ -11,9 +11,9 @@ def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id
     year = basic_data.get("ANO")
     doi = basic_data.get("DOI")
 
-    book_list = session.query(PublishedBook).filter(
-        and_(func.lower(PublishedBook.title) == func.lower(title), PublishedBook.year == year)).all() if doi is None or doi == "" else \
-        session.query(PublishedBook).filter(PublishedBook.doi == doi).all()
+    book_list = session.query(Book).filter(
+        and_(func.lower(Book.title) == func.lower(title), Book.year == year)).all() if doi is None or doi == "" else \
+        session.query(Book).filter(Book.doi == doi).all()
 
     # Normalize
     if normalize_book and (len(book_list) > 0):
@@ -27,7 +27,7 @@ def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id
         authors += author.get("NOME-COMPLETO-DO-AUTOR") + ";"
     authors = authors[:-1]
 
-    new_book = PublishedBook(title=title, publisher=publisher, year=year, authors=authors, doi=doi)
+    new_book = Book(title=title, publisher=publisher, year=year, authors=authors, doi=doi)
     session.add(new_book)
     session.flush()
 
@@ -48,9 +48,9 @@ def add_researcher_published_books(session, tree, researcher_id):
 
         # Lattes duplication
         this_researcher_books_relationship = session.query(ResearcherPublishedBook.published_book_id).filter(ResearcherPublishedBook.researcher_id == researcher_id)
-        this_researcher_books_in_db = session.query(PublishedBook).filter(
-            or_(and_(PublishedBook.doi == added_book.doi, added_book.doi is not None, PublishedBook.doi != ""), and_(PublishedBook.year == added_book.year, func.lower(PublishedBook.title)==func.lower(added_book.title))),
-            PublishedBook.id.in_(this_researcher_books_relationship)).all()
+        this_researcher_books_in_db = session.query(Book).filter(
+            or_(and_(Book.doi == added_book.doi, added_book.doi is not None, Book.doi != ""), and_(Book.year == added_book.year, func.lower(Book.title) == func.lower(added_book.title))),
+            Book.id.in_(this_researcher_books_relationship)).all()
         for book_in_bd in this_researcher_books_in_db:
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             book_in_bd.id, book_in_bd.title, book_in_bd.year, book_in_bd.doi)
@@ -70,9 +70,9 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researc
     year = basic_data.get("ANO")
     doi = basic_data.get("DOI")
 
-    chapter_list = session.query(PublishedBookChapter).filter(func.lower(PublishedBookChapter.chapter_title) == func.lower(chapter_title),
-                                                              PublishedBookChapter.year == year).all() if doi is None \
-        else session.query(PublishedBookChapter).filter(func.lower(PublishedBookChapter.doi == doi)).all()
+    chapter_list = session.query(BookChapter).filter(func.lower(BookChapter.chapter_title) == func.lower(chapter_title),
+                                                     BookChapter.year == year).all() if doi is None \
+        else session.query(BookChapter).filter(func.lower(BookChapter.doi == doi)).all()
 
     # Normalize
     if normalize_chapter and (len(chapter_list) > 0):  # Normalize
@@ -87,8 +87,8 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researc
         authors += author.get("NOME-COMPLETO-DO-AUTOR") + ";"
     authors = authors[:-1]
 
-    new_chapter = PublishedBookChapter(title=book_title, publisher=publisher, year=year, authors=authors,
-                                       chapter_title=chapter_title)
+    new_chapter = BookChapter(title=book_title, publisher=publisher, year=year, authors=authors,
+                              chapter_title=chapter_title)
     session.add(new_chapter)
     session.flush()
 
@@ -109,9 +109,9 @@ def add_researcher_published_chapters(session, tree, researcher_id):
 
         # Lattes duplication
         this_researcher_chapters_relationship = session.query(ResearcherPublishedBookChapter.published_book_chapter_id).filter(ResearcherPublishedBookChapter.researcher_id == researcher_id)
-        this_researcher_chapters_in_db = session.query(PublishedBookChapter).filter(
-            or_(and_(PublishedBookChapter.doi == added_chapter.doi, added_chapter.doi is not None, PublishedBookChapter.doi != ""), and_(PublishedBookChapter.year == added_chapter.year, func.lower(PublishedBookChapter.chapter_title) == func.lower(added_chapter.chapter_title))),
-            PublishedBookChapter.id.in_(this_researcher_chapters_relationship)).all()
+        this_researcher_chapters_in_db = session.query(BookChapter).filter(
+            or_(and_(BookChapter.doi == added_chapter.doi, added_chapter.doi is not None, BookChapter.doi != ""), and_(BookChapter.year == added_chapter.year, func.lower(BookChapter.chapter_title) == func.lower(added_chapter.chapter_title))),
+            BookChapter.id.in_(this_researcher_chapters_relationship)).all()
         for chapter_in_bd in this_researcher_chapters_in_db:
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             chapter_in_bd.id, chapter_in_bd.chapter_title, chapter_in_bd.year, chapter_in_bd.doi)

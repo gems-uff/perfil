@@ -28,7 +28,7 @@ def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_
     worksheet.cell(row=row, column=5+column_number_additional, value=calculate_number_of_pages(paper))
     worksheet.cell(row=row, column=6+column_number_additional, value=venue.qualis.value if venue.qualis is not None else "null")
     worksheet.cell(row=row, column=7+column_number_additional, value=venue.jcr if is_journal_paper else "null")
-    worksheet.cell(row=row, column=8+column_number_additional, value=venue.forum_oficial)
+    worksheet.cell(row=row, column=8+column_number_additional, value=venue.official_forum)
     if write_researcher:
         worksheet.cell(row=row, column=9+column_number_additional, value=" https://doi.org/" + paper.doi if paper.doi is not None and paper.doi.strip() != "" else "null")
         worksheet.cell(row=row, column=10+column_number_additional, value=get_qualis_points(is_journal_paper, venue.qualis) if venue.qualis is not None else "null")
@@ -194,7 +194,7 @@ def write_4n_production(papers, session):
         worksheet.cell(row=row, column=3, value=papers[i].title)
         worksheet.cell(row=row, column=4, value=papers[i].authors)
         worksheet.cell(row=row, column=5, value=venue.name)
-        worksheet.cell(row=row, column=6, value=venue.forum_oficial)
+        worksheet.cell(row=row, column=6, value=venue.official_forum)
         worksheet.cell(row=row, column=7, value=papers[i].year)
         worksheet.cell(row=row, column=8, value=calculate_number_of_pages(papers[i]))
         worksheet.cell(row=row, column=9, value=venue.qualis.value if venue.qualis is not None else "null")
@@ -254,7 +254,7 @@ def remove_paper_duplicates(papers_list, session):
             venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
             for j in range(i + 1, len(papers)):
                 venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
-                same_venue = venue_i.forum_oficial == venue_j.forum_oficial if (venue_i.forum_oficial is not None) and (venue_j.forum_oficial is not None) else venue_i.name.lower() == venue_j.name.lower()
+                same_venue = venue_i.official_forum == venue_j.official_forum if (venue_i.official_forum is not None) and (venue_j.official_forum is not None) else venue_i.name.lower() == venue_j.name.lower()
                 same_year = papers[i].year == papers[j].year
 
                 if same_venue and same_year and (papers[j] in new_list) \

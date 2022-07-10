@@ -1,6 +1,6 @@
 class Conferencia:
 
-    artigo = "Conferencia.artigo"
+    titulo_artigo = "Conferencia.titulo_artigo"
     tipo_artigo = "Conferencia.tipo_artigo"
     ano = "Conferencia.ano"
     doi = "Conferencia.doi"

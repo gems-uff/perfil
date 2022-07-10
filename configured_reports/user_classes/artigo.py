@@ -1,6 +1,6 @@
 class Artigo:
 
-    artigo = "Artigo.artigo"
+    titulo_artigo = "Artigo.titulo_artigo"
     tipo_artigo = "Artigo.tipo_artigo"
     ano = "Artigo.ano"
     doi = "Artigo.doi"
