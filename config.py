@@ -59,7 +59,7 @@ new_worksheet_if_conflict = False
 configured_reports = {
     "reporte1Teste": [
         Pesquisador.nome,
-        Periodico.artigo,
+        Periodico.titulo_artigo,
         Periodico.ano,
 
     ],
@@ -120,8 +120,8 @@ collaboration_graphs_alpha = 0.3
 collaboration_graphs_alpha_decay = 0.2
 
 # The file with JCR scores
-df = pd.read_excel(resources_path + 'jcr.xlsx')
-jcr = dict(zip(df.issn, df.impact))
+df_jcr = pd.read_excel(resources_path + 'jcr.xlsx')
+jcr = dict(zip(df_jcr.issn, df_jcr.impact))
 
 # The file with conferences' qualis
 df_qualis_conferences = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-conferences-2016.xlsx')

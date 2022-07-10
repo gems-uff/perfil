@@ -101,7 +101,7 @@ def get_forum_oficial_list(session, is_journal: bool):
     """Returns the list of papers' forum_oficial be it a conference paper or a journal paper"""
 
     venues = get_papers_venues_list(session, is_journal)
-    return [venue.forum_oficial for venue in venues]
+    return [venue.official_forum for venue in venues]
 
 
 def get_doi_list(session, is_journal: bool):

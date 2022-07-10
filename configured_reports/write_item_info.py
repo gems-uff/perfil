@@ -79,15 +79,15 @@ def write_item_info(session, item: str, worksheet, col, make_cartesian_product_r
         papers_year_list = append_lists(get_paper_year_list(session, False),get_paper_year_list(session, True))
         write_info(worksheet, col, item, papers_year_list)
 
-    elif item == Conferencia.artigo:
+    elif item == Conferencia.titulo_artigo:
         conference_paper_title_list = get_paper_title_list(session, False)
         write_info(worksheet, col, item, conference_paper_title_list)
 
-    elif item == Periodico.artigo:
+    elif item == Periodico.titulo_artigo:
         journal_paper_title_list = get_paper_title_list(session, True)
         write_info(worksheet, col, item, journal_paper_title_list)
 
-    elif item == Artigo.artigo:
+    elif item == Artigo.titulo_artigo:
         paper_title_list = append_lists(get_paper_title_list(session, False), get_paper_title_list(session, True))
         write_info(worksheet, col, item, paper_title_list)
 

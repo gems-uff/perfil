@@ -1,6 +1,6 @@
 class Periodico:
 
-    artigo = "Periodico.artigo"
+    titulo_artigo = "Periodico.titulo_artigo"
     tipo_artigo = "Periodico.tipo_artigo"
     ano = "Periodico.ano"
     doi = "Periodico.doi"

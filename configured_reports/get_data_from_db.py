@@ -1,7 +1,7 @@
 from sqlalchemy import and_
 from config import start_year, end_year
-from database.entities.book import ResearcherPublishedBook, PublishedBook, ResearcherPublishedBookChapter, \
-    PublishedBookChapter
+from database.entities.book import ResearcherPublishedBook, Book, ResearcherPublishedBookChapter, \
+    BookChapter
 from database.entities.other_works import ResearcherPatent, Patent, ResearcherConferenceManagement, \
     ResearcherEditorialBoard
 from database.entities.project import ResearcherProject, Project
@@ -189,7 +189,7 @@ def get_published_book_list(session, researcher_id=0):
     for researcher in researchers:
         relationship = session.query(ResearcherPublishedBook).filter(ResearcherPublishedBook.researcher_id == researcher.id).all()
         for published_book in relationship:
-            book = session.query(PublishedBook).filter(PublishedBook.id == published_book.published_book_id).all()[0]
+            book = session.query(Book).filter(Book.id == published_book.published_book_id).all()[0]
             if start_year <= book.year <= end_year: published_book_list.append(book)
 
     return published_book_list
@@ -205,7 +205,7 @@ def get_published_book_chapter_list(session, researcher_id=0):
         relationship = session.query(ResearcherPublishedBookChapter).filter(
             ResearcherPublishedBookChapter.researcher_id == researcher.id).all()
         for published_book_chapter in relationship:
-            chapter = session.query(PublishedBookChapter).filter(PublishedBookChapter.id == published_book_chapter.published_book_chapter_id).all()[0]
+            chapter = session.query(BookChapter).filter(BookChapter.id == published_book_chapter.published_book_chapter_id).all()[0]
             if start_year <= chapter.year <= end_year: published_book_chapter_list.append(chapter)
 
     return published_book_chapter_list

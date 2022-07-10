@@ -53,7 +53,7 @@ def get_or_create_conference(session, conference_name, similarity_dict):
         except:
             pass
 
-        conference = Conference(name=conference_name, qualis=qualis, acronym=acronym, forum_oficial=forum_oficial)
+        conference = Conference(name=conference_name, qualis=qualis, acronym=acronym, official_forum=forum_oficial)
         session.add(conference)
         session.flush()
         return conference
@@ -79,7 +79,7 @@ def get_or_create_journal(session, journal_details, similarity_dict):
             qualis = qualis_switch(qualis_and_forum[0])
             forum_oficial = qualis_and_forum[1]
 
-        journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis, forum_oficial=forum_oficial)
+        journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis, official_forum=forum_oficial)
         session.add(journal)
         session.flush()
 
