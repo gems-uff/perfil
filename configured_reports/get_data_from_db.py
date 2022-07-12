@@ -31,7 +31,7 @@ def quantity_of_researcher_itens(session, item_class: str, researcher_id):
         "Conferencia": get_paper_list(session, False, researcher_id),
         "Corpo_Editorial": get_editorial_board_list(session, researcher_id),
         "Livro": get_published_book_list(session, researcher_id),
-        "Organizao_Evento": get_conference_management_list(session, researcher_id),
+        "Organizacao_Evento": get_conference_management_list(session, researcher_id),
         "Orientacao": get_advisement_list(session, researcher_id),
         "Patente": get_patent_list(session, researcher_id),
         "Periodico": get_paper_list(session, True, researcher_id),
@@ -89,7 +89,9 @@ def get_advisement_list(session, researcher_id=0):
     researcher_list = get_researchers(researcher_id, session)
     advisement_list = []
     for researcher in researcher_list:
-        advisement_list.append(session.query(ResearcherAdvisement).filter(ResearcherAdvisement.researcher_id == researcher.id).all()[0])
+        advisements_from_db = session.query(ResearcherAdvisement).filter(ResearcherAdvisement.researcher_id == researcher.id).all()
+        for advisement in advisements_from_db:
+            advisement_list.append(advisement)
     return list(filter(scope_years_paper_or_support, advisement_list))
 
 
@@ -99,7 +101,9 @@ def get_committee_list(session, researcher_id=0):
     researcher_list = get_researchers(researcher_id, session)
     committee_list = []
     for researcher in researcher_list:
-        committee_list.append(session.query(ResearcherCommittee).filter(ResearcherCommittee.researcher_id == researcher.id).all()[0])
+        committees_from_db = session.query(ResearcherCommittee).filter(ResearcherCommittee.researcher_id == researcher.id).all()
+        for committee in committees_from_db:
+            committee_list.append(committee)
     return list(filter(scope_years_paper_or_support, committee_list))
 
 
