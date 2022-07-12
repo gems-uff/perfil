@@ -90,9 +90,10 @@ def write_researcher_advisements(researcher, session, workbook):
 
     advisement_index = 0
     for row in range(2, len(researcher_advisements) + 2):
-        worksheet.cell(row=row, column=1, value=researcher_advisements[advisement_index].type.value)
-        worksheet.cell(row=row, column=2, value=researcher_advisements[advisement_index].student_name)
-        worksheet.cell(row=row, column=3, value=researcher_advisements[advisement_index].year)
+        advisement = researcher_advisements[advisement_index]
+        worksheet.cell(row=row, column=1, value=advisement.type.value if advisement.type is not None else " ")
+        worksheet.cell(row=row, column=2, value=advisement.student_name)
+        worksheet.cell(row=row, column=3, value=advisement.year)
         advisement_index += 1
 
 
