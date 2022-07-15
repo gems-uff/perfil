@@ -1,19 +1,9 @@
 import enum
 
 from sqlalchemy import Column, Integer, Float, String, ForeignKey, Enum
+
+from config import QualisLevel
 from database.base import Base
-
-
-class QualisLevel(enum.Enum):
-    A1 = "A1"
-    A2 = "A2"
-    B1 = "B1"
-    B2 = "B2"
-    B3 = "B3"
-    B4 = "B4"
-    B5 = "B5"
-    C = "C"
-    NC = "NC"
 
 
 class Venue(Base):

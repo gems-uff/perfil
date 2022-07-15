@@ -2,7 +2,7 @@ from os import listdir, sep
 from os.path import isfile, join
 from sqlalchemy import or_, and_, func
 from database.database_manager import Researcher, Project, ResearcherProject, Affiliation
-from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, normalize_project
+from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project
 from utils.similarity_manager import detect_similar
 from utils.log import log_normalize, log_possible_lattes_duplication
 
@@ -66,7 +66,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
                 log_possible_lattes_duplication("researcher_project", researcher.name, researcher_id, project_in_db.id, name)
 
         # Normalize
-        if normalize_project and project_already_in_the_database[0]:
+        if unify_project and project_already_in_the_database[0]:
             project_in_db = session.query(Project).filter(func.lower(Project.name) == func.lower(project_already_in_the_database[1])).all()[0]
             add_one_researcher_project_relationship(project_in_db, researcher, session)
             log_normalize(project_in_db.name, researcher.id, researcher.name)
@@ -94,7 +94,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
 def add_researcher_project(session):
     """Updates the ResearcherProject relationship for researchers which didn't have the relationship"""
 
-    if normalize_project:
+    if unify_project:
 
         researchers_in_projects = session.query(Researcher, Project).filter(
             or_(Project.team.contains(Researcher.name), Project.manager.contains(Researcher.name))).all()

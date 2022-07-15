@@ -4,7 +4,7 @@ from utils.log import log_possible_lattes_duplication, log_normalize
 from database.entities.researcher import Researcher
 from database.entities.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
     ResearcherPatent, Patent, PatentType
-from config import normalize_patent
+from config import unify_patent
 
 
 def add_researcher_conference_management(session, tree, researcher_id):
@@ -126,7 +126,7 @@ def get_or_add_patent(session, patent, software_patent: bool, researcher_id, res
     patent_list = session.query(Patent).filter(Patent.number == number).all()
 
     # Normalize
-    if normalize_patent and (len(patent_list) > 0):
+    if unify_patent and (len(patent_list) > 0):
         log_normalize(patent_list[0].number, researcher_id, researcher_name)
         return patent_list[0]
 

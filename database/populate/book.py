@@ -2,7 +2,7 @@ from sqlalchemy import or_, and_, func
 from database.entities.researcher import Researcher
 from database.entities.book import Book, ResearcherPublishedBook, BookChapter, ResearcherPublishedBookChapter
 from utils.log import log_possible_lattes_duplication, log_normalize
-from config import normalize_book, normalize_chapter
+from config import unify_book, unify_chapter
 
 
 def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id, researcher_name):
@@ -16,7 +16,7 @@ def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id
         session.query(Book).filter(Book.doi == doi).all()
 
     # Normalize
-    if normalize_book and (len(book_list) > 0):
+    if unify_book and (len(book_list) > 0):
         log_normalize(book_list[0].title, researcher_id, researcher_name)
         return book_list[0]
 
@@ -75,7 +75,7 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researc
         else session.query(BookChapter).filter(func.lower(BookChapter.doi == doi)).all()
 
     # Normalize
-    if normalize_chapter and (len(chapter_list) > 0):  # Normalize
+    if unify_chapter and (len(chapter_list) > 0):  # Normalize
         log_normalize(chapter_list[0].title, researcher_id, researcher_name)
         return chapter_list[0]
 

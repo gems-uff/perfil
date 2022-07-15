@@ -67,11 +67,11 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python visualize.py`
 
-14. Use generate_reseacher_paper_and_title_info.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados, os que estão no arquivo de pesquisadores, com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py. Os arquivos gerados podem ser encontrados na pasta "output/generate_reseacher_paper_and_title_info" com o nome do pesquisador a qual ele pertence.
-    1. `~/perfil$ python generate_reseacher_paper_and_title_info.py` exibe uma linha de comando interativa para o usuário escolher **um** pesquisador para gerar o arquivo ou gerar os arquivos para **todos** os pesquisadores.
-    2. `~/perfil$ python generate_reseacher_paper_and_title_info.py --all` gera os arquivos de todos os pesquisadores sem precisar de interação com a linha de comando.
-    3. `~/perfil$ python generate_reseacher_paper_and_title_info.py --researchers (researcher.id|researcher.lattes_id) +` substitua "(researcher.id|researcher.lattes_id) +" por um ou mais id do banco de dados ou id do lattes dos pesquisadores para gerar apenas os arquivos deles sem precisar de interação com a linha de comando. O id do banco de dados é o mesmo que a ordem no arquivo de pesquisadores.
-    4. `~/perfil$ python generate_reseacher_paper_and_title_info.py --ids` mostra no console os ids que os pesquisadores no arquivo de pesquisadores irão ter no banco de dados.
+14. Use generate_reseacher_progression_report.py para gerar arquivos .xlsx de pesquisadores que estão no banco de dados, os que estão no arquivo de pesquisadores, com informações sobre suas publicações, orientações e participações em banca dentro dos anos estabelicidos em config.py. Os arquivos gerados podem ser encontrados na pasta "output/generate_reseacher_progression_report" com o nome do pesquisador a qual ele pertence.
+    1. `~/perfil$ python generate_reseacher_progression_report.py` exibe uma linha de comando interativa para o usuário escolher **um** pesquisador para gerar o arquivo ou gerar os arquivos para **todos** os pesquisadores.
+    2. `~/perfil$ python generate_reseacher_progression_report.py --all` gera os arquivos de todos os pesquisadores sem precisar de interação com a linha de comando.
+    3. `~/perfil$ python generate_reseacher_progression_report.py --researchers (researcher.id|researcher.lattes_id) +` substitua "(researcher.id|researcher.lattes_id) +" por um ou mais id do banco de dados ou id do lattes dos pesquisadores para gerar apenas os arquivos deles sem precisar de interação com a linha de comando. O id do banco de dados é o mesmo que a ordem no arquivo de pesquisadores.
+    4. `~/perfil$ python generate_reseacher_progression_report.py --ids` mostra no console os ids que os pesquisadores no arquivo de pesquisadores irão ter no banco de dados.
 
 
 15. Use generate_datacapes.py para gerar relatórios sobre a produção e sumário dos pesquisadores e anual dos pesquisadores [afiliados](/resources/affiliations), esse script também gera o relatório "4n". Deve-se colocar os valores de "normalize_conference_paper" e "normalize_journal_paper", em [config.py](/config.py), como False. Lembrando que a saída é de acordo com o arquivo de pesquisadores. Os arquivos gerados podem ser encontrados na pasta "output/datacapes".
@@ -84,6 +84,10 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
      * As entidades/classes disponíveis para se consultar são: Banca, Capitulo, Conferencia, Corpo_Editorial, Livro, Organizacao_Evento, Orientacao, Patente, Periodico, Pesquisador, Projeto, Artigo. Sendo que Artigo engloba informações em comum sobre Periodico e Conferencia, mas é considerado como outra entidade em caso de conflito. 
 
 `~/perfil$ python generate_configured_reports.py`
+
+17. Use generate_collaboration_graphs.py para visualizar grafos referentes a colaboração entre os pesquisadores dentro do horizonte de coleta. As variáveis "collaboration_graphs_alpha" e "collaboration_graphs_alpha_decay" em [config.py](/config.py) configuram a intensidade da força de expansão do grafo a partir do centro. Para visualizar a saída acesse http://127.0.0.1:5000/ com o script executando. 
+
+`~/perfil$ python generate_collaboration_graphs.py`
 
 ## Execução dos testes:
 
@@ -108,12 +112,16 @@ Script de teste para verificar se os dados do lattes estão sendo coletados e co
 Script para auxiliar o usuário baixar os lattes dos pesquisadores no arquivo de pesquisadores.
 
 ### generate_configured_reports.py
+
+Script com a funcionalidade de gerar grafos que representam a colaboração na autoria de artigos entre os pesquisadores e sua intensidade durante o período do horizonte de coleta.
+
+### generate_configured_reports.py
 Script com a funcionalidade de gerar relátorios personalizados pelo o usuário de acordo com as variáveis configured_reports, reports_as_new_worksheets e new_worksheet_if_conflict usando dados dos currículos Lattes.
 
 ### generate_datacapes.py
 Script para gerar relatórios de um programa de pós-graduação conforme pedido pela CAPES. Os relatórios são baseados nas publicações em periódicos e conferências e seus respectivos Qualis, usando apenas os pesquisadores afiliados naquele ano.
 
-### generate_reseacher_paper_and_title_info.py
+### generate_reseacher_progression_report.py
 Script com a funcionalidade de gerar arquivos .xlsx com informações, dos pesquisadores no arquivo de pesquisadores, que auxiliam na promoção de títulares.
 
 ### populate_database.py
@@ -148,6 +156,8 @@ Script com a funcionalidade de preencher as informações dos pesquisadores do a
 * **configured_reports** : Dicionário o qual suas chaves devem ser strings e seus valores listas/vetores com os atributos das classes/entidades os quais o usuário deseja gerar um relatório os contendo.
 * **qualis_journal_points**: o valor dos pontos de cada nível de Qualis de publicações em periódicos de acordo com a regra para credenciamento como Docente Permanente do PGC
 * **qualis_conference_points**: o valor dos pontos de cada nível de Qualis de publicações em conferências de acordo com a regra para credenciamento como Docente Permanente do PGC
+* **collaboration_graphs_alpha**: o valor da força inicial em que os nós dos grafos do script [generate_collaboration_graphs.py](generate_collaboration_graphs.py) se expandem do centro. Seu valor deve ser entre 0 e 1.
+* **collaboration_graphs_alpha_decay**: o valor em que a força inicial dos nós dos grafos do script [generate_collaboration_graphs.py](generate_collaboration_graphs.py) se torna zero, ou seja, a taxa de decaimento até os nós pararem de se mover. Seu valor deve ser entre 0 e 1.
 
 ## Arquivos
 
@@ -167,3 +177,7 @@ Os arquivos de afiliados se encontran na pasta [/resources/affiliations](/resour
 * O arquivo exibe as referências cruzadas ocorridas caso alguma(s) das variáveis normalize_conference_paper, normalize_journal_paper, normalize_project, normalize_book, normalize_chapter, normalize_patent (em [config.py](config.py)) estiver(em) atribuída(s) com True.
 
 A cada execução recomenda-se apagar o arquivo, pois ele é incremental.
+
+## Referências
+
+O código do arquivo [index.html](/collaboration_graphs/templates/index.html) usou como base o código disponível em: https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8

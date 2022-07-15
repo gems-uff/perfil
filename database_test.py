@@ -11,7 +11,8 @@ from database.populate.titles_support import add_researcher_advisements, add_res
     ResearcherAdvisement, \
     ResearcherCommittee, AdvisementsTypes, CommitteeTypes
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers, Journal, \
-    Conference, JournalPaper, ConferencePaper, QualisLevel, PaperNature
+    Conference, JournalPaper, ConferencePaper, PaperNature
+from config import QualisLevel
 
 
 class DatabaseTestCase(unittest.TestCase):
@@ -358,7 +359,7 @@ class DatabaseTestCase(unittest.TestCase):
         add_coauthor_papers(self.session)
 
         # ConferencePaper
-        if config.normalize_conference_paper:
+        if config.unify_conference_paper:
             conference_paper_database_id = \
                 self.session.query(ConferencePaper.id).filter(ConferencePaper.title.contains("LockED")).all()[0]
 
@@ -370,7 +371,7 @@ class DatabaseTestCase(unittest.TestCase):
         self.session.flush()
         add_coauthor_papers(self.session)
 
-        if config.normalize_journal_paper:
+        if config.unify_journal_paper:
             journal_paper_database_id_one = \
                 self.session.query(JournalPaper.id).filter(JournalPaper.title.contains("A Caminho da Manuten")).all()[0][0]
             journal_paper_database_id_two = \

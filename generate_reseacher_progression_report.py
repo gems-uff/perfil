@@ -5,7 +5,7 @@ import sys
 import argparse
 import pandas as pd
 from sqlalchemy import and_
-from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year, researchers_file
+from config import generate_reseacher_progression_report_output_dir, start_year, end_year, researchers_file
 from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
 from database.entities.titles_support import CommitteeTypes
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper
@@ -135,7 +135,7 @@ def write_xlsx_files(researchers_to_write, session):
     for i in range(len(researchers_to_write)):
         wb = openpyxl.Workbook()
         write_researcher_xlsx(researchers_to_write[i], session, wb)
-        wb.save(generate_reseacher_paper_and_title_info_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
+        wb.save(generate_reseacher_progression_report_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
     print("Finished generating the file(s)")
 
 
