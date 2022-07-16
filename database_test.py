@@ -8,8 +8,8 @@ from database.populate.book import *
 from database.populate.other_works import *
 from database.populate.researcher_and_project import *
 from database.populate.titles_support import add_researcher_advisements, add_researcher_committees, \
-    ResearcherAdvisement, \
-    ResearcherCommittee, AdvisementsTypes, CommitteeTypes
+    Advisement, \
+    Committee, AdvisementsTypes, CommitteeTypes
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers, Journal, \
     Conference, JournalPaper, ConferencePaper, PaperNature
 from config import QualisLevel
@@ -171,8 +171,8 @@ class DatabaseTestCase(unittest.TestCase):
         add_researcher_advisements(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
 
         # Masters
-        masters_advisements = self.session.query(ResearcherAdvisement). \
-            filter(ResearcherAdvisement.type == AdvisementsTypes.MASTER).all()
+        masters_advisements = self.session.query(Advisement). \
+            filter(Advisement.type == AdvisementsTypes.MASTER).all()
         master_advisement_one, master_advisement_two = masters_advisements[0], masters_advisements[1]
 
         self.assertEqual(master_advisement_one.researcher_id, 1)
@@ -191,8 +191,8 @@ class DatabaseTestCase(unittest.TestCase):
                                                       "Atributos de Qualidade")
 
         # PHD
-        phds_advisements = self.session.query(ResearcherAdvisement). \
-            filter(ResearcherAdvisement.type == AdvisementsTypes.PHD).all()
+        phds_advisements = self.session.query(Advisement). \
+            filter(Advisement.type == AdvisementsTypes.PHD).all()
         phd_advisement_one, phd_advisement_two = phds_advisements[0], phds_advisements[1]
 
         self.assertEqual(phd_advisement_one.researcher_id, 1)
@@ -208,8 +208,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(phd_advisement_two.title, "On the Nature of Software Merge Conflicts")
 
         # Other Advisements
-        bachelor_advisement = self.session.query(ResearcherAdvisement).filter(ResearcherAdvisement.type ==
-                                                                              AdvisementsTypes.BACHELOR).all()[0]
+        bachelor_advisement = self.session.query(Advisement).filter(Advisement.type ==
+                                                                    AdvisementsTypes.BACHELOR).all()[0]
 
         self.assertEqual(bachelor_advisement.researcher_id, 1)
         self.assertEqual(bachelor_advisement.student_name, "Bruno Ferreira Pinto e Fernando Campello")
@@ -217,8 +217,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(bachelor_advisement.year, 2012)
         self.assertEqual(bachelor_advisement.title, "Diff e Merge de Documentos XML")
 
-        specialization_advisement = self.session.query(ResearcherAdvisement).filter(
-            ResearcherAdvisement.type == AdvisementsTypes.SPECIALIZATION).all()[0]
+        specialization_advisement = self.session.query(Advisement).filter(
+            Advisement.type == AdvisementsTypes.SPECIALIZATION).all()[0]
 
         self.assertEqual(specialization_advisement.researcher_id, 1)
         self.assertEqual(specialization_advisement.student_name, "Jon Karl Weibull")
@@ -227,8 +227,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(specialization_advisement.title,
                          "Desambiguadores Semânticos Semi-supervisionados: uma análise")
 
-        undergraduate_research_advisement = self.session.query(ResearcherAdvisement).filter(
-            ResearcherAdvisement.type == AdvisementsTypes.UNDERGRADUATE_RESEARCH).all()[0]
+        undergraduate_research_advisement = self.session.query(Advisement).filter(
+            Advisement.type == AdvisementsTypes.UNDERGRADUATE_RESEARCH).all()[0]
 
         self.assertEqual(undergraduate_research_advisement.researcher_id, 1)
         self.assertEqual(undergraduate_research_advisement.student_name, "Clarissa Bruno Tuxen")
@@ -242,8 +242,8 @@ class DatabaseTestCase(unittest.TestCase):
         add_researcher_committees(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
 
         # BACHELOR
-        bachelor_committee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.BACHELOR).all()[0]
+        bachelor_committee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.BACHELOR).all()[0]
 
         self.assertEqual(bachelor_committee.researcher_id, 1)
         self.assertEqual(bachelor_committee.student_name, "Marcelo Dias Gilano de Mello")
@@ -255,8 +255,8 @@ class DatabaseTestCase(unittest.TestCase):
                          "Leonardo Gresta Paulino Murta;Esteban Walter Gonzalez Clua;Teresa Cristina de Aguiar")
 
         # MASTER
-        master_committee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.MASTER).all()[0]
+        master_committee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.MASTER).all()[0]
 
         self.assertEqual(master_committee.researcher_id, 1)
         self.assertEqual(master_committee.student_name, "Isabella Almeida da Silva")
@@ -268,8 +268,8 @@ class DatabaseTestCase(unittest.TestCase):
                                                 "Maria Lima Werner;Jano Moreira de Souza;Cleidson "
                                                 "R. B. de Souza")
         # MASTER_QUALIFICATION
-        master_qualification_committee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.MASTER_QUALIFICATION).all()[0]
+        master_qualification_committee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.MASTER_QUALIFICATION).all()[0]
 
         self.assertEqual(master_qualification_committee.researcher_id, 1)
         self.assertEqual(master_qualification_committee.student_name, "Rosane Sfair Huergo")
@@ -281,8 +281,8 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertEqual(master_qualification_committee.team, "Leonardo Gresta Paulino Murta;Paulo de Figueiredo Pires")
 
         # PHD
-        phd_committee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.PHD).all()[0]
+        phd_committee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.PHD).all()[0]
 
         self.assertEqual(phd_committee.researcher_id, 1)
         self.assertEqual(phd_committee.student_name, "Monalessa Perini Barcellos")
@@ -297,8 +297,8 @@ class DatabaseTestCase(unittest.TestCase):
                                              "Xexéo")
 
         # PHD_QUALIFICATION
-        phd_qualification_committee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.PHD_QUALIFICATION).all()[0]
+        phd_qualification_committee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.PHD_QUALIFICATION).all()[0]
 
         self.assertEqual(phd_qualification_committee.researcher_id, 1)
         self.assertEqual(phd_qualification_committee.student_name, "Gustavo Ansaldi Oliva")
@@ -311,8 +311,8 @@ class DatabaseTestCase(unittest.TestCase):
                                                            "Chavez;Fábio Kon")
 
         # SPECIALIZATION
-        specialization_commmittee = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.SPECIALIZATION).all()[0]
+        specialization_commmittee = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.SPECIALIZATION).all()[0]
 
         self.assertEqual(specialization_commmittee.researcher_id, 1)
         self.assertEqual(specialization_commmittee.student_name, "Edilberto Campos Silva Junior")
@@ -324,8 +324,8 @@ class DatabaseTestCase(unittest.TestCase):
                                                          "Hall;Osvaldo Luiz Gonçalves Quelhas")
 
         # CIVIL_SERVICE_EXAMINATION
-        civil_service_examination = self.session.query(ResearcherCommittee).filter(
-            ResearcherCommittee.type == CommitteeTypes.CIVIL_SERVICE_EXAMINATION).all()[0]
+        civil_service_examination = self.session.query(Committee).filter(
+            Committee.type == CommitteeTypes.CIVIL_SERVICE_EXAMINATION).all()[0]
 
         self.assertEqual(civil_service_examination.researcher_id, 1)
         self.assertTrue(len(civil_service_examination.student_name) > 0)
@@ -339,17 +339,17 @@ class DatabaseTestCase(unittest.TestCase):
     def test07AddResearcherProject(self):
         """Adds the relationships between the researcher and the projects and check if they are correct"""
         add_researcher_project(self.session)
-        reseacher_projects_database = self.session.query(ResearcherProject).all()
+        reseacher_projects_database = self.session.query(Membership).all()
         reseacher_project_one, reseacher_project_two = reseacher_projects_database[0], reseacher_projects_database[1]
 
         # one
         self.assertEqual(reseacher_project_one.project_id, 1)
         self.assertEqual(reseacher_project_one.researcher_id, self.researcher_id)
-        self.assertFalse(reseacher_project_one.coordinator)
+        self.assertFalse(reseacher_project_one.principal_investigator)
         # two
         self.assertEqual(reseacher_project_two.project_id, 2)
         self.assertEqual(reseacher_project_two.researcher_id, self.researcher_id)
-        self.assertTrue(reseacher_project_two.coordinator)
+        self.assertTrue(reseacher_project_two.principal_investigator)
 
     def test08AddCoathoursPapers(self):
         """Adds some coathours as researchers and checks if the relationship are correct"""
@@ -384,7 +384,7 @@ class DatabaseTestCase(unittest.TestCase):
         """Adds all the conferences managed by the researcher from the .xml file and check if all information is correct"""
         add_researcher_conference_management(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
 
-        conferences_managed = self.session.query(ResearcherConferenceManagement).all()
+        conferences_managed = self.session.query(ConferenceOrganization).all()
         conference_managed_one, conference_managed_two = conferences_managed[0], conferences_managed[1]
 
         self.assertEqual(conference_managed_one.researcher_id, 1)
@@ -405,7 +405,7 @@ class DatabaseTestCase(unittest.TestCase):
         """Adds all the reseacher jobs in journals from the .xml file and check if all information is correct"""
         add_researcher_editorial_board(session=self.session, tree=self.tree, researcher_id=self.researcher_id)
 
-        editorial_boards_jobs = self.session.query(ResearcherEditorialBoard).all()
+        editorial_boards_jobs = self.session.query(EditorialBoard).all()
 
         editorial_board_job_one, editorial_board_job_two = editorial_boards_jobs[0], editorial_boards_jobs[1]
 

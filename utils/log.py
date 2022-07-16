@@ -21,7 +21,7 @@ def log_possible_lattes_duplication(table_name: str, researcher_name: str, *keys
     logging.warning(message)
 
 
-def log_normalize(which_one: str, researcher_id, researcher_name):
+def log_unify(which_one: str, researcher_id, researcher_name):
     setup_log_file()
 
     message = "Function: " + inspect.stack()[1][3] + \

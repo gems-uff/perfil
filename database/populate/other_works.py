@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import and_, func
-from utils.log import log_possible_lattes_duplication, log_normalize
+from utils.log import log_possible_lattes_duplication, log_unify
 from database.entities.researcher import Researcher
-from database.entities.other_works import ResearcherConferenceManagement, ResearcherEditorialBoard, EditorialBoardType, \
+from database.entities.other_works import ConferenceOrganization, EditorialBoard, EditorialBoardType, \
     ResearcherPatent, Patent, PatentType
 from config import unify_patent
 
@@ -25,14 +25,14 @@ def add_researcher_conference_management(session, tree, researcher_id):
         committee = committee[:-1]
 
         # Lattes duplication
-        lattes_duplication = session.query(ResearcherConferenceManagement).filter(
-            and_(ResearcherConferenceManagement.researcher_id == researcher_id,
-                 func.lower(ResearcherConferenceManagement.title) == func.lower(title), ResearcherConferenceManagement.year == year)).all()
+        lattes_duplication = session.query(ConferenceOrganization).filter(
+            and_(ConferenceOrganization.researcher_id == researcher_id,
+                 func.lower(ConferenceOrganization.title) == func.lower(title), ConferenceOrganization.year == year)).all()
 
         if len(lattes_duplication) > 0:
             log_possible_lattes_duplication("researcher_conference_management", researcher_name, researcher_id, title, year)
 
-        session.add(ResearcherConferenceManagement(researcher_id=researcher_id, title=title, year=year, committee=committee))
+        session.add(ConferenceOrganization(researcher_id=researcher_id, title=title, year=year, committee=committee))
 
 
 def add_researcher_editorial_board(session, tree, researcher_id):
@@ -51,16 +51,16 @@ def add_researcher_editorial_board(session, tree, researcher_id):
             journal_name = job.get("NOME-INSTITUICAO")
 
             # Lattes duplication
-            lattes_duplication = session.query(ResearcherEditorialBoard).filter(
-                and_(ResearcherEditorialBoard.researcher_id == researcher_id,
-                     func.lower(ResearcherEditorialBoard.journal_name) == func.lower(journal_name), ResearcherEditorialBoard.type == type,
-                     ResearcherEditorialBoard.start_year == start_year)).all()
+            lattes_duplication = session.query(EditorialBoard).filter(
+                and_(EditorialBoard.researcher_id == researcher_id,
+                     func.lower(EditorialBoard.journal_name) == func.lower(journal_name), EditorialBoard.type == type,
+                     EditorialBoard.start_year == start_year)).all()
 
             if len(lattes_duplication) > 0:
                 log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, start_year)
 
-            session.add(ResearcherEditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
-                                                 start_year=start_year, end_year=end_year))
+            session.add(EditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
+                                       start_year=start_year, end_year=end_year))
 
 
 def editorial_board_type_switch(other_link):
@@ -127,7 +127,7 @@ def get_or_add_patent(session, patent, software_patent: bool, researcher_id, res
 
     # Normalize
     if unify_patent and (len(patent_list) > 0):
-        log_normalize(patent_list[0].number, researcher_id, researcher_name)
+        log_unify(patent_list[0].number, researcher_id, researcher_name)
         return patent_list[0]
 
     year = None

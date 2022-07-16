@@ -6,7 +6,7 @@ from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperN
 from database.entities.researcher import Researcher
 from database.entities.venue import Conference, Journal
 from utils.similarity_manager import detect_similar, get_similarity
-from utils.log import log_normalize, log_possible_lattes_duplication
+from utils.log import log_unify, log_possible_lattes_duplication
 
 def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
     """Gets the qualis value of a conference or journal from the xlsx qualis file"""
@@ -144,7 +144,7 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
                 if researcher.name not in journal_paper.authors: journal_paper.authors += ";" + researcher.name
                 journal_paper.researchers.append(researcher)
                 session.flush()
-                log_normalize(journal_paper.title, researcher.id, researcher.name)
+                log_unify(journal_paper.title, researcher.id, researcher.name)
         else:
             accepted = not published
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
@@ -186,7 +186,7 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
                 if researcher.name not in conference_paper.authors: conference_paper.authors += ";" + researcher.name
                 conference_paper.researchers.append(researcher)
                 session.flush()
-                log_normalize(conference_paper.title, researcher.id, researcher.name)
+                log_unify(conference_paper.title, researcher.id, researcher.name)
         else:
             new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
                                                    year=paper.year, first_page=paper.first_page,
@@ -284,4 +284,4 @@ def add_papers_different_titles(paper, papers_list, title_minimum_similarity, re
 
     if not already_added:
         papers_list.append(paper)
-        log_normalize(paper.title, researcher.id, researcher.name)
+        log_unify(paper.title, researcher.id, researcher.name)

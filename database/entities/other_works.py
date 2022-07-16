@@ -10,7 +10,7 @@ class EditorialBoardType(enum.Enum):
     REVISER = "reviewer"
 
 
-class ResearcherEditorialBoard(Base):
+class EditorialBoard(Base):
     __tablename__ = "reseacher_editorial_board"
 
     id = Column(Integer, primary_key=True)
@@ -26,7 +26,7 @@ class ResearcherEditorialBoard(Base):
         return str(self.__dict__)
 
 
-class ResearcherConferenceManagement(Base):
+class ConferenceOrganization(Base):
     __tablename__ = "researcher_conference_management"
 
     id = Column(Integer, primary_key=True)

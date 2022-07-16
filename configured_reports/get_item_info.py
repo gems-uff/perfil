@@ -250,7 +250,7 @@ def get_project_coordinator_list(session):
     """Returns the list of strings saying if is a project manager("Sim") or not("Não")"""
 
     project_researcher_list = get_researcher_project_list(session)
-    return [("Sim" if project_researcher.coordinator else "Não") for project_researcher in project_researcher_list]
+    return [("Sim" if project_researcher.principal_investigator else "Não") for project_researcher in project_researcher_list]
 
 
 def get_project_team_list(session):

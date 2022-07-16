@@ -1,10 +1,10 @@
 from os import listdir, sep
 from os.path import isfile, join
 from sqlalchemy import or_, and_, func
-from database.database_manager import Researcher, Project, ResearcherProject, Affiliation
+from database.database_manager import Researcher, Project, Membership, Affiliation
 from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project
 from utils.similarity_manager import detect_similar
-from utils.log import log_normalize, log_possible_lattes_duplication
+from utils.log import log_unify, log_possible_lattes_duplication
 
 
 def add_researcher(session, tree, google_scholar_id, lattes_id):
@@ -60,7 +60,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
 
         # Lattes duplication
         if project_already_in_the_database[0]:
-            this_researcher_projects_relationship = session.query(ResearcherProject.project_id).filter(ResearcherProject.researcher_id == researcher_id)
+            this_researcher_projects_relationship = session.query(Membership.project_id).filter(Membership.researcher_id == researcher_id)
             this_researcher_projects_in_db = session.query(Project).filter(func.lower(Project.name) == func.lower(name), Project.id.in_(this_researcher_projects_relationship))
             for project_in_db in this_researcher_projects_in_db:
                 log_possible_lattes_duplication("researcher_project", researcher.name, researcher_id, project_in_db.id, name)
@@ -69,7 +69,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
         if unify_project and project_already_in_the_database[0]:
             project_in_db = session.query(Project).filter(func.lower(Project.name) == func.lower(project_already_in_the_database[1])).all()[0]
             add_one_researcher_project_relationship(project_in_db, researcher, session)
-            log_normalize(project_in_db.name, researcher.id, researcher.name)
+            log_unify(project_in_db.name, researcher.id, researcher.name)
         else:
             start_year = project.get("ANO-INICIO")
             end_year = project.get("ANO-FIM")
@@ -104,19 +104,19 @@ def add_researcher_project(session):
             project = relation[1]
 
             add_one_researcher_project_relationship(project, researcher, session)
-            log_normalize(project.name, researcher.id, researcher.name)
+            log_unify(project.name, researcher.id, researcher.name)
 
 
 def add_one_researcher_project_relationship(project, researcher, session):
     """Adds only one ResearcherProject relationship"""
 
-    relationship_is_not_in_db = len(session.query(ResearcherProject).filter(
-        and_(ResearcherProject.researcher_id == researcher.id, ResearcherProject.project_id == project.id)).all()) == 0
+    relationship_is_not_in_db = len(session.query(Membership).filter(
+        and_(Membership.researcher_id == researcher.id, Membership.project_id == project.id)).all()) == 0
 
     if relationship_is_not_in_db:
 
-        new_researcher_project = ResearcherProject(researcher_id=researcher.id, project_id=project.id)
-        new_researcher_project.coordinator = True if researcher.name in project.manager else False
+        new_researcher_project = Membership(researcher_id=researcher.id, project_id=project.id)
+        new_researcher_project.principal_investigator = True if researcher.name in project.manager else False
         session.add(new_researcher_project)
 
 
