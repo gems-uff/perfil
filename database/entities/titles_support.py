@@ -21,7 +21,7 @@ class CommitteeTypes(enum.Enum):
     CIVIL_SERVICE_EXAMINATION = "concurso público"
 
 
-class ResearcherAdvisement(Base):
+class Advisement(Base):
     __tablename__ = "researcher_advisement"
 
     id = Column(Integer, primary_key=True)
@@ -37,7 +37,7 @@ class ResearcherAdvisement(Base):
         return str(self.__dict__)
 
 
-class ResearcherCommittee(Base):
+class Committee(Base):
     __tablename__ = "researcher_committee"
 
     id = Column(Integer, primary_key=True)

@@ -1,6 +1,6 @@
 from sqlalchemy import and_
 from config import start_year, end_year, QualisLevel
-from database.database_manager import Paper, JournalPaper, Journal, ResearcherProject, Project, Conference, \
+from database.database_manager import Paper, JournalPaper, Journal, Membership, Project, Conference, \
     ConferencePaper, Affiliation
 from database.entities.paper import PaperNature
 
@@ -15,7 +15,7 @@ def scope_years_paper_or_support(paper_or_support):
     return start_year <= paper_or_support.year <= end_year
 
 
-def scope_years_researcher_project(research_project: ResearcherProject, session):
+def scope_years_researcher_project(research_project: Membership, session):
     """filter function to get only database objects within the years specified"""
     return start_year <= session.query(Project.start_year).filter(Project.id == research_project.project_id).all()[0][
         0] <= end_year

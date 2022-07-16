@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 from sqlalchemy import or_, not_, and_, func
-from database.entities.titles_support import ResearcherAdvisement, AdvisementsTypes, CommitteeTypes, ResearcherCommittee
+from database.entities.titles_support import Advisement, AdvisementsTypes, CommitteeTypes, Committee
 from database.entities.researcher import Researcher
 from utils.log import log_possible_lattes_duplication
 
@@ -121,31 +121,31 @@ def add_researcher_committee_in_bd(college, degree, element, name, nature, resea
     team = team[:-1]
     type = committee_type_switch(degree, nature)
 
-    lattes_duplication = session.query(ResearcherCommittee).filter(
-        and_(researcher_id == ResearcherCommittee.researcher_id, name == ResearcherCommittee.student_name,
-             type == ResearcherCommittee.type, year == ResearcherCommittee.year)).all()
+    lattes_duplication = session.query(Committee).filter(
+        and_(researcher_id == Committee.researcher_id, name == Committee.student_name,
+             type == Committee.type, year == Committee.year)).all()
 
     if len(lattes_duplication) > 0:
         researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
         log_possible_lattes_duplication("reseacher_committee", researcher_name, researcher_id, name, type, year)
 
-    session.add(ResearcherCommittee(researcher_id=researcher_id, student_name=name, college=college,
-                                        year=year, title=title, type=type, team=team))
+    session.add(Committee(researcher_id=researcher_id, student_name=name, college=college,
+                          year=year, title=title, type=type, team=team))
 
 
 def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id, session, title, year):
     type = advisor_type_switch(degree, nature)
 
-    lattes_duplication = session.query(ResearcherAdvisement).filter(
-        and_(ResearcherAdvisement.researcher_id == researcher_id, ResearcherAdvisement.student_name == name,
-             ResearcherAdvisement.type == type, ResearcherAdvisement.year == year)).all()
+    lattes_duplication = session.query(Advisement).filter(
+        and_(Advisement.researcher_id == researcher_id, Advisement.student_name == name,
+             Advisement.type == type, Advisement.year == year)).all()
 
     if len(lattes_duplication) > 0:
         researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
         log_possible_lattes_duplication("researcher_advisement", researcher_name, researcher_id, name, type, year, title)
 
-    session.add(ResearcherAdvisement(researcher_id=researcher_id, student_name=name, college=college,
-                                         year=year, title=title, type=type))
+    session.add(Advisement(researcher_id=researcher_id, student_name=name, college=college,
+                           year=year, title=title, type=type))
 
 
 def advisor_type_switch(degree, nature):

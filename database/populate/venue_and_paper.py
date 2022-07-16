@@ -1,12 +1,12 @@
 from sqlalchemy import or_, not_, and_, func
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
     conferences_papers_title_minimum_similarity, journals_qualis, journals_synonyms, journals_minimum_similarity, \
-    journals_papers_title_minimum_similarity, jcr, normalize_conference_paper, normalize_journal_paper
+    journals_papers_title_minimum_similarity, jcr, unify_conference_paper, unify_journal_paper, QualisLevel
 from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperNature
 from database.entities.researcher import Researcher
-from database.entities.venue import Conference, Journal, QualisLevel
+from database.entities.venue import Conference, Journal
 from utils.similarity_manager import detect_similar, get_similarity
-from utils.log import log_normalize, log_possible_lattes_duplication
+from utils.log import log_unify, log_possible_lattes_duplication
 
 def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
     """Gets the qualis value of a conference or journal from the xlsx qualis file"""
@@ -138,13 +138,13 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
             and_(func.lower(JournalPaper.title) == func.lower(paper.title), JournalPaper.nature == paper.nature),
             or_(JournalPaper.doi == paper.doi, JournalPaper.doi is None, paper.doi is None)).all()
 
-        if normalize_journal_paper and (len(journal_papers_in_db) > 0):
+        if unify_journal_paper and (len(journal_papers_in_db) > 0):
             # for each paper paper found in the db, adds the researcher_journal_paper relationship
             for journal_paper in journal_papers_in_db:
                 if researcher.name not in journal_paper.authors: journal_paper.authors += ";" + researcher.name
                 journal_paper.researchers.append(researcher)
                 session.flush()
-                log_normalize(journal_paper.title, researcher.id, researcher.name)
+                log_unify(journal_paper.title, researcher.id, researcher.name)
         else:
             accepted = not published
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
@@ -180,13 +180,13 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
             and_(func.lower(ConferencePaper.title) == func.lower(paper.title), ConferencePaper.nature == paper.nature),
             or_(ConferencePaper.doi == paper.doi, ConferencePaper.doi is None, paper.doi is None)).all()
 
-        if normalize_conference_paper and (len(conference_papers_in_db) > 0):
+        if unify_conference_paper and (len(conference_papers_in_db) > 0):
             # for each paper paper found in the db, adds the researcher_conference_paper relationship
             for conference_paper in conference_papers_in_db:
                 if researcher.name not in conference_paper.authors: conference_paper.authors += ";" + researcher.name
                 conference_paper.researchers.append(researcher)
                 session.flush()
-                log_normalize(conference_paper.title, researcher.id, researcher.name)
+                log_unify(conference_paper.title, researcher.id, researcher.name)
         else:
             new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
                                                    year=paper.year, first_page=paper.first_page,
@@ -253,7 +253,7 @@ def add_coauthor_papers(session):
     """Updates the researcher_journal_paper and researcher_conference_paper for coauthors which didn't have the
     relationship """
     # The code looks like to be duplicated, but the entities/classes/tables are different
-    if normalize_conference_paper:
+    if unify_conference_paper:
 
         coauthors_and_conference_papers = session.query(Researcher, ConferencePaper).filter(
             ConferencePaper.authors.contains(Researcher.name)).all()
@@ -262,7 +262,7 @@ def add_coauthor_papers(session):
             paper = relation[1]
             add_papers_different_titles(paper, researcher.conference_papers, conferences_papers_title_minimum_similarity, researcher)
 
-    if normalize_journal_paper:
+    if unify_journal_paper:
 
         coauthors_and_journal_papers = session.query(Researcher, JournalPaper).filter(
             JournalPaper.authors.contains(Researcher.name)).all()
@@ -284,4 +284,4 @@ def add_papers_different_titles(paper, papers_list, title_minimum_similarity, re
 
     if not already_added:
         papers_list.append(paper)
-        log_normalize(paper.title, researcher.id, researcher.name)
+        log_unify(paper.title, researcher.id, researcher.name)

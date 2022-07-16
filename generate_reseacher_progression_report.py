@@ -5,8 +5,8 @@ import sys
 import argparse
 import pandas as pd
 from sqlalchemy import and_
-from config import generate_reseacher_paper_and_title_info_output_dir, start_year, end_year, researchers_file
-from database.database_manager import Researcher, Journal, Conference, ResearcherAdvisement, ResearcherCommittee
+from config import generate_reseacher_progression_report_output_dir, start_year, end_year, researchers_file
+from database.database_manager import Researcher, Journal, Conference, Advisement, Committee
 from database.entities.titles_support import CommitteeTypes
 from utils.list_filters import scope_years_paper_or_support, published_journal_paper
 from utils.xlsx_utils import calculate_number_of_pages
@@ -79,8 +79,8 @@ def write_conference_papers(researcher, session, workbook):
 
 def write_researcher_advisements(researcher, session, workbook):
     """Writes a sheet with information about the researcher advisements"""
-    researcher_advisements = list(filter(scope_years_paper_or_support, session.query(ResearcherAdvisement).filter(
-        ResearcherAdvisement.researcher_id == researcher.id).all()))
+    researcher_advisements = list(filter(scope_years_paper_or_support, session.query(Advisement).filter(
+        Advisement.researcher_id == researcher.id).all()))
 
     worksheet = workbook.create_sheet("Orientações")
 
@@ -99,8 +99,8 @@ def write_researcher_advisements(researcher, session, workbook):
 
 def write_researcher_committee(researcher, session, workbook):
     """Writes a sheet with information about the researcher participation in committees"""
-    researcher_committee = list(filter(scope_years_paper_or_support, session.query(ResearcherCommittee).filter(
-        ResearcherCommittee.researcher_id == researcher.id).all()))
+    researcher_committee = list(filter(scope_years_paper_or_support, session.query(Committee).filter(
+        Committee.researcher_id == researcher.id).all()))
 
     worksheet = workbook.create_sheet("Participações em banca")
 
@@ -135,7 +135,7 @@ def write_xlsx_files(researchers_to_write, session):
     for i in range(len(researchers_to_write)):
         wb = openpyxl.Workbook()
         write_researcher_xlsx(researchers_to_write[i], session, wb)
-        wb.save(generate_reseacher_paper_and_title_info_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
+        wb.save(generate_reseacher_progression_report_output_dir + os.sep + researchers_to_write[i].name + ".xlsx")
     print("Finished generating the file(s)")
 
 

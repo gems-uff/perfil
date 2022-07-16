@@ -1,8 +1,8 @@
 from sqlalchemy import or_, and_, func
 from database.entities.researcher import Researcher
 from database.entities.book import Book, ResearcherPublishedBook, BookChapter, ResearcherPublishedBookChapter
-from utils.log import log_possible_lattes_duplication, log_normalize
-from config import normalize_book, normalize_chapter
+from utils.log import log_possible_lattes_duplication, log_unify
+from config import unify_book, unify_chapter
 
 
 def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id, researcher_name):
@@ -16,8 +16,8 @@ def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id
         session.query(Book).filter(Book.doi == doi).all()
 
     # Normalize
-    if normalize_book and (len(book_list) > 0):
-        log_normalize(book_list[0].title, researcher_id, researcher_name)
+    if unify_book and (len(book_list) > 0):
+        log_unify(book_list[0].title, researcher_id, researcher_name)
         return book_list[0]
 
     publisher = details.get("NOME-DA-EDITORA")
@@ -55,7 +55,7 @@ def add_researcher_published_books(session, tree, researcher_id):
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             book_in_bd.id, book_in_bd.title, book_in_bd.year, book_in_bd.doi)
 
-        # If not normalize, it will always be True, because the added_book is going to be a new one
+        # If not unified, it will always be True, because the added_book is going to be a new one
         relationship_not_in_db = len(session.query(ResearcherPublishedBook).filter(ResearcherPublishedBook.researcher_id == researcher_id,
                                                                                    ResearcherPublishedBook.published_book_id == added_book.id).all()) == 0
 
@@ -75,8 +75,8 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researc
         else session.query(BookChapter).filter(func.lower(BookChapter.doi == doi)).all()
 
     # Normalize
-    if normalize_chapter and (len(chapter_list) > 0):  # Normalize
-        log_normalize(chapter_list[0].title, researcher_id, researcher_name)
+    if unify_chapter and (len(chapter_list) > 0):  # Normalize
+        log_unify(chapter_list[0].title, researcher_id, researcher_name)
         return chapter_list[0]
 
     publisher = details.get("NOME-DA-EDITORA")
@@ -116,7 +116,7 @@ def add_researcher_published_chapters(session, tree, researcher_id):
             log_possible_lattes_duplication("researcher_published_book", researcher_name, researcher_id,
                                             chapter_in_bd.id, chapter_in_bd.chapter_title, chapter_in_bd.year, chapter_in_bd.doi)
 
-        # If not normalize, it will always be True, because the added_chapter is going to be a new one
+        # If not unified, it will always be True, because the added_chapter is going to be a new one
         relationship_not_in_db = len(session.query(ResearcherPublishedBookChapter).filter(ResearcherPublishedBookChapter.researcher_id == researcher_id, ResearcherPublishedBookChapter.published_book_chapter_id == added_chapter.id).all()) == 0
 
         if relationship_not_in_db:

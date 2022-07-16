@@ -2,11 +2,11 @@ from sqlalchemy import and_
 from config import start_year, end_year
 from database.entities.book import ResearcherPublishedBook, Book, ResearcherPublishedBookChapter, \
     BookChapter
-from database.entities.other_works import ResearcherPatent, Patent, ResearcherConferenceManagement, \
-    ResearcherEditorialBoard
-from database.entities.project import ResearcherProject, Project
+from database.entities.other_works import ResearcherPatent, Patent, ConferenceOrganization, \
+    EditorialBoard
+from database.entities.project import Membership, Project
 from database.entities.researcher import Researcher
-from database.entities.titles_support import ResearcherAdvisement, ResearcherCommittee, CommitteeTypes
+from database.entities.titles_support import Advisement, Committee, CommitteeTypes
 from database.entities.venue import Venue
 from utils.list_filters import scope_years_paper_or_support
 from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
@@ -89,7 +89,7 @@ def get_advisement_list(session, researcher_id=0):
     researcher_list = get_researchers(researcher_id, session)
     advisement_list = []
     for researcher in researcher_list:
-        advisements_from_db = session.query(ResearcherAdvisement).filter(ResearcherAdvisement.researcher_id == researcher.id).all()
+        advisements_from_db = session.query(Advisement).filter(Advisement.researcher_id == researcher.id).all()
         for advisement in advisements_from_db:
             advisement_list.append(advisement)
     return list(filter(scope_years_paper_or_support, advisement_list))
@@ -101,7 +101,7 @@ def get_committee_list(session, researcher_id=0):
     researcher_list = get_researchers(researcher_id, session)
     committee_list = []
     for researcher in researcher_list:
-        committees_from_db = session.query(ResearcherCommittee).filter(ResearcherCommittee.researcher_id == researcher.id).all()
+        committees_from_db = session.query(Committee).filter(Committee.researcher_id == researcher.id).all()
         for committee in committees_from_db:
             committee_list.append(committee)
     return list(filter(scope_years_paper_or_support, committee_list))
@@ -130,9 +130,9 @@ def get_conference_management_list(session, researcher_id=0):
     conference_management_list = []
 
     for researcher in researchers:
-        conference_management_list.extend(session.query(ResearcherConferenceManagement)
-            .filter(and_(ResearcherConferenceManagement.researcher_id == researcher.id,
-                         start_year <= ResearcherConferenceManagement.year, ResearcherConferenceManagement.year <= end_year)).all())
+        conference_management_list.extend(session.query(ConferenceOrganization)
+                                          .filter(and_(ConferenceOrganization.researcher_id == researcher.id,
+                                                       start_year <= ConferenceOrganization.year, ConferenceOrganization.year <= end_year)).all())
 
     return conference_management_list
 
@@ -144,9 +144,9 @@ def get_editorial_board_list(session, researcher_id=0):
     editorial_board_list = []
 
     for researcher in researchers:
-        editorial_board_list.extend(session.query(ResearcherEditorialBoard)
-            .filter(and_(ResearcherEditorialBoard.researcher_id == researcher.id,
-                         start_year <= ResearcherEditorialBoard.start_year, ResearcherEditorialBoard.start_year <= end_year)).all())
+        editorial_board_list.extend(session.query(EditorialBoard)
+                                    .filter(and_(EditorialBoard.researcher_id == researcher.id,
+                                                 start_year <= EditorialBoard.start_year, EditorialBoard.start_year <= end_year)).all())
 
     return editorial_board_list
 
@@ -160,7 +160,7 @@ def get_researcher_project_or_project_lists(session, get_projects: bool, researc
 
     # to make sure the order is by researcher
     for researcher in researcher_list:
-        relationship = session.query(ResearcherProject).filter(ResearcherProject.researcher_id == researcher.id).all()
+        relationship = session.query(Membership).filter(Membership.researcher_id == researcher.id).all()
 
         # getting only the relationships or projects between the scope years
         for researcher_project in relationship:

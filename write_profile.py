@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from datetime import datetime
 from bs4 import BeautifulSoup
 from config import start_year, end_year, researchers_file
-from database.database_manager import Researcher, ResearcherProject, ResearcherAdvisement, ResearcherCommittee
+from database.database_manager import Researcher, Membership, Advisement, Committee
 from database.entities.titles_support import AdvisementsTypes, CommitteeTypes
 import populate_database
 from utils.list_filters import completed_paper_filter, jcr_pub_filter, scope_years_paper_or_support, \
@@ -75,23 +75,23 @@ def lattes_scope_years(completed_and_published_journal_papers, completed_confere
 def lattes(researcher, session):
     """Creates a profile dictionary and populates it with basic information about the researcher and calls functions to
     populate it with more specific information"""
-    masters_advisement = session.query(ResearcherAdvisement).filter(
-        and_(ResearcherAdvisement.researcher_id == researcher.id,
-             ResearcherAdvisement.type == AdvisementsTypes.MASTER)).all()
-    phd_advisement = session.query(ResearcherAdvisement).filter(
-        and_(ResearcherAdvisement.researcher_id == researcher.id,
-             ResearcherAdvisement.type == AdvisementsTypes.PHD)).all()
-    masters_committee = session.query(ResearcherCommittee).filter(
-        and_(ResearcherCommittee.researcher_id == researcher.id,
-             ResearcherCommittee.type == CommitteeTypes.MASTER)).all()
-    phd_committee = session.query(ResearcherCommittee).filter(and_(ResearcherCommittee.researcher_id == researcher.id,
-                                                                   ResearcherCommittee.type == CommitteeTypes.PHD)).all()
-    projects_participated = session.query(ResearcherProject).filter(
-        and_(ResearcherProject.researcher_id == researcher.id,
-             ResearcherProject.coordinator == False)).all()
-    projects_coordinated = session.query(ResearcherProject).filter(
-        and_(ResearcherProject.researcher_id == researcher.id,
-             ResearcherProject.coordinator == True)).all()
+    masters_advisement = session.query(Advisement).filter(
+        and_(Advisement.researcher_id == researcher.id,
+             Advisement.type == AdvisementsTypes.MASTER)).all()
+    phd_advisement = session.query(Advisement).filter(
+        and_(Advisement.researcher_id == researcher.id,
+             Advisement.type == AdvisementsTypes.PHD)).all()
+    masters_committee = session.query(Committee).filter(
+        and_(Committee.researcher_id == researcher.id,
+             Committee.type == CommitteeTypes.MASTER)).all()
+    phd_committee = session.query(Committee).filter(and_(Committee.researcher_id == researcher.id,
+                                                         Committee.type == CommitteeTypes.PHD)).all()
+    projects_participated = session.query(Membership).filter(
+        and_(Membership.researcher_id == researcher.id,
+             Membership.principal_investigator == False)).all()
+    projects_coordinated = session.query(Membership).filter(
+        and_(Membership.researcher_id == researcher.id,
+             Membership.principal_investigator == True)).all()
 
     completed_conference_papers = list(filter(completed_paper_filter, researcher.conference_papers))
 

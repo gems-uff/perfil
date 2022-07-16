@@ -18,12 +18,12 @@ class Project(Base):
         return str(self.__dict__)
 
 
-class ResearcherProject(Base):
+class Membership(Base):
     __tablename__ = "researcher_project"
 
     project_id = Column(Integer, ForeignKey('project.id'), primary_key=True)
     researcher_id = Column(Integer, ForeignKey('researcher.id'), primary_key=True)
-    coordinator = Column(Boolean)
+    principal_investigator = Column(Boolean)
 
     def __repr__(self):
         return str(self.__dict__)
