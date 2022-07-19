@@ -1,6 +1,10 @@
 # Perfil
 
-Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes quanto o Google Scholar para a coleta de dados e gerando boxplots para a visualização dos resultados.
+Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes quanto o Google Scholar para a coleta de dados, depois gerando relatórios e visualizações.
+
+## Documentação
+
+[Trabalho de conclusão de curso sobre a segunda versão](https://github.com/gems-uff/perfil/raw/master/doc/TCC%20Arthur%20Paiva.pdf)
 
 ## Instalação
 
