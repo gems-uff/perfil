@@ -1,3 +1,5 @@
+To read this document in English [click here](/EN-README.md)
+
 # Perfil
 
 Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes quanto o Google Scholar para a coleta de dados, depois gerando relatórios e visualizações.
