@@ -25,7 +25,7 @@ output_path = os.getcwd() + os.sep + 'output' + os.sep
 researchers_file = resources_path + 'pgc.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
-start_year = 2017
+start_year = 2020
 end_year = 2022
 
 
