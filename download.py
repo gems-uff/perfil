@@ -4,7 +4,7 @@ import webbrowser
 
 import pandas as pd
 
-from config import researchers_file
+from config import researchers_file, lattes_dir
 
 
 def modification_time(path):
@@ -16,7 +16,7 @@ def modification_time(path):
 
 
 def download(id_lattes):
-    path = os.getcwd() + os.sep + 'lattes' + os.sep + str(id_lattes) + '.zip'
+    path = lattes_dir + os.sep + str(id_lattes) + '.zip'
     url = 'http://buscatextual.cnpq.br/buscatextual/download.do?idcnpq=' + str(id_lattes)
 
     webbrowser.open(url)

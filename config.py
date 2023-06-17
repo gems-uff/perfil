@@ -142,7 +142,7 @@ journals_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+
 projects_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'projects_synonyms.xlsx')
 
 # The directory that contains the zip files downloaded from the Lattes platform.
-lattes_dir = os.getcwd() + os.sep + 'lattes'
+lattes_dir = resources_path + 'lattes'
 if not os.path.exists(lattes_dir):
     os.makedirs(lattes_dir)
 
