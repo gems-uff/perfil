@@ -141,9 +141,9 @@ df_qualis_journals = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-
 journals_qualis = dict(zip(df_qualis_journals.titulo, df_qualis_journals.estrato))
 
 # The file with conferences' synonyms
-conferences_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'conferences_synonyms.xlsx')
-journals_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'journals_synonyms.xlsx')
-projects_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'projects_synonyms.xlsx')
+conferences_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'conferences_synonyms.xlsx')
+journals_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'journals_synonyms.xlsx')
+projects_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'projects_synonyms.xlsx')
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 lattes_dir = resources_path + 'lattes'
