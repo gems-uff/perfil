@@ -59,10 +59,14 @@ reports_as_new_worksheets = False
 new_worksheet_if_conflict = False
 
 configured_reports = {
-    "reporte1Teste": [
+    "journalsJCR": [
         Pesquisador.nome,
         Periodico.titulo_artigo,
         Periodico.ano,
+        Periodico.nome,
+        Periodico.forum_oficial,
+        Periodico.issn,
+        Periodico.jcr
     ],
 }
 
