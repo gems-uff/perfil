@@ -125,8 +125,8 @@ collaboration_graphs_alpha = 0.3
 collaboration_graphs_alpha_decay = 0.2
 
 # The file with JCR scores
-df_jcr = pd.read_excel(resources_path + 'jcr.xlsx')
-jcr = dict(zip(df_jcr.issn, df_jcr.impact))
+df_jcr = pd.read_excel(resources_path + 'jcr' + os.sep + 'jcr-2022.xlsx')
+jcr = dict(zip(df_jcr.issn, df_jcr.if_2022))
 
 # The file with conferences' qualis
 df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2020.xlsx')
