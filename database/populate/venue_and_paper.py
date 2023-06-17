@@ -1,7 +1,7 @@
 from sqlalchemy import or_, not_, and_, func
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
     conferences_papers_title_minimum_similarity, journals_qualis, journals_synonyms, journals_minimum_similarity, \
-    journals_papers_title_minimum_similarity, jcr, unify_conference_paper, unify_journal_paper, QualisLevel
+    journals_papers_title_minimum_similarity, jcr, unify_conference_paper, unify_journal_paper, QualisLevel, qualis_switch
 from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperNature
 from database.entities.researcher import Researcher
 from database.entities.venue import Conference, Journal
@@ -45,7 +45,7 @@ def get_or_create_conference(session, conference_name, similarity_dict):
         qualis = None
         forum_oficial = None
         if qualis_and_forum is not None:
-            qualis = qualis_switch(qualis_and_forum[0])
+            qualis = qualis_switch[qualis_and_forum[0].strip()]
             forum_oficial = qualis_and_forum[1]
         acronym = None
         try:
@@ -76,7 +76,7 @@ def get_or_create_journal(session, journal_details, similarity_dict):
         qualis = None
         forum_oficial = None
         if qualis_and_forum is not None:
-            qualis = qualis_switch(qualis_and_forum[0])
+            qualis = qualis_switch[qualis_and_forum[0].strip()]
             forum_oficial = qualis_and_forum[1]
 
         journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis, official_forum=forum_oficial)
@@ -86,22 +86,6 @@ def get_or_create_journal(session, journal_details, similarity_dict):
         return journal
 
     return journal_list[0]
-
-
-def qualis_switch(qualis_value):
-    qualis = {
-        "A1": QualisLevel.A1,
-        "A2": QualisLevel.A2,
-        "B1": QualisLevel.B1,
-        "B2": QualisLevel.B2,
-        "B3": QualisLevel.B3,
-        "B4": QualisLevel.B4,
-        "B5": QualisLevel.B5,
-        "C": QualisLevel.C,
-        "NC": QualisLevel.NC
-    }
-
-    return qualis[qualis_value.strip()]
 
 
 def add_journal_papers(session, tree, researcher_id, journals_similarity_dict):

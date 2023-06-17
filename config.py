@@ -66,66 +66,58 @@ configured_reports = {
     ],
 }
 
-
 class QualisLevel(enum.Enum):
     A1 = "A1"
     A2 = "A2"
+    A3 = "A3"
+    A4 = "A4"
     B1 = "B1"
     B2 = "B2"
     B3 = "B3"
     B4 = "B4"
-    B5 = "B5"
     C = "C"
     NC = "NC"
 
+# Dictionary to get the qualis level enum by the qualis string
+qualis_switch = {
+    "A1": QualisLevel.A1,
+    "A2": QualisLevel.A2,
+    "A3": QualisLevel.A3,
+    "A4": QualisLevel.A4,
+    "B1": QualisLevel.B1,
+    "B2": QualisLevel.B2,
+    "B3": QualisLevel.B3,
+    "B4": QualisLevel.B4,
+    "C": QualisLevel.C,
+    "NC": QualisLevel.NC
+}
+
 # Dictionaries to get the sim-cred points by qualis and venue
 qualis_journal_points = {
-    QualisLevel.A1: 1.5,
-    QualisLevel.A2: 1.28,
-    QualisLevel.B1: 1.05,
-    QualisLevel.B2: 0.75,
-    QualisLevel.B3: 0.0,
-    QualisLevel.B4: 0.0,
-    QualisLevel.B5: 0.0,
+    QualisLevel.A1: 1.0,
+    QualisLevel.A2: 0.875,
+    QualisLevel.A3: 0.75,
+    QualisLevel.A4: 0.625,
+    QualisLevel.B1: 0.5,
+    QualisLevel.B2: 0.2,
+    QualisLevel.B3: 0.1,
+    QualisLevel.B4: 0.05,
     QualisLevel.C: 0.0,
     QualisLevel.NC: 0.0
 }
 
 qualis_conference_points = {
     QualisLevel.A1: 1.0,
-    QualisLevel.A2: 0.85,
-    QualisLevel.B1: 0.7,
-    QualisLevel.B2: 0.5,
-    QualisLevel.B3: 0.0,
-    QualisLevel.B4: 0.0,
-    QualisLevel.B5: 0.0,
+    QualisLevel.A2: 0.875,
+    QualisLevel.A3: 0.75,
+    QualisLevel.A4: 0.625,
+    QualisLevel.B1: 0.5,
+    QualisLevel.B2: 0.2,
+    QualisLevel.B3: 0.1,
+    QualisLevel.B4: 0.05,
     QualisLevel.C: 0.0,
     QualisLevel.NC: 0.0
 }
-
-# qualis_journal_points = {
-#     QualisLevel.A1: 1.0,
-#     QualisLevel.A2: 0.85,
-#     QualisLevel.B1: 0.7,
-#     QualisLevel.B2: 0.5,
-#     QualisLevel.B3: 0.2,
-#     QualisLevel.B4: 0.1,
-#     QualisLevel.B5: 0.05,
-#     QualisLevel.C: 0.0,
-#     QualisLevel.NC: 0.0
-# }
-#
-# qualis_conference_points = {
-#     QualisLevel.A1: 1.0,
-#     QualisLevel.A2: 0.85,
-#     QualisLevel.B1: 0.7,
-#     QualisLevel.B2: 0.5,
-#     QualisLevel.B3: 0.2,
-#     QualisLevel.B4: 0.1,
-#     QualisLevel.B5: 0.05,
-#     QualisLevel.C: 0.0,
-#     QualisLevel.NC: 0.0
-#}
 
 # The speed at which the nodes expand further from the center of the graph
 collaboration_graphs_alpha = 0.3
@@ -137,12 +129,12 @@ df_jcr = pd.read_excel(resources_path + 'jcr.xlsx')
 jcr = dict(zip(df_jcr.issn, df_jcr.impact))
 
 # The file with conferences' qualis
-df_qualis_conferences = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-conferences-2016.xlsx')
-conferences_qualis = dict(zip(df_qualis_conferences.title, df_qualis_conferences.qualis))
+df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2020.xlsx')
+conferences_qualis = dict((f'{titulo} ({sigla})', estrato) for (sigla, titulo, estrato) in zip(df_qualis_conferences.sigla, df_qualis_conferences.titulo, df_qualis_conferences.estrato))
 
 # The file with journals' qualis
-df_qualis_journals = pd.read_excel(resources_path+'qualis'+os.sep+'qualis-journals-2016.xlsx')
-journals_qualis = dict(zip(df_qualis_journals.title, df_qualis_journals.qualis))
+df_qualis_journals = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-journals-2020.xlsx')
+journals_qualis = dict(zip(df_qualis_journals.titulo, df_qualis_journals.estrato))
 
 # The file with conferences' synonyms
 conferences_synonyms = create_synonyms_dictionary(resources_path+'synonyms'+os.sep+'conferences_synonyms.xlsx')
