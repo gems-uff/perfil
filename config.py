@@ -22,11 +22,11 @@ from configured_reports.user_classes.artigo import Artigo
 # The order of the columns does not matter
 resources_path = os.getcwd() + os.sep + 'resources' + os.sep
 output_path = os.getcwd() + os.sep + 'output' + os.sep
-researchers_file = resources_path + 'colegiado.xlsx'
+researchers_file = resources_path + 'pgc.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
-start_year = 2020
-end_year = 2023
+start_year = 2017
+end_year = 2020
 
 
 # Tries to make each input on the database unique
