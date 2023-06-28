@@ -106,7 +106,7 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
 
         # Calculates restricted_index, general_index and a1_b2_index
         qualis_points = get_qualis_points(is_journal_list, qualis_level)
-        if qualis_level in [QualisLevel.A1, QualisLevel.A2, QualisLevel.B1]: restricted_index += len(papers_with_this_qualis_level) * qualis_points
+        if qualis_level in [QualisLevel.A1, QualisLevel.A2, QualisLevel.A3, QualisLevel.A4]: restricted_index += len(papers_with_this_qualis_level) * qualis_points
         general_index += len(papers_with_this_qualis_level) * qualis_points
         if qualis_level in [QualisLevel.A1, QualisLevel.A2, QualisLevel.B1, QualisLevel.B2]: a1_b2_index += len(papers_with_this_qualis_level) * qualis_points
 
