@@ -41,26 +41,28 @@ def add_researcher_editorial_board(session, tree, researcher_id):
     researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
 
     for job in jobs:
-        info = job.findall("VINCULOS")[0]
-        other_link = info.get("OUTRO-VINCULO-INFORMADO")
+        contracts = job.findall("VINCULOS")
+        if contracts:
+            contract = contracts[0]
+            other_link = contract.get("OUTRO-VINCULO-INFORMADO")
 
-        if ("Membro de corpo editorial" in other_link) or ("Revisor de peri" in other_link):
-            start_year = info.get("ANO-INICIO")
-            end_year = info.get("ANO-FIM")
-            type = editorial_board_type_switch(other_link)
-            journal_name = job.get("NOME-INSTITUICAO")
+            if ("Membro de corpo editorial" in other_link) or ("Revisor de peri" in other_link):
+                start_year = contract.get("ANO-INICIO")
+                end_year = contract.get("ANO-FIM")
+                type = editorial_board_type_switch(other_link)
+                journal_name = job.get("NOME-INSTITUICAO")
 
-            # Lattes duplication
-            lattes_duplication = session.query(EditorialBoard).filter(
-                and_(EditorialBoard.researcher_id == researcher_id,
-                     func.lower(EditorialBoard.journal_name) == func.lower(journal_name), EditorialBoard.type == type,
-                     EditorialBoard.start_year == start_year)).all()
+                # Lattes duplication
+                lattes_duplication = session.query(EditorialBoard).filter(
+                    and_(EditorialBoard.researcher_id == researcher_id,
+                        func.lower(EditorialBoard.journal_name) == func.lower(journal_name), EditorialBoard.type == type,
+                        EditorialBoard.start_year == start_year)).all()
 
-            if len(lattes_duplication) > 0:
-                log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, start_year)
+                if len(lattes_duplication) > 0:
+                    log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, start_year)
 
-            session.add(EditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
-                                       start_year=start_year, end_year=end_year))
+                session.add(EditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
+                                        start_year=start_year, end_year=end_year))
 
 
 def editorial_board_type_switch(other_link):
