@@ -20,7 +20,6 @@ def researchers_from_args(researcher, arg_id_list):
 def write_journal_papers(researcher, session, workbook):
     """Writes a sheet with information about the researcher journal papers"""
     journal_papers = list(filter(scope_years_paper_or_support, researcher.journal_papers))
-    journal_papers = list(filter(published_journal_paper, journal_papers))
 
     worksheet = workbook.active
     worksheet.title = "Publicações em periódico"
@@ -31,8 +30,9 @@ def write_journal_papers(researcher, session, workbook):
     worksheet.cell(row=1, column=4, value="Periódico")
     worksheet.cell(row=1, column=5, value="ISSN")
     worksheet.cell(row=1, column=6, value="Número de páginas")
-    worksheet.cell(row=1, column=7, value="Qualis")
-    worksheet.cell(row=1, column=8, value="JCR")
+    worksheet.cell(row=1, column=7, value="DOI")
+    worksheet.cell(row=1, column=8, value="Qualis")
+    worksheet.cell(row=1, column=9, value="JCR")
 
     paper_index = 0
     for row in range(2, len(journal_papers) + 2):
@@ -44,8 +44,10 @@ def write_journal_papers(researcher, session, workbook):
         worksheet.cell(row=row, column=4, value=venue[0].name)
         worksheet.cell(row=row, column=5, value=venue[0].issn)
         worksheet.cell(row=row, column=6, value=calculate_number_of_pages(journal_papers[paper_index]))
-        worksheet.cell(row=row, column=7, value=venue[0].qualis.value if venue[0].qualis is not None else "")
-        worksheet.cell(row=row, column=8, value=venue[0].jcr)
+        if (journal_papers[paper_index].doi):
+            worksheet.cell(row=row, column=7, value=f'=HYPERLINK("https://www.doi.org/{journal_papers[paper_index].doi}")')
+        worksheet.cell(row=row, column=8, value=venue[0].qualis.value if venue[0].qualis is not None else "")
+        worksheet.cell(row=row, column=9, value=venue[0].jcr)
         paper_index += 1
 
 
@@ -60,8 +62,9 @@ def write_conference_papers(researcher, session, workbook):
     worksheet.cell(row=1, column=3, value="Título")
     worksheet.cell(row=1, column=4, value="Conferência")
     worksheet.cell(row=1, column=5, value="Número de páginas")
-    worksheet.cell(row=1, column=6, value="Qualis")
-    worksheet.cell(row=1, column=7, value="Tipo")
+    worksheet.cell(row=1, column=6, value="Tipo")
+    worksheet.cell(row=1, column=7, value="DOI")
+    worksheet.cell(row=1, column=8, value="Qualis")
 
     paper_index = 0
     for row in range(2, len(conference_papers) + 2):
@@ -72,8 +75,10 @@ def write_conference_papers(researcher, session, workbook):
         worksheet.cell(row=row, column=3, value=conference_papers[paper_index].title)
         worksheet.cell(row=row, column=4, value=venue[0].name)
         worksheet.cell(row=row, column=5, value=calculate_number_of_pages(conference_papers[paper_index]))
-        worksheet.cell(row=row, column=6, value=venue[0].qualis.value if venue[0].qualis is not None else "")
-        worksheet.cell(row=row, column=7, value=conference_papers[paper_index].nature.value)
+        worksheet.cell(row=row, column=6, value=conference_papers[paper_index].nature.value)
+        if (conference_papers[paper_index].doi):
+            worksheet.cell(row=row, column=7, value=f'=HYPERLINK("https://www.doi.org/{conference_papers[paper_index].doi}")')
+        worksheet.cell(row=row, column=8, value=venue[0].qualis.value if venue[0].qualis is not None else "")
         paper_index += 1
 
 
