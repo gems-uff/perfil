@@ -47,9 +47,9 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 4. Atualize o horizonte de coleta (variáveis start_year e end_year) e indique o caminho do arquivo que contém os pesquisadores (e.g., pgc.xlsx) em config.py.
 
-5. Ligue ou desligue as variáveis de unificação, para artigos de conferências(unify_conference_paper), artigos de periódicos(unify_journal_paper), projetos(unify_project), livros(unify_book), capítulos de livros(unify_chapter) e patentes(unify_patent).
+5. Ligue ou desligue as variáveis de unificação, para artigos de conferências (unify_conference_paper), artigos de periódicos (unify_journal_paper), projetos (unify_project), livros (unify_book), capítulos de livros (unify_chapter) e patentes (unify_patent). O objetivo dessas variáveis é evitar duplicatas no banco de dados. Por exemplo, quando mais de um autor do artigo está sendo analisado, o programa tenta unificar os artigos e armazena-lo uma única vez no BD. 
 
-6. Indique o valor de similaridade mínima para os nomes de conferências(variável conferences_minimum_similarity), nomes de periódicos(variável journals_minimum_similarity), títulos de publicações em conferências(variável conferences_papers_title_minimum_similarity), títulos de publicações em periódicos(variável journals_papers_title_minimum_similarity) e nomes de projetos(variável project_name_minimum_similarity) em config.py.
+6. Indique o valor de similaridade mínima para os nomes de conferências (variável conferences_minimum_similarity), nomes de periódicos (variável journals_minimum_similarity), títulos de publicações em conferências (variável conferences_papers_title_minimum_similarity), títulos de publicações em periódicos (variável journals_papers_title_minimum_similarity) e nomes de projetos (variável project_name_minimum_similarity) em config.py. Autores diferentes do mesmo artigo podem informar nomes diferentes para a conferência, por exemplo, "XXII Simpósio Brasileiro de Engenharia de Software" e "Simpósio Brasileiro de Engenharia de Software (SBES)".
 
 7. Use download.py para baixar os currículos Lattes. Isso pode ser um pouco demorado (30 segundos por CV), mas não precisa ser feito sempre. Faça somente quando houver atualização dos currículos no horizonte de análise.
 
