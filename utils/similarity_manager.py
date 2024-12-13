@@ -13,7 +13,7 @@ def detect_similar(text, texts_to_compare, minimum_similarity, similarity_dict):
 
     for dict_text_to_check in texts_to_compare:
         if type(dict_text_to_check) == str:
-            similarity = get_similarity(text.lower(), dict_text_to_check.lower())
+            similarity = get_similarity(text.upper(), dict_text_to_check.upper())
             if similarity >= minimum_similarity and similarity >= similarity_found:
                 similarity_found = similarity
                 similar_text_in_dict = dict_text_to_check
