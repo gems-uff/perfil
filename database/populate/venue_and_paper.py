@@ -1,7 +1,7 @@
 import math
 from sqlalchemy import or_, not_, and_, func
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
-    conferences_papers_title_minimum_similarity, journals_qualis, journals_synonyms, journals_minimum_similarity, \
+    conferences_papers_title_minimum_similarity, journals_qualis, issn_journals, journals_synonyms, journals_minimum_similarity, \
     journals_papers_title_minimum_similarity, jcr, unify_conference_paper, unify_journal_paper, QualisLevel, qualis_switch
 from database.entities.paper import JournalPaper, ConferencePaper, Paper, PaperNature
 from database.entities.researcher import Researcher
@@ -9,7 +9,7 @@ from database.entities.venue import Conference, Journal
 from utils.similarity_manager import detect_similar, get_similarity
 from utils.log import log_unify, log_possible_lattes_duplication
 
-def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool):
+def get_qualis_value_from_xlsx(venue_issn, venue_name, similarity_dict, is_conference: bool):
     """Gets the qualis value of a conference or journal from the xlsx qualis file"""
     qualis_dictionary = synonyms_dictionary = minimum_similarity = None
     if is_conference:
@@ -21,13 +21,16 @@ def get_qualis_value_from_xlsx(venue_name, similarity_dict, is_conference: bool)
         synonyms_dictionary = journals_synonyms
         minimum_similarity = journals_minimum_similarity
 
-    # direct match
+    # ISSN match (just for journals)
+    if venue_issn in issn_journals: return(qualis_dictionary[issn_journals[venue_issn]], issn_journals[venue_issn])
+
+    # If ISSN match fails, try direct name match
     if venue_name in qualis_dictionary: return (qualis_dictionary[venue_name], venue_name)
 
-    # if direct match fails, try to match using the synonyms file
+    # if direct name match fails, try to match using the synonyms file
     if (venue_name in synonyms_dictionary) and (synonyms_dictionary[venue_name] in qualis_dictionary): return (qualis_dictionary[synonyms_dictionary[venue_name]], synonyms_dictionary[venue_name])
 
-    # already matched similar texts
+    # if synonyms match fails, try already matched similar texts
     if (venue_name in similarity_dict) and (similarity_dict[venue_name] in qualis_dictionary): return (qualis_dictionary[similarity_dict[venue_name]], similarity_dict[venue_name])
 
     # lcs
@@ -42,7 +45,7 @@ def get_or_create_conference(session, conference_name, similarity_dict):
     conference_list = session.query(Conference).filter(Conference.name == conference_name).all()
 
     if len(conference_list) == 0:
-        qualis_and_forum = get_qualis_value_from_xlsx(conference_name, similarity_dict, True)
+        qualis_and_forum = get_qualis_value_from_xlsx(None, conference_name, similarity_dict, True)
         qualis = None
         forum_oficial = None
         if qualis_and_forum is not None:
@@ -69,10 +72,9 @@ def get_or_create_journal(session, journal_details, similarity_dict):
 
     if len(journal_list) == 0:
         journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA")
-
         journal_jcr = jcr[journal_issn] if journal_issn in jcr and not math.isnan(jcr[journal_issn]) else 0
 
-        qualis_and_forum = get_qualis_value_from_xlsx(journal_name, similarity_dict, False)
+        qualis_and_forum = get_qualis_value_from_xlsx(journal_issn, journal_name, similarity_dict, False)
         qualis = None
         forum_oficial = None
         if qualis_and_forum is not None:
