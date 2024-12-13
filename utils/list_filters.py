@@ -20,6 +20,11 @@ def scope_years_researcher_project(research_project: Membership, session):
     project = session.query(Project).filter(Project.id == research_project.project_id).one()
     return project.start_year <= end_year and (project.end_year == "" or project.end_year >= start_year)
 
+def active_researcher_project(research_project: Membership, session):
+    """filter function to get only database objects without end_date"""
+    project = session.query(Project).filter(Project.id == research_project.project_id).one()
+    return project.end_year == ""
+
 def completed_paper_filter(paper: Paper):
     """filter only complete papers"""
     return paper.nature == PaperNature.COMPLETE

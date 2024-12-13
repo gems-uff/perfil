@@ -8,7 +8,7 @@ from config import start_year, end_year, researchers_file
 from database.database_manager import Researcher, Membership, Advisement, Committee
 from database.entities.titles_support import AdvisementsTypes, CommitteeTypes
 import populate_database
-from utils.list_filters import completed_paper_filter, jcr_pub_filter, scope_years_paper_or_support, \
+from utils.list_filters import active_researcher_project, completed_paper_filter, jcr_pub_filter, scope_years_paper_or_support, \
     scope_years_researcher_project, published_journal_paper, accepted_journal_paper_jcr
 
 
@@ -50,6 +50,7 @@ def lattes_scope_years(completed_and_published_journal_papers, completed_confere
 
     new_profile['Participações em Projetos'] = len(list(filter(lambda x: scope_years_researcher_project(x, session), projects_participated)))
     new_profile['Projetos Coordenados'] = len(list(filter(lambda x: scope_years_researcher_project(x, session), projects_coordinated)))
+    new_profile['Projetos Vigentes'] = len(list(filter(lambda x: active_researcher_project(x, session), projects_participated + projects_coordinated)))
     new_profile['Projetos'] = new_profile['Participações em Projetos'] + new_profile['Projetos Coordenados']
 
     new_profile['Orientações de Mestrado'] = len(list(filter(scope_years_paper_or_support, masters_advisement)))
