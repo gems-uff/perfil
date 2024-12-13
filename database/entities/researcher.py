@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from database.base import Base
+from sqlalchemy.orm import relationship
 
 
 class Researcher(Base):
@@ -12,6 +13,7 @@ class Researcher(Base):
     phd_defense_year = Column(Integer, default=0)
     google_scholar_id = Column(String)
     lattes_id = Column(Integer)
+    memberships = relationship('Membership', back_populates='researcher')
 
     def __repr__(self):
         return str(self.__dict__)
