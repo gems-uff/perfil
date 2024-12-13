@@ -17,9 +17,8 @@ def scope_years_paper_or_support(paper_or_support):
 
 def scope_years_researcher_project(research_project: Membership, session):
     """filter function to get only database objects within the years specified"""
-    return start_year <= session.query(Project.start_year).filter(Project.id == research_project.project_id).all()[0][
-        0] <= end_year
-
+    project = session.query(Project).filter(Project.id == research_project.project_id).one()
+    return project.start_year <= end_year and (project.end_year == "" or project.end_year >= start_year)
 
 def completed_paper_filter(paper: Paper):
     """filter only complete papers"""
