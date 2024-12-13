@@ -21,12 +21,15 @@ from configured_reports.user_classes.artigo import Artigo
 # Extra colums will be ignored.
 # The order of the columns does not matter
 resources_path = os.getcwd() + os.sep + 'resources' + os.sep
+test_resources_path = os.getcwd() + os.sep + 'test_resources' + os.sep
 output_path = os.getcwd() + os.sep + 'output' + os.sep
+
+#researchers_file = test_resources_path + 'test.xlsx'
 researchers_file = resources_path + 'pgc.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
 start_year = 2021
-end_year = 2023
+end_year = 2024
 
 
 # Tries to make each input on the database unique
@@ -134,11 +137,12 @@ jcr = dict(zip(df_jcr.issn, df_jcr.if_2022))
 
 # The file with conferences' qualis
 df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2020.xlsx')
-conferences_qualis = dict((f'{titulo} ({sigla})', estrato) for (sigla, titulo, estrato) in zip(df_qualis_conferences.sigla, df_qualis_conferences.titulo, df_qualis_conferences.estrato))
+conferences_qualis = dict((f'{titulo} ({sigla})'.upper(), estrato) for (sigla, titulo, estrato) in zip(df_qualis_conferences.sigla, df_qualis_conferences.titulo, df_qualis_conferences.estrato))
 
 # The file with journals' qualis
 df_qualis_journals = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-journals-2020.xlsx')
-journals_qualis = dict(zip(df_qualis_journals.titulo, df_qualis_journals.estrato))
+journals_qualis = dict((titulo.upper(), estrato) for (titulo, estrato) in zip(df_qualis_journals.titulo, df_qualis_journals.estrato))
+issn_journals = dict((issn, titulo.upper()) for (issn, titulo) in zip(df_qualis_journals.issn, df_qualis_journals.titulo))
 
 # The file with conferences' synonyms
 conferences_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'conferences_synonyms.xlsx')

@@ -71,7 +71,7 @@ def get_or_create_journal(session, journal_details, similarity_dict):
     journal_list = session.query(Journal).filter(Journal.issn == journal_issn).all()
 
     if len(journal_list) == 0:
-        journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA")
+        journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA").upper()
         journal_jcr = jcr[journal_issn] if journal_issn in jcr and not math.isnan(jcr[journal_issn]) else 0
 
         qualis_and_forum = get_qualis_value_from_xlsx(journal_issn, journal_name, similarity_dict, False)
@@ -229,7 +229,7 @@ def nature_switch(basic_data_nature):
 def get_or_add_paper_venue(session, details_attribute, paper_details, similarity_dict):
     """Auxiliar function to choose which function to call"""
     if details_attribute == "DETALHAMENTO-DO-TRABALHO":
-        venue_name = paper_details.get("NOME-DO-EVENTO")
+        venue_name = paper_details.get("NOME-DO-EVENTO").upper()
         return get_or_create_conference(session, venue_name, similarity_dict)
     else:
         return get_or_create_journal(session, paper_details, similarity_dict)
