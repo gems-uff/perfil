@@ -37,7 +37,6 @@ def write_journal_papers(researcher, session, workbook):
     paper_index = 0
     for row in range(2, len(journal_papers) + 2):
         venue = session.query(Journal).filter(Journal.id == journal_papers[paper_index].venue).one()
-        qualis = venue.qualis if venue.qualis is not None else QualisLevel.NC
 
         worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{journal_papers[paper_index].doi}")' if journal_papers[paper_index].doi else '')
         worksheet.cell(row=row, column=2, value=journal_papers[paper_index].authors)
@@ -48,8 +47,8 @@ def write_journal_papers(researcher, session, workbook):
         worksheet.cell(row=row, column=7, value=venue.name)
         worksheet.cell(row=row, column=8, value=venue.official_forum)
         worksheet.cell(row=row, column=9, value=venue.jcr)
-        worksheet.cell(row=row, column=10, value=qualis.value)
-        worksheet.cell(row=row, column=11, value=get_qualis_points(True, qualis))
+        worksheet.cell(row=row, column=10, value=venue.qualis.value)
+        worksheet.cell(row=row, column=11, value=get_qualis_points(True, venue.qualis))
         paper_index += 1
 
 
@@ -73,7 +72,6 @@ def write_conference_papers(researcher, session, workbook):
     paper_index = 0
     for row in range(2, len(conference_papers) + 2):
         venue = session.query(Conference).filter(Conference.id == conference_papers[paper_index].venue).one()
-        qualis = venue.qualis if venue.qualis is not None else QualisLevel.NC
 
         worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{conference_papers[paper_index].doi}")' if conference_papers[paper_index].doi else '')
         worksheet.cell(row=row, column=2, value=conference_papers[paper_index].authors)
@@ -83,8 +81,8 @@ def write_conference_papers(researcher, session, workbook):
         worksheet.cell(row=row, column=6, value=conference_papers[paper_index].nature.value)
         worksheet.cell(row=row, column=7, value=venue.name)
         worksheet.cell(row=row, column=8, value=venue.official_forum)
-        worksheet.cell(row=row, column=9, value=qualis.value)
-        worksheet.cell(row=row, column=10, value=get_qualis_points(False, qualis))        
+        worksheet.cell(row=row, column=9, value=venue.qualis.value)
+        worksheet.cell(row=row, column=10, value=get_qualis_points(False, venue.qualis))        
         paper_index += 1
 
 

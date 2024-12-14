@@ -37,7 +37,7 @@ def get_qualis_value_from_xlsx(venue_issn, venue_name, similarity_dict, is_confe
     lcs = detect_similar(venue_name, qualis_dictionary, minimum_similarity, similarity_dict)
     if lcs is not None and lcs in qualis_dictionary: return (qualis_dictionary[lcs], lcs)
 
-    return None
+    return 'NC', ''
 
 
 def get_or_create_conference(session, conference_name, similarity_dict):
@@ -45,12 +45,9 @@ def get_or_create_conference(session, conference_name, similarity_dict):
     conference_list = session.query(Conference).filter(Conference.name == conference_name).all()
 
     if len(conference_list) == 0:
-        qualis_and_forum = get_qualis_value_from_xlsx(None, conference_name, similarity_dict, True)
-        qualis = None
-        forum_oficial = None
-        if qualis_and_forum is not None:
-            qualis = qualis_switch[qualis_and_forum[0].strip()]
-            forum_oficial = qualis_and_forum[1]
+        qualis_and_forum = get_qualis_value_from_xlsx(None, conference_name, similarity_dict, True)    
+        qualis = qualis_switch[qualis_and_forum[0].strip()]
+        forum_oficial = qualis_and_forum[1]
         acronym = None
         try:
             acronym = conference_name[conference_name.index("(") + 1:conference_name.index(")")]
