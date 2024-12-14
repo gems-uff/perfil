@@ -8,6 +8,9 @@ def get_similarity(text_one, text_two):
 
 def detect_similar(text, texts_to_compare, minimum_similarity, similarity_dict):
     '''Tries to detect similar texts from texts received'''
+
+    if minimum_similarity == 1: return None
+
     similarity_found = 0
     similar_text_in_dict = None
 
