@@ -1,5 +1,5 @@
 from sqlalchemy import and_
-from config import start_year, end_year, QualisLevel
+from config import start_year, end_year, allow_in_press, QualisLevel
 from database.database_manager import Paper, JournalPaper, Journal, Membership, Project, Conference, \
     ConferencePaper, Affiliation
 from database.entities.paper import PaperNature
@@ -12,7 +12,8 @@ def affiliated_researcher(researcher_id, paper_year, session):
 
 def scope_years_paper_or_support(paper_or_support):
     """filter function to get only database objects within the years specified"""
-    return start_year <= paper_or_support.year <= end_year
+    return (start_year <= paper_or_support.year <= end_year) or (journal_paper(paper_or_support) and allow_in_press and paper_or_support.accepted)
+
 
 
 def scope_years_researcher_project(research_project: Membership, session):
@@ -27,7 +28,7 @@ def active_researcher_project(research_project: Membership, session):
 
 def completed_paper_filter(paper: Paper):
     """filter only complete papers"""
-    return paper.nature == PaperNature.COMPLETE
+    return paper.nature == PaperNature.COMPLETE or (journal_paper(paper) and allow_in_press and paper.accepted)
 
 
 def jcr_pub_filter(paper: JournalPaper, session, jcr_value):
@@ -38,7 +39,7 @@ def jcr_pub_filter(paper: JournalPaper, session, jcr_value):
 
 def published_journal_paper(paper: JournalPaper):
     """filter only already published papers"""
-    return paper.accepted is False
+    return allow_in_press or paper.accepted is False
 
 
 def accepted_journal_paper_jcr(paper: JournalPaper, session, jcr_value):
