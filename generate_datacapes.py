@@ -13,7 +13,6 @@ from utils.list_filters import scope_years_paper_or_support, published_journal_p
 def filter_completed_scope_years_papers(paper_list):
     return list(filter(completed_paper_filter, list(filter(scope_years_paper_or_support, paper_list))))
 
-
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
     """Writes qualitative info about papers in a .xlsx"""
     column_number_additional = 0
@@ -97,7 +96,6 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
     It also calculates the restricted index, general index and the index of (a1, a2, b1, b2) qualis"""
     restricted_index = 0
     general_index = 0
-    a1_b2_index = 0
     filter_function = qualis_level_journal if is_journal_list else qualis_level_conference
 
     for qualis_level in QualisLevel:
@@ -108,11 +106,10 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
         qualis_points = get_qualis_points(is_journal_list, qualis_level)
         if qualis_level in [QualisLevel.A1, QualisLevel.A2, QualisLevel.A3, QualisLevel.A4]: restricted_index += len(papers_with_this_qualis_level) * qualis_points
         general_index += len(papers_with_this_qualis_level) * qualis_points
-        if qualis_level in [QualisLevel.A1, QualisLevel.A2, QualisLevel.B1, QualisLevel.B2]: a1_b2_index += len(papers_with_this_qualis_level) * qualis_points
 
         column += 1
 
-    return restricted_index, general_index, a1_b2_index
+    return restricted_index, general_index
 
 
 def write_summary_header(worksheet):
@@ -130,7 +127,6 @@ def write_summary_header(worksheet):
     worksheet.cell(row=1, column=column + 4, value="I-GERAL CONFERENCIA")
     worksheet.cell(row=1, column=column + 5, value="I-GERAL TOTAL")
     worksheet.cell(row=1, column=column + 6, value="SATURACAO (TRAVA)")
-    worksheet.cell(row=1, column=column + 7, value="PONTOS CREDENCIAMENTO")
 
 
 def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity, row, session, worksheet):
@@ -146,8 +142,6 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
     conference_restricted_index = conference_indexes[0]
     journal_general_index = journal_indexes[1]
     conference_general_index = conference_indexes[1]
-    journal_a1b2_score = journal_indexes[2]
-    conferences_a1b2_score = conference_indexes[2]
 
     column = len(QualisLevel) * 2 + 3 # column number jump after writing the number of journals and conferences by qualis
 
@@ -166,14 +160,6 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
             worksheet.cell(row=row, column=column + 6, value="INF.")
         else:
             worksheet.cell(row=row, column=column + 6, value="IND.")
-
-    # PONTOS CREDENCIAMENTO
-
-    journal_a1b2_score += len(list(filter(lambda x: qualis_level_journal(x, session, QualisLevel.A2), journal_papers))) * 0.005
-    if journal_restricted_index == 0:
-        worksheet.cell(row=row, column=column + 7, value="P=0")
-    else:
-        worksheet.cell(row=row, column=column + 7, value=conferences_a1b2_score + 1.5 * journal_a1b2_score)
 
 
 def write_4n_production(papers, session):
