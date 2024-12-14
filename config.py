@@ -1,19 +1,9 @@
 import os
 import enum
 import pandas as pd
-from utils.dict_xlsx_utils import create_synonyms_dictionary
-from configured_reports.user_classes.banca import Banca
-from configured_reports.user_classes.capitulo import Capitulo
-from configured_reports.user_classes.conferencia import Conferencia
-from configured_reports.user_classes.corpo_editorial import Corpo_Editorial
-from configured_reports.user_classes.livro import Livro
-from configured_reports.user_classes.organizacao_evento import Organizacao_Evento
-from configured_reports.user_classes.orientacao import Orientacao
-from configured_reports.user_classes.patente import Patente
+from utils.dict_xlsx_utils import read_dict
 from configured_reports.user_classes.periodico import Periodico
 from configured_reports.user_classes.pesquisador import Pesquisador
-from configured_reports.user_classes.projeto import Projeto
-from configured_reports.user_classes.artigo import Artigo
 
 # The expected input file must have the following columns:
 # "ID Lattes" containing the 16-digit number associated with a Lattes CV 
@@ -145,9 +135,9 @@ journals_qualis = dict((titulo.upper(), estrato) for (titulo, estrato) in zip(df
 issn_journals = dict((issn, titulo.upper()) for (issn, titulo) in zip(df_qualis_journals.issn, df_qualis_journals.titulo))
 
 # The file with conferences' synonyms
-conferences_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'conferences_synonyms.xlsx')
-journals_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'journals_synonyms.xlsx')
-projects_synonyms = create_synonyms_dictionary(resources_path + 'synonyms' + os.sep + 'projects_synonyms.xlsx')
+conferences_synonyms = read_dict(resources_path + 'synonyms' + os.sep + 'conferences_synonyms.xlsx')
+journals_synonyms = read_dict(resources_path + 'synonyms' + os.sep + 'journals_synonyms.xlsx')
+projects_synonyms = read_dict(resources_path + 'synonyms' + os.sep + 'projects_synonyms.xlsx')
 
 # The directory that contains the zip files downloaded from the Lattes platform.
 lattes_dir = resources_path + 'lattes'

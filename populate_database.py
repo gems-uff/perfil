@@ -2,15 +2,15 @@ import os
 import pandas as pd
 from lxml import etree
 from zipfile import ZipFile
-from config import lattes_dir, researchers_file, jcr, conferences_qualis, journals_qualis, similarity_dir
-from database.database_manager import start_database, database_schema_png
+from config import lattes_dir, researchers_file, similarity_dir
+from database.database_manager import start_database
 from database.populate.book import add_researcher_published_books, add_researcher_published_chapters
 from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, \
     add_researcher_patents_software
 from database.populate.researcher_and_project import *
 from database.populate.titles_support import add_researcher_advisements, add_researcher_committees
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers
-from utils.dict_xlsx_utils import create_similarity_file
+from utils.dict_xlsx_utils import write_dict
 
 conferences_similarity_dict = dict()
 journals_similarity_dict = dict()
@@ -45,9 +45,9 @@ def update_database_info(session):
 
 def create_similarities_xlsx():
     """Creates .xlsx from the similarities dictionaries"""
-    create_similarity_file(project_similarity_dict, similarity_dir + os.sep + "projects_similar")
-    create_similarity_file(conferences_similarity_dict, similarity_dir+os.sep+"conferences_similar")
-    create_similarity_file(journals_similarity_dict, similarity_dir+os.sep+"journals_similar")
+    write_dict(project_similarity_dict, similarity_dir + os.sep + "projects_similar")
+    write_dict(conferences_similarity_dict, similarity_dir+os.sep+"conferences_similar")
+    write_dict(journals_similarity_dict, similarity_dir+os.sep+"journals_similar")
 
 
 def main(one_researcher_profile = None):
