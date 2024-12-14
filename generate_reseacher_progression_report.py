@@ -1,15 +1,13 @@
 import openpyxl
 import os
 import populate_database
-import sys
 import argparse
 import pandas as pd
-from sqlalchemy import and_
-from config import generate_reseacher_progression_report_output_dir, start_year, end_year, researchers_file
+from config import QualisLevel, generate_reseacher_progression_report_output_dir, researchers_file
 from database.database_manager import Researcher, Journal, Conference, Advisement, Committee
 from database.entities.titles_support import CommitteeTypes
-from utils.list_filters import scope_years_paper_or_support, published_journal_paper
-from utils.xlsx_utils import calculate_number_of_pages
+from utils.list_filters import scope_years_paper_or_support
+from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
 
 
 def researchers_from_args(researcher, arg_id_list):
@@ -24,30 +22,34 @@ def write_journal_papers(researcher, session, workbook):
     worksheet = workbook.active
     worksheet.title = "Publicações em periódico"
 
-    worksheet.cell(row=1, column=1, value="Autores")
-    worksheet.cell(row=1, column=2, value="Ano")
+    worksheet.cell(row=1, column=1, value="DOI")
+    worksheet.cell(row=1, column=2, value="Autores")
     worksheet.cell(row=1, column=3, value="Título")
-    worksheet.cell(row=1, column=4, value="Periódico")
-    worksheet.cell(row=1, column=5, value="ISSN")
-    worksheet.cell(row=1, column=6, value="Número de páginas")
-    worksheet.cell(row=1, column=7, value="DOI")
-    worksheet.cell(row=1, column=8, value="Qualis")
+    worksheet.cell(row=1, column=4, value="Páginas")
+    worksheet.cell(row=1, column=5, value="Ano")
+    worksheet.cell(row=1, column=6, value="ISSN")
+    worksheet.cell(row=1, column=7, value="Periódico")
+    worksheet.cell(row=1, column=8, value="Match")
     worksheet.cell(row=1, column=9, value="JCR")
+    worksheet.cell(row=1, column=10, value="Qualis")
+    worksheet.cell(row=1, column=11, value="Pontos")
 
     paper_index = 0
     for row in range(2, len(journal_papers) + 2):
-        venue = session.query(Journal).filter(Journal.id == journal_papers[paper_index].venue).all()
+        venue = session.query(Journal).filter(Journal.id == journal_papers[paper_index].venue).one()
+        qualis = venue.qualis if venue.qualis is not None else QualisLevel.NC
 
-        worksheet.cell(row=row, column=1, value=journal_papers[paper_index].authors)
-        worksheet.cell(row=row, column=2, value=journal_papers[paper_index].year)
+        worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{journal_papers[paper_index].doi}")' if journal_papers[paper_index].doi else '')
+        worksheet.cell(row=row, column=2, value=journal_papers[paper_index].authors)
         worksheet.cell(row=row, column=3, value=journal_papers[paper_index].title)
-        worksheet.cell(row=row, column=4, value=venue[0].name)
-        worksheet.cell(row=row, column=5, value=venue[0].issn)
-        worksheet.cell(row=row, column=6, value=calculate_number_of_pages(journal_papers[paper_index]))
-        if (journal_papers[paper_index].doi):
-            worksheet.cell(row=row, column=7, value=f'=HYPERLINK("https://www.doi.org/{journal_papers[paper_index].doi}")')
-        worksheet.cell(row=row, column=8, value=venue[0].qualis.value if venue[0].qualis is not None else "")
-        worksheet.cell(row=row, column=9, value=venue[0].jcr)
+        worksheet.cell(row=row, column=4, value=calculate_number_of_pages(journal_papers[paper_index]))
+        worksheet.cell(row=row, column=5, value=journal_papers[paper_index].year)
+        worksheet.cell(row=row, column=6, value=venue.issn)
+        worksheet.cell(row=row, column=7, value=venue.name)
+        worksheet.cell(row=row, column=8, value=venue.official_forum)
+        worksheet.cell(row=row, column=9, value=venue.jcr)
+        worksheet.cell(row=row, column=10, value=qualis.value)
+        worksheet.cell(row=row, column=11, value=get_qualis_points(True, qualis))
         paper_index += 1
 
 
@@ -57,28 +59,32 @@ def write_conference_papers(researcher, session, workbook):
 
     worksheet = workbook.create_sheet("Publicações em conferência")
 
-    worksheet.cell(row=1, column=1, value="Autores")
-    worksheet.cell(row=1, column=2, value="Ano")
+    worksheet.cell(row=1, column=1, value="DOI")
+    worksheet.cell(row=1, column=2, value="Autores")
     worksheet.cell(row=1, column=3, value="Título")
-    worksheet.cell(row=1, column=4, value="Conferência")
-    worksheet.cell(row=1, column=5, value="Número de páginas")
+    worksheet.cell(row=1, column=4, value="Páginas")
+    worksheet.cell(row=1, column=5, value="Ano")
     worksheet.cell(row=1, column=6, value="Tipo")
-    worksheet.cell(row=1, column=7, value="DOI")
-    worksheet.cell(row=1, column=8, value="Qualis")
+    worksheet.cell(row=1, column=7, value="Conferência")
+    worksheet.cell(row=1, column=8, value="Match")
+    worksheet.cell(row=1, column=9, value="Qualis")
+    worksheet.cell(row=1, column=10, value="Pontos")
 
     paper_index = 0
     for row in range(2, len(conference_papers) + 2):
-        venue = session.query(Conference).filter(Conference.id == conference_papers[paper_index].venue).all()
+        venue = session.query(Conference).filter(Conference.id == conference_papers[paper_index].venue).one()
+        qualis = venue.qualis if venue.qualis is not None else QualisLevel.NC
 
-        worksheet.cell(row=row, column=1, value=conference_papers[paper_index].authors)
-        worksheet.cell(row=row, column=2, value=conference_papers[paper_index].year)
+        worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{conference_papers[paper_index].doi}")' if conference_papers[paper_index].doi else '')
+        worksheet.cell(row=row, column=2, value=conference_papers[paper_index].authors)
         worksheet.cell(row=row, column=3, value=conference_papers[paper_index].title)
-        worksheet.cell(row=row, column=4, value=venue[0].name)
-        worksheet.cell(row=row, column=5, value=calculate_number_of_pages(conference_papers[paper_index]))
+        worksheet.cell(row=row, column=4, value=calculate_number_of_pages(conference_papers[paper_index]))
+        worksheet.cell(row=row, column=5, value=conference_papers[paper_index].year)
         worksheet.cell(row=row, column=6, value=conference_papers[paper_index].nature.value)
-        if (conference_papers[paper_index].doi):
-            worksheet.cell(row=row, column=7, value=f'=HYPERLINK("https://www.doi.org/{conference_papers[paper_index].doi}")')
-        worksheet.cell(row=row, column=8, value=venue[0].qualis.value if venue[0].qualis is not None else "")
+        worksheet.cell(row=row, column=7, value=venue.name)
+        worksheet.cell(row=row, column=8, value=venue.official_forum)
+        worksheet.cell(row=row, column=9, value=qualis.value)
+        worksheet.cell(row=row, column=10, value=get_qualis_points(False, qualis))        
         paper_index += 1
 
 
