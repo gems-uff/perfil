@@ -55,7 +55,7 @@ def add_projects(session, tree, researcher_id, similarity_dict):
     researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
     for project in projects:
-        name = project.get("NOME-DO-PROJETO")
+        name = project.get("NOME-DO-PROJETO").upper()
         project_already_in_the_database = check_if_project_is_in_the_database(session, name, similarity_dict)
 
         # Lattes duplication
