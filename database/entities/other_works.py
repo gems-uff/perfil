@@ -61,3 +61,16 @@ class ResearcherPatent(Base):
 
     def __repr__(self):
         return str(self.__dict__)
+    
+class Prize(Base):
+    __tablename__ = "prize"
+
+    id = Column(Integer, primary_key=True)
+    researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    name = Column(String)
+    entity = Column(String)
+    year = Column(Integer)
+    researcher = relationship("Researcher", back_populates="prizes")
+
+    def __repr__(self):
+        return str(self.__dict__)

@@ -14,6 +14,7 @@ class Researcher(Base):
     google_scholar_id = Column(String)
     lattes_id = Column(Integer)
     memberships = relationship('Membership', back_populates='researcher')
+    prizes = relationship('Prize', back_populates='researcher')
 
     def __repr__(self):
         return str(self.__dict__)

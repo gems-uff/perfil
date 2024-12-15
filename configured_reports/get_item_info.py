@@ -1,7 +1,6 @@
-from database.entities.researcher import Researcher
 from database.entities.titles_support import CommitteeTypes
 from configured_reports.get_data_from_db import get_paper_list, get_papers_venues_list, get_advisement_list, \
-    get_committee_list, \
+    get_committee_list, get_prize_list, \
     get_project_list, get_researcher_project_list, get_patent_list, get_conference_management_list, \
     get_editorial_board_list, get_published_book_chapter_list, get_published_book_list, get_researchers_list
 from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
@@ -398,3 +397,24 @@ def get_chapter_title_list(session):
 
     chapters = get_published_book_chapter_list(session)
     return [chapter.chapter_title for chapter in chapters]
+
+
+def get_prize_name_list(session):
+    """Returns the list of prizes' names"""
+
+    prizes = get_prize_list(session)
+    return [prize.name for prize in prizes]
+
+
+def get_prize_entity_list(session):
+    """Returns the list of prizes' entities"""
+
+    prizes = get_prize_list(session)
+    return [prize.entity for prize in prizes]
+
+
+def get_prize_year_list(session):
+    """Returns the list of prizes' years"""
+
+    prizes = get_prize_list(session)
+    return [prize.year for prize in prizes]

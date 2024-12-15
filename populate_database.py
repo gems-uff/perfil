@@ -6,7 +6,7 @@ from config import lattes_dir, researchers_file, similarity_dir
 from database.database_manager import start_database
 from database.populate.book import add_researcher_published_books, add_researcher_published_chapters
 from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, \
-    add_researcher_patents_software
+    add_researcher_patents_software, add_researcher_prizes
 from database.populate.researcher_and_project import *
 from database.populate.titles_support import add_researcher_advisements, add_researcher_committees
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers
@@ -34,6 +34,7 @@ def lattes(lattes_id, session, google_scholar_id):
             add_researcher_published_books(session, tree, researcher_id)
             add_researcher_published_chapters(session, tree, researcher_id)
             add_researcher_patents_software(session, tree, researcher_id)
+            add_researcher_prizes(session, tree, researcher_id)
 
 
 def update_database_info(session):

@@ -1,6 +1,7 @@
 import os
 import enum
 import pandas as pd
+from configured_reports.user_classes.premio import Premio
 from utils.dict_xlsx_utils import read_dict
 from configured_reports.user_classes.periodico import Periodico
 from configured_reports.user_classes.pesquisador import Pesquisador
@@ -21,6 +22,8 @@ researchers_file = resources_path + 'pgc.xlsx'
 start_year = 2021
 end_year = 2024
 
+# Allows accepted but not yet published journal papers for datacapes
+allow_in_press = False
 
 # Tries to make each input on the database unique
 unify_conference_paper = False
@@ -31,8 +34,8 @@ unify_chapter = False
 unify_patent = False
 
 # Minimum similarities
-conferences_minimum_similarity = 0.75
-journals_minimum_similarity = 0.75
+conferences_minimum_similarity = 1
+journals_minimum_similarity = 1
 conferences_papers_title_minimum_similarity = 0.9
 journals_papers_title_minimum_similarity = 0.9
 project_name_minimum_similarity = 0.9
@@ -61,6 +64,12 @@ configured_reports = {
         Periodico.issn,
         Periodico.jcr
     ],
+    "Premios": [
+        Pesquisador.nome,
+        Premio.ano,
+        Premio.nome,
+        Premio.entidade
+    ]
 }
 
 class QualisLevel(enum.Enum):

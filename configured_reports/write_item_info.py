@@ -1,4 +1,4 @@
-from configured_reports.get_item_info import get_researchers_names, get_last_lattes_update_list, get_phd_college_list, \
+from configured_reports.get_item_info import get_prize_entity_list, get_prize_name_list, get_prize_year_list, get_researchers_names, get_last_lattes_update_list, get_phd_college_list, \
     get_phd_defense_year_list, get_google_scholar_id_list, get_lattes_id_list, get_paper_year_list, \
     get_paper_title_list, get_venue_names_list, get_papers_pages_list, get_papers_qualis_list, get_jcr_list, \
     get_forum_oficial_list, get_doi_list, get_qualis_points_list, get_authors_list, get_issn_list, \
@@ -22,6 +22,7 @@ from configured_reports.user_classes.orientacao import Orientacao
 from configured_reports.user_classes.patente import Patente
 from configured_reports.user_classes.periodico import Periodico
 from configured_reports.user_classes.pesquisador import Pesquisador
+from configured_reports.user_classes.premio import Premio
 from configured_reports.user_classes.projeto import Projeto
 from configured_reports.user_classes.artigo import Artigo
 from configured_reports.util import append_lists
@@ -358,6 +359,18 @@ def write_item_info(session, item: str, worksheet, col, make_cartesian_product_r
     elif item == Capitulo.titulo_livro:
         chapter_title_list = get_chapter_title_list(session)
         write_info(worksheet, col, item, chapter_title_list)
+
+    elif item == Premio.nome:
+        prize_name_list = get_prize_name_list(session)
+        write_info(worksheet, col, item, prize_name_list)
+
+    elif item == Premio.entidade:
+        prize_entity_list = get_prize_entity_list(session)
+        write_info(worksheet, col, item, prize_entity_list)
+
+    elif item == Premio.ano:
+        prize_year_list = get_prize_year_list(session)
+        write_info(worksheet, col, item, prize_year_list)
 
     else:
         print("There isn't any information named \"" + item + "\"\n")

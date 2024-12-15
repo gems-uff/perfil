@@ -2,14 +2,13 @@ from sqlalchemy import and_
 from config import start_year, end_year
 from database.entities.book import ResearcherPublishedBook, Book, ResearcherPublishedBookChapter, \
     BookChapter
-from database.entities.other_works import ResearcherPatent, Patent, ConferenceOrganization, \
+from database.entities.other_works import Prize, ResearcherPatent, Patent, ConferenceOrganization, \
     EditorialBoard
 from database.entities.project import Membership, Project
 from database.entities.researcher import Researcher
-from database.entities.titles_support import Advisement, Committee, CommitteeTypes
+from database.entities.titles_support import Advisement, Committee
 from database.entities.venue import Venue
 from utils.list_filters import scope_years_paper_or_support
-from utils.xlsx_utils import calculate_number_of_pages, get_qualis_points
 from configured_reports.util import append_lists
 
 
@@ -35,7 +34,8 @@ def quantity_of_researcher_itens(session, item_class: str, researcher_id):
         "Orientacao": get_advisement_list(session, researcher_id),
         "Patente": get_patent_list(session, researcher_id),
         "Periodico": get_paper_list(session, True, researcher_id),
-        "Projeto": get_project_list(session, researcher_id)
+        "Projeto": get_project_list(session, researcher_id),
+        "Premio": get_prize_list(session, researcher_id)
     }
 
     return len(researcher_itens[item_class])
@@ -213,3 +213,17 @@ def get_published_book_chapter_list(session, researcher_id=0):
             if start_year <= chapter.year <= end_year: published_book_chapter_list.append(chapter)
 
     return published_book_chapter_list
+
+
+def get_prize_list(session, researcher_id=0):
+    """Returns the prize list of a given researcher or all of them"""
+
+    researchers = get_researchers(researcher_id, session)
+    prize_list = []
+
+    for researcher in researchers:
+        prize_list.extend(session.query(Prize)
+                                 .filter(and_(Prize.researcher_id == researcher.id,
+                                              start_year <= Prize.year, Prize.year <= end_year)).all())
+
+    return prize_list

@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import and_, func
 from utils.log import log_possible_lattes_duplication, log_unify
 from database.entities.researcher import Researcher
-from database.entities.other_works import ConferenceOrganization, EditorialBoard, EditorialBoardType, \
+from database.entities.other_works import ConferenceOrganization, EditorialBoard, EditorialBoardType, Prize, \
     ResearcherPatent, Patent, PatentType
 from config import unify_patent
 
@@ -151,6 +151,23 @@ def get_or_add_patent(session, patent, software_patent: bool, researcher_id, res
     session.flush()
 
     return new_patent
+
+
+def add_researcher_prizes(session, tree, researcher_id):
+    '''Adds all prizes from a lattes .xml file'''
+    lattes_prizes = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/PREMIOS-TITULOS/PREMIO-TITULO")
+    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).one()
+
+    for lattes_prize in lattes_prizes:
+        name = lattes_prize.get("NOME-DO-PREMIO-OU-TITULO")
+        entity = lattes_prize.get("NOME-DA-ENTIDADE-PROMOTORA")
+        year = lattes_prize.get("ANO-DA-PREMIACAO")
+        
+        prize = Prize(name=name, entity=entity, year=year)
+        researcher.prizes.append(prize)
+        
+        session.add(prize)
+        session.flush()
 
 
 def check_lattes_duplication_patent(patent, researcher_id, researcher_name, session):
