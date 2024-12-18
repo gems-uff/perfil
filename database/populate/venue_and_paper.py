@@ -50,9 +50,12 @@ def get_or_create_conference(session, conference_name, similarity_dict):
         forum_oficial = qualis_and_forum[1]
         acronym = None
         try:
-            acronym = conference_name[conference_name.index("(") + 1:conference_name.index(")")]
+                acronym = forum_oficial[forum_oficial.index("(") + 1:forum_oficial.index(")")]                            
         except:
-            pass
+            try:
+                acronym = conference_name[conference_name.index("(") + 1:conference_name.index(")")]
+            except:
+                pass              
 
         conference = Conference(name=conference_name, qualis=qualis, acronym=acronym, official_forum=forum_oficial)
         session.add(conference)

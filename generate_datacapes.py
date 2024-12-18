@@ -13,24 +13,44 @@ from utils.list_filters import scope_years_paper_or_support, published_journal_p
 def filter_completed_scope_years_papers(paper_list):
     return list(filter(completed_paper_filter, list(filter(scope_years_paper_or_support, paper_list))))
 
+def write_production_header(worksheet, write_researcher : bool):
+    """Writes the header of the xlsx file"""
+    if(write_researcher):
+        worksheet.cell(row=1, column=1, value="Docente")
+        worksheet.cell(row=1, column=2, value="Ultima atualizacao Lattes")
+    offset = (2 if write_researcher else 0)
+    worksheet.cell(row=1, column=1+offset, value="Ano")
+    worksheet.cell(row=1, column=2+offset, value="Tipo")
+    worksheet.cell(row=1, column=3+offset, value="Titulo")
+    worksheet.cell(row=1, column=4+offset, value="Autores")
+    worksheet.cell(row=1, column=5+offset, value="Paginas")
+    worksheet.cell(row=1, column=6+offset, value="DOI")
+    worksheet.cell(row=1, column=7+offset, value="Venue")
+    worksheet.cell(row=1, column=8+offset, value="Match")
+    worksheet.cell(row=1, column=9+offset, value="ISSN/Sigla Evento")
+    worksheet.cell(row=1, column=10+offset, value="JCR")
+    worksheet.cell(row=1, column=11+offset, value="Qualis")
+    worksheet.cell(row=1, column=12+offset, value="Pontos")
+
+
 def write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper : bool, write_researcher : bool):
-    """Writes qualitative info about papers in a .xlsx"""
-    column_number_additional = 0
+    """Writes info about papers in a xlsx file"""
     if(write_researcher):
         worksheet.cell(row=row, column=1, value=researcher.name)
         worksheet.cell(row=row, column=2, value=researcher.last_lattes_update)
-        column_number_additional = 2
-    worksheet.cell(row=row, column=1+column_number_additional, value=paper.year)
-    worksheet.cell(row=row, column=2+column_number_additional, value="PERIODICO" if is_journal_paper else "CONFERENCIA")
-    worksheet.cell(row=row, column=3+column_number_additional, value=paper.title)
-    worksheet.cell(row=row, column=4+column_number_additional, value=venue.name)
-    worksheet.cell(row=row, column=5+column_number_additional, value=calculate_number_of_pages(paper))
-    worksheet.cell(row=row, column=6+column_number_additional, value=venue.qualis.value if venue.qualis is not None else "null")
-    worksheet.cell(row=row, column=7+column_number_additional, value=venue.jcr if is_journal_paper else "null")
-    worksheet.cell(row=row, column=8+column_number_additional, value=venue.official_forum)
-    if write_researcher:
-        worksheet.cell(row=row, column=9+column_number_additional, value=" https://doi.org/" + paper.doi if paper.doi is not None and paper.doi.strip() != "" else "null")
-        worksheet.cell(row=row, column=10+column_number_additional, value=get_qualis_points(is_journal_paper, venue.qualis) if venue.qualis is not None else "null")
+    offset = (2 if write_researcher else 0)
+    worksheet.cell(row=row, column=1+offset, value=paper.year)
+    worksheet.cell(row=row, column=2+offset, value="PERIODICO" if is_journal_paper else "CONFERENCIA")
+    worksheet.cell(row=row, column=3+offset, value=paper.title)
+    worksheet.cell(row=row, column=4+offset, value=paper.authors)
+    worksheet.cell(row=row, column=5+offset, value=calculate_number_of_pages(paper))
+    worksheet.cell(row=row, column=6+offset, value=" https://doi.org/" + paper.doi if paper.doi is not None and paper.doi.strip() != "" else "null")
+    worksheet.cell(row=row, column=7+offset, value=venue.name)
+    worksheet.cell(row=row, column=8+offset, value=venue.official_forum)  
+    worksheet.cell(row=row, column=9+offset, value=venue.issn if is_journal_paper else venue.acronym)
+    worksheet.cell(row=row, column=10+offset, value=venue.jcr if is_journal_paper else "N/A")
+    worksheet.cell(row=row, column=11+offset, value=venue.qualis.value)
+    worksheet.cell(row=row, column=12+offset, value=get_qualis_points(is_journal_paper, venue.qualis))
 
 
 def researcher_production_paper_iterator(array_papers, researcher, session, worksheet, row, is_journal_paper : bool):
@@ -50,7 +70,9 @@ def write_researchers_production(researchers, session):
     """Writes the producao_docentes.xlsx file"""
     wb = openpyxl.Workbook()
     worksheet = wb.active
-    row = 1
+    write_production_header(worksheet, True)
+    row = 2
+
     papers = []  # array to get and filter all the papers only once
     for researcher in researchers:
         conference_papers = filter_completed_scope_years_papers(researcher.conference_papers)
@@ -69,17 +91,18 @@ def write_researchers_production(researchers, session):
 
 def write_yearly_production(papers, session):
     """Writes the producao_anual.xlsx file"""
-    papers.sort(key=lambda paper: paper.year)
+    papers.sort(key=lambda paper: (paper.year, paper.type))
 
     wb = openpyxl.Workbook()
     worksheet = wb.active
+    write_production_header(worksheet, False)
 
     for i in range(len(papers)):
         is_journal_paper = isinstance(papers[i], JournalPaper)
         venue = session.query(Journal).filter(papers[i].venue == Journal.id).all()[0] if is_journal_paper \
             else session.query(Conference).filter(papers[i].venue == Conference.id).all()[0]
 
-        write_production_paper(papers[i], None, i + 1, venue, worksheet, is_journal_paper, False)
+        write_production_paper(papers[i], None, i + 2, venue, worksheet, is_journal_paper, False)
 
     wb.save(generate_datacapes_output_dir + os.sep + "producao_anual.xlsx")
 
@@ -114,7 +137,6 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
 
 def write_summary_header(worksheet):
     """Writes the header of datacapes summary files"""
-
     worksheet.cell(row=1, column=1, value="ENTIDADE")
     worksheet.cell(row=1, column=2, value="PERIODICOS JCR")
     column = 3
@@ -160,33 +182,6 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
             worksheet.cell(row=row, column=column + 6, value="INF.")
         else:
             worksheet.cell(row=row, column=column + 6, value="IND.")
-
-
-def write_4n_production(papers, session):
-    """Writes the producao_4n.xlsx file"""
-
-    wb = openpyxl.Workbook()
-    worksheet = wb.active
-
-    for i in range(len(papers)):
-        is_journal_paper = isinstance(papers[i], JournalPaper)
-        venue = session.query(Journal).filter(papers[i].venue == Journal.id).all()[0] if is_journal_paper \
-            else session.query(Conference).filter(papers[i].venue == Conference.id).all()[0]
-
-        row = i + 1
-
-        worksheet.cell(row=row, column=1, value="PERIODICO" if is_journal_paper else "CONFERENCIA")
-        worksheet.cell(row=row, column=2, value=venue.issn if is_journal_paper else venue.acronym)
-        worksheet.cell(row=row, column=3, value=papers[i].title)
-        worksheet.cell(row=row, column=4, value=papers[i].authors)
-        worksheet.cell(row=row, column=5, value=venue.name)
-        worksheet.cell(row=row, column=6, value=venue.official_forum)
-        worksheet.cell(row=row, column=7, value=papers[i].year)
-        worksheet.cell(row=row, column=8, value=calculate_number_of_pages(papers[i]))
-        worksheet.cell(row=row, column=9, value=venue.qualis.value if venue.qualis is not None else "null")
-        worksheet.cell(row=row, column=10, value=venue.jcr if is_journal_paper else "null")
-
-    wb.save(generate_datacapes_output_dir + os.sep + "producao_4n.xlsx")
 
 
 def write_researchers_summary(researchers, session):
@@ -267,9 +262,6 @@ def main():
     # writes yearly production
     write_yearly_production(papers, session)  # here it sorts the papers by year which is used on the next files
     print("producao_anual.xlsx was generated\n")
-    # writes 4n production
-    write_4n_production(papers, session)
-    print("producao_4n.xlsx was generated\n")
     # writes researcher summary
     write_researchers_summary(researchers, session)
     print("sumario_docentes.xlsx was generated\n")
