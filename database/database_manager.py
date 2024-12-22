@@ -1,5 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, Table, ForeignKey, MetaData
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy_schemadisplay import create_schema_graph
 
 from database.base import Base
@@ -11,12 +11,14 @@ from database.entities.paper import Paper, JournalPaper, ConferencePaper, journa
 from database.entities.book import BookManuscript, Book, BookChapter, ResearcherPublishedBook, ResearcherPublishedBookChapter
 from database.entities.other_works import Patent, EditorialBoard, ConferenceOrganization, ResearcherPatent
 
+from config import output_path
 
 def start_database(sqlite: bool):
     """Starts the database returning the session"""
     engine = create_engine("sqlite:///:memory:", echo=False)
     if sqlite:
-        engine = create_engine("sqlite:///db.sqlite3", echo=False)
+        print(f'sqlite:///{output_path}mysql.db')
+        engine = create_engine(f'sqlite:///{output_path}mysql.db', echo=False)
 
     Base.metadata.create_all(engine, checkfirst=True)
     Session = sessionmaker(bind=engine)
@@ -27,7 +29,7 @@ def start_database(sqlite: bool):
 def database_schema_png():
     """Creates and .png with a schema of the database"""
     # remember to change the engine to one which is persistent
-    Session = start_database(True)
+    start_database(True)
     graph = create_schema_graph(metadata=MetaData("sqlite:///db.sqlite3"),
                                 show_datatypes=False,  # The image would get nasty big if we"d show the datatypes
                                 show_indexes=False,  # ditto for indexes
