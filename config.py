@@ -130,6 +130,10 @@ collaboration_graphs_alpha = 0.3
 # The rate at which the nodes speed approaches 0
 collaboration_graphs_alpha_decay = 0.2
 
+# The file with CAPES areas
+df_areas = pd.read_excel(resources_path + 'areas.xlsx')
+areas = dict(zip(df_areas.codigo, df_areas.area))
+
 # The file with JCR scores
 df_jcr = pd.read_excel(resources_path + 'jcr' + os.sep + 'jcr-2022.xlsx')
 jcr = dict(zip(df_jcr.issn, df_jcr.if_2022))

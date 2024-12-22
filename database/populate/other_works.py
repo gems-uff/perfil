@@ -4,14 +4,14 @@ from utils.log import log_possible_lattes_duplication, log_unify
 from database.entities.researcher import Researcher
 from database.entities.other_works import ConferenceOrganization, EditorialBoard, EditorialBoardType, Prize, \
     ResearcherPatent, Patent, PatentType
-from config import unify_patent
+from config import unify_patent, areas
 
 
-def add_researcher_conference_management(session, tree, researcher_id):
+def add_researcher_conference_management(session, tree, researcher):
     '''Adds all conferences managed by the researcher from a lattes .xml file'''
     conferences_managed = tree.xpath(
         "/CURRICULO-VITAE/PRODUCAO-TECNICA/DEMAIS-TIPOS-DE-PRODUCAO-TECNICA/ORGANIZACAO-DE-EVENTO")
-    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+    researcher_name = researcher.name
 
     for conference in conferences_managed:
         basic_data = conference.findall("DADOS-BASICOS-DA-ORGANIZACAO-DE-EVENTO")[0]
@@ -26,19 +26,19 @@ def add_researcher_conference_management(session, tree, researcher_id):
 
         # Lattes duplication
         lattes_duplication = session.query(ConferenceOrganization).filter(
-            and_(ConferenceOrganization.researcher_id == researcher_id,
+            and_(ConferenceOrganization.researcher_id == researcher.id,
                  func.lower(ConferenceOrganization.title) == func.lower(title), ConferenceOrganization.year == year)).all()
 
         if len(lattes_duplication) > 0:
-            log_possible_lattes_duplication("researcher_conference_management", researcher_name, researcher_id, title, year)
+            log_possible_lattes_duplication("researcher_conference_management", researcher_name, researcher.id, title, year)
 
-        session.add(ConferenceOrganization(researcher_id=researcher_id, title=title, year=year, committee=committee))
+        session.add(ConferenceOrganization(researcher_id=researcher.id, title=title, year=year, committee=committee))
 
 
-def add_researcher_editorial_board(session, tree, researcher_id):
+def add_researcher_editorial_board(session, tree, researcher):
     '''Adds all the jobs of a researcher while working in journals from the lattes .xml file'''
     jobs = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL")
-    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+    researcher_name = researcher.name
 
     for job in jobs:
         contracts = job.findall("VINCULOS")
@@ -54,14 +54,14 @@ def add_researcher_editorial_board(session, tree, researcher_id):
 
                 # Lattes duplication
                 lattes_duplication = session.query(EditorialBoard).filter(
-                    and_(EditorialBoard.researcher_id == researcher_id,
+                    and_(EditorialBoard.researcher_id == researcher.id,
                         func.lower(EditorialBoard.journal_name) == func.lower(journal_name), EditorialBoard.type == type,
                         EditorialBoard.start_year == start_year)).all()
 
                 if len(lattes_duplication) > 0:
-                    log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher_id, journal_name, type, start_year)
+                    log_possible_lattes_duplication("reseacher_editorial_board", researcher_name, researcher.id, journal_name, type, start_year)
 
-                session.add(EditorialBoard(researcher_id=researcher_id, journal_name=journal_name, type=type,
+                session.add(EditorialBoard(researcher_id=researcher.id, journal_name=journal_name, type=type,
                                         start_year=start_year, end_year=end_year))
 
 
@@ -73,33 +73,31 @@ def editorial_board_type_switch(other_link):
         return EditorialBoardType.REVISER
 
 
-def add_researcher_patents_software(session, tree, researcher_id):
+def add_researcher_patents_software(session, tree, researcher):
     '''Adds all the software pantents or ordinary patents from a lattes .xml file'''
     programs = tree.xpath("/CURRICULO-VITAE/PRODUCAO-TECNICA/SOFTWARE")
-    researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
+    researcher_name = researcher.name
 
     for program in programs:
-        program_patent = get_or_add_patent(session, program, True, researcher_id, researcher_name)
+        program_patent = get_or_add_patent(session, program, True, researcher.id, researcher_name)
 
-        check_lattes_duplication_patent(program_patent, researcher_id, researcher_name, session)
+        check_lattes_duplication_patent(program_patent, researcher.id, researcher_name, session)
 
         if program_patent is not None:
-            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher_id,
+            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher.id,
                                                           ResearcherPatent.patent_id == program_patent.id).all()) == 0:
-                session.add(ResearcherPatent(patent_id=program_patent.id, researcher_id=researcher_id))
-                session.flush()
+                session.add(ResearcherPatent(patent_id=program_patent.id, researcher_id=researcher.id))
 
     patents = tree.xpath("/CURRICULO-VITAE/PRODUCAO-TECNICA/PATENTE")
 
     for patent in patents:
-        patent_in_db = get_or_add_patent(session, patent, False, researcher_id, researcher_name)
+        patent_in_db = get_or_add_patent(session, patent, False, researcher.id, researcher_name)
 
-        check_lattes_duplication_patent(patent_in_db, researcher_id, researcher_name, session)
+        check_lattes_duplication_patent(patent_in_db, researcher.id, researcher_name, session)
 
         if patent_in_db is not None:
-            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher_id, ResearcherPatent.patent_id == patent_in_db.id).all()) == 0:
-                session.add(ResearcherPatent(patent_id=patent_in_db.id, researcher_id=researcher_id))
-                session.flush()
+            if len(session.query(ResearcherPatent).filter(ResearcherPatent.researcher_id == researcher.id, ResearcherPatent.patent_id == patent_in_db.id).all()) == 0:
+                session.add(ResearcherPatent(patent_id=patent_in_db.id, researcher_id=researcher.id))
 
 
 def get_or_add_patent(session, patent, software_patent: bool, researcher_id, researcher_name):
@@ -153,19 +151,25 @@ def get_or_add_patent(session, patent, software_patent: bool, researcher_id, res
     return new_patent
 
 
-def add_researcher_prizes(session, tree, researcher_id):
+def check_lattes_duplication_patent(patent, researcher_id, researcher_name, session):
+    this_researcher_patent_relationship = session.query(ResearcherPatent.patent_id).filter(ResearcherPatent.researcher_id == researcher_id)
+    this_researcher_patents_in_db = session.query(Patent).filter(Patent.number == patent.number, Patent.id.in_(this_researcher_patent_relationship)).all()
+
+    for patent_in_db in this_researcher_patents_in_db:
+        log_possible_lattes_duplication("researcher_patent", researcher_name, researcher_id, patent_in_db.id,
+                                            patent_in_db.title, patent_in_db.year, patent_in_db.number)
+        
+
+def add_researcher_prizes(session, tree, researcher):
     '''Adds all prizes from a lattes .xml file'''
     lattes_prizes = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/PREMIOS-TITULOS/PREMIO-TITULO")
-    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).one()
 
     for lattes_prize in lattes_prizes:
         name = lattes_prize.get("NOME-DO-PREMIO-OU-TITULO")
         entity = lattes_prize.get("NOME-DA-ENTIDADE-PROMOTORA")
         year = lattes_prize.get("ANO-DA-PREMIACAO")
         
-        prize = Prize(name=name, entity=entity, year=year)
-        researcher.prizes.append(prize)
-        
+        prize = Prize(researcher=researcher, name=name, entity=entity, year=year)        
         session.add(prize)
         session.flush()
 

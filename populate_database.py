@@ -5,8 +5,7 @@ from zipfile import ZipFile
 from config import lattes_dir, researchers_file, similarity_dir
 from database.database_manager import start_database
 from database.populate.book import add_researcher_published_books, add_researcher_published_chapters
-from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, \
-    add_researcher_patents_software, add_researcher_prizes
+from database.populate.other_works import add_researcher_conference_management, add_researcher_editorial_board, add_researcher_patents_software, add_researcher_prizes
 from database.populate.researcher_and_project import *
 from database.populate.titles_support import add_researcher_advisements, add_researcher_committees
 from database.populate.venue_and_paper import add_journal_papers, add_conference_papers, add_coauthor_papers
@@ -23,18 +22,19 @@ def lattes(lattes_id, session, google_scholar_id):
         with zip.open('curriculo.xml') as file:
             tree = etree.parse(file)
 
-            researcher_id = add_researcher(session, tree, google_scholar_id, lattes_id)
-            add_conference_papers(session, tree, researcher_id, conferences_similarity_dict)
-            add_journal_papers(session, tree, researcher_id, journals_similarity_dict)
-            add_projects(session, tree, researcher_id, project_similarity_dict)
-            add_researcher_advisements(session, tree, researcher_id)
-            add_researcher_committees(session, tree, researcher_id)
-            add_researcher_conference_management(session, tree, researcher_id)
-            add_researcher_editorial_board(session, tree, researcher_id)
-            add_researcher_published_books(session, tree, researcher_id)
-            add_researcher_published_chapters(session, tree, researcher_id)
-            add_researcher_patents_software(session, tree, researcher_id)
-            add_researcher_prizes(session, tree, researcher_id)
+            researcher = add_researcher(session, tree, google_scholar_id, lattes_id)
+            add_conference_papers(session, tree, researcher, conferences_similarity_dict)
+            add_journal_papers(session, tree, researcher, journals_similarity_dict)
+            add_projects(session, tree, researcher, project_similarity_dict)
+            add_researcher_education(session, tree, researcher)
+            add_researcher_advisements(session, tree, researcher)
+            add_researcher_committees(session, tree, researcher)
+            add_researcher_conference_management(session, tree, researcher)
+            add_researcher_editorial_board(session, tree, researcher)
+            add_researcher_published_books(session, tree, researcher)
+            add_researcher_published_chapters(session, tree, researcher)
+            add_researcher_patents_software(session, tree, researcher)
+            add_researcher_prizes(session, tree, researcher)
 
 
 def update_database_info(session):
@@ -68,6 +68,7 @@ def main(one_researcher_profile = None):
         print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
 
     update_database_info(session)
+    session.flush()
     print("\nFinished populating the database. \n")
 
     create_similarities_xlsx()

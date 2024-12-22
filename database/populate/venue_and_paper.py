@@ -90,13 +90,13 @@ def get_or_create_journal(session, journal_details, similarity_dict):
     return journal_list[0]
 
 
-def add_journal_papers(session, tree, researcher_id, journals_similarity_dict):
+def add_journal_papers(session, tree, researcher, journals_similarity_dict):
     """Adds both published journal papers and accepted ones"""
-    add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, True)
-    add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, False)
+    add_journal_papers_published_and_accepted(session, tree, researcher, journals_similarity_dict, True)
+    add_journal_papers_published_and_accepted(session, tree, researcher, journals_similarity_dict, False)
 
 
-def add_journal_papers_published_and_accepted(session, tree, researcher_id, journals_similarity_dict, published):
+def add_journal_papers_published_and_accepted(session, tree, researcher, journals_similarity_dict, published):
     """Populates the JournalPaper table"""
     papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-PUBLICADOS/ARTIGO-PUBLICADO") \
         if published else tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/ARTIGOS-ACEITOS-PARA-PUBLICACAO/ARTIGO-ACEITO-PARA-PUBLICACAO")
@@ -105,7 +105,6 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
                                      details_attribute="DETALHAMENTO-DO-ARTIGO", title_attribute="TITULO-DO-ARTIGO",
                                      year_attribute="ANO-DO-ARTIGO", session=session,
                                      similarity_dict=journals_similarity_dict)
-    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
     for paper_venue in papers_and_venues:
         paper = paper_venue[0]
@@ -115,7 +114,7 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
         for this_researcher_paper_in_db in researcher.journal_papers:
             if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
                     or (this_researcher_paper_in_db.title.lower() == paper.title.lower() and this_researcher_paper_in_db.nature == paper.nature):
-                log_possible_lattes_duplication("researcher_journal_paper", researcher.name, researcher_id, this_researcher_paper_in_db.id,
+                log_possible_lattes_duplication("researcher_journal_paper", researcher.name, researcher.id, this_researcher_paper_in_db.id,
                                                 this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
                 break
 
@@ -129,26 +128,22 @@ def add_journal_papers_published_and_accepted(session, tree, researcher_id, jour
             for journal_paper in journal_papers_in_db:
                 if researcher.name not in journal_paper.authors: journal_paper.authors += ";" + researcher.name
                 journal_paper.researchers.append(researcher)
-                session.flush()
                 log_unify(journal_paper.title, researcher.id, researcher.name)
         else:
             accepted = not published
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
                                              first_page=paper.first_page, last_page=paper.last_page,
                                              authors=paper.authors, venue=venue.id, accepted=accepted)
-            session.flush()
             new_journal_paper.researchers.append(researcher)
 
 
-def add_conference_papers(session, tree, researcher_id, conferences_similarity_dict):
+def add_conference_papers(session, tree, researcher, conferences_similarity_dict):
     """Populates the ConferencePaper table"""
     papers_element_list = tree.xpath("/CURRICULO-VITAE/PRODUCAO-BIBLIOGRAFICA/TRABALHOS-EM-EVENTOS/TRABALHO-EM-EVENTOS")
     papers_and_venues = get_papers(element_list=papers_element_list, basic_data_attribute="DADOS-BASICOS-DO-TRABALHO",
                                      details_attribute="DETALHAMENTO-DO-TRABALHO", title_attribute="TITULO-DO-TRABALHO",
                                      year_attribute="ANO-DO-TRABALHO", session=session,
                                      similarity_dict=conferences_similarity_dict)
-    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
-
     for paper_venue in papers_and_venues:
         paper = paper_venue[0]
         venue = paper_venue[1]
@@ -157,7 +152,7 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
         for this_researcher_paper_in_db in researcher.conference_papers:
             if (this_researcher_paper_in_db.doi == paper.doi and paper.doi is not None and paper.doi != "") \
                     or (this_researcher_paper_in_db.title.lower() == paper.title.lower() and this_researcher_paper_in_db.nature == paper.nature):
-                log_possible_lattes_duplication("researcher_conference_paper", researcher.name, researcher_id, this_researcher_paper_in_db.id,
+                log_possible_lattes_duplication("researcher_conference_paper", researcher.name, researcher.id, this_researcher_paper_in_db.id,
                                                 this_researcher_paper_in_db.title, this_researcher_paper_in_db.nature, this_researcher_paper_in_db.doi)
                 break
 
@@ -171,13 +166,11 @@ def add_conference_papers(session, tree, researcher_id, conferences_similarity_d
             for conference_paper in conference_papers_in_db:
                 if researcher.name not in conference_paper.authors: conference_paper.authors += ";" + researcher.name
                 conference_paper.researchers.append(researcher)
-                session.flush()
                 log_unify(conference_paper.title, researcher.id, researcher.name)
         else:
             new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
                                                    year=paper.year, first_page=paper.first_page,
                                                    last_page=paper.last_page, authors=paper.authors, venue=venue.id)
-            session.flush()
             new_conference_paper.researchers.append(researcher)
 
 

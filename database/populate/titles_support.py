@@ -24,7 +24,7 @@ class Degree(Enum):
     PHD = "DOUTORADO"
 
 
-def add_researcher_advisements(session, tree, researcher_id):
+def add_researcher_advisements(session, tree, researcher):
     """Call functions to populate the ResearcherAdvisement table"""
     students_advised = None
     try:
@@ -37,14 +37,14 @@ def add_researcher_advisements(session, tree, researcher_id):
     students_advised_others = students_advised.findall("OUTRAS-ORIENTACOES-CONCLUIDAS")
 
     add_titles_support_from_element_list(session, students_advised_masters, AdvisorOrCommittee.ADVISOR, Degree.MASTER,
-                                         researcher_id)
+                                         researcher)
     add_titles_support_from_element_list(session, students_advised_phds, AdvisorOrCommittee.ADVISOR, Degree.PHD,
-                                         researcher_id)
+                                         researcher)
     add_titles_support_from_element_list(session, students_advised_others, AdvisorOrCommittee.ADVISOR_OTHERS,
-                                         Degree.NOT_DEFINED, researcher_id)
+                                         Degree.NOT_DEFINED, researcher)
 
 
-def add_researcher_committees(session, tree, researcher_id):
+def add_researcher_committees(session, tree, researcher):
     """Call functions to populate the ReseacherCommittee table"""
     students_judged = None
     try:
@@ -61,23 +61,22 @@ def add_researcher_committees(session, tree, researcher_id):
                                        "-JULGADORA-PARA-CONCURSO-PUBLICO")
 
     add_titles_support_from_element_list(session, students_judged_bachelor, AdvisorOrCommittee.COMMITTEE,
-                                         Degree.BACHELOR, researcher_id)
+                                         Degree.BACHELOR, researcher)
     add_titles_support_from_element_list(session, students_judged_specialization, AdvisorOrCommittee.COMMITTEE,
-                                         Degree.SPECIALIZATION, researcher_id)
+                                         Degree.SPECIALIZATION, researcher)
     add_titles_support_from_element_list(session, students_judged_qualification, AdvisorOrCommittee.COMMITTEE,
-                                         Degree.QUALIFICATION, researcher_id)
+                                         Degree.QUALIFICATION, researcher)
     add_titles_support_from_element_list(session, students_judged_masters, AdvisorOrCommittee.COMMITTEE, Degree.MASTER,
-                                         researcher_id)
+                                         researcher)
     add_titles_support_from_element_list(session, students_judged_phds, AdvisorOrCommittee.COMMITTEE, Degree.PHD,
-                                         researcher_id)
+                                         researcher)
 
     add_titles_support_from_element_list(session, civil_servants_judged, AdvisorOrCommittee.CIVIL_SERVICE_COMMITTEE,
-                                         Degree.NOT_DEFINED, researcher_id)
+                                         Degree.NOT_DEFINED, researcher)
 
 
 def add_titles_support_from_element_list(session, element_list, advisor_or_committee: AdvisorOrCommittee,
-                                         degree: Degree,
-                                         researcher_id):
+                                         degree: Degree, researcher):
     """Populates the ReseacherAdviser or ResearcherCommittee tables according with the parameters recivied"""
     advisor_or_committee = advisor_or_committee.value
     degree = degree.value
@@ -108,13 +107,13 @@ def add_titles_support_from_element_list(session, element_list, advisor_or_commi
         if (AdvisorOrCommittee.COMMITTEE.value in advisor_or_committee) or \
                 (AdvisorOrCommittee.CIVIL_SERVICE_COMMITTEE.value in advisor_or_committee):
 
-            add_researcher_committee_in_bd(college, degree, element, name, nature, researcher_id, session, title, year)
+            add_researcher_committee_in_bd(college, degree, element, name, nature, researcher, session, title, year)
 
         else:
-            add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id, session, title, year)
+            add_researcher_advisement_in_bd(college, degree, name, nature, researcher, session, title, year)
 
 
-def add_researcher_committee_in_bd(college, degree, element, name, nature, researcher_id, session, title, year):
+def add_researcher_committee_in_bd(college, degree, element, name, nature, researcher, session, title, year):
     team = ""
     for member in element.findall("PARTICIPANTE-BANCA"):
         team += member.get("NOME-COMPLETO-DO-PARTICIPANTE-DA-BANCA") + ";"
@@ -122,29 +121,29 @@ def add_researcher_committee_in_bd(college, degree, element, name, nature, resea
     type = committee_type_switch(degree, nature)
 
     lattes_duplication = session.query(Committee).filter(
-        and_(researcher_id == Committee.researcher_id, name == Committee.student_name,
+        and_(researcher.id == Committee.researcher_id, name == Committee.student_name,
              type == Committee.type, year == Committee.year)).all()
 
     if len(lattes_duplication) > 0:
-        researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
-        log_possible_lattes_duplication("reseacher_committee", researcher_name, researcher_id, name, type, year)
+        researcher_name = researcher.name
+        log_possible_lattes_duplication("reseacher_committee", researcher_name, researcher.id, name, type, year)
 
-    session.add(Committee(researcher_id=researcher_id, student_name=name, college=college,
+    session.add(Committee(researcher_id=researcher.id, student_name=name, college=college,
                           year=year, title=title, type=type, team=team))
 
 
-def add_researcher_advisement_in_bd(college, degree, name, nature, researcher_id, session, title, year):
+def add_researcher_advisement_in_bd(college, degree, name, nature, researcher, session, title, year):
     type = advisor_type_switch(degree, nature)
 
     lattes_duplication = session.query(Advisement).filter(
-        and_(Advisement.researcher_id == researcher_id, Advisement.student_name == name,
+        and_(Advisement.researcher_id == researcher.id, Advisement.student_name == name,
              Advisement.type == type, Advisement.year == year)).all()
 
     if len(lattes_duplication) > 0:
-        researcher_name = session.query(Researcher.name).filter(Researcher.id == researcher_id).all()[0][0]
-        log_possible_lattes_duplication("researcher_advisement", researcher_name, researcher_id, name, type, year, title)
+        researcher_name = researcher.name
+        log_possible_lattes_duplication("researcher_advisement", researcher_name, researcher.id, name, type, year, title)
 
-    session.add(Advisement(researcher_id=researcher_id, student_name=name, college=college,
+    session.add(Advisement(researcher=researcher, student_name=name, college=college,
                            year=year, title=title, type=type))
 
 

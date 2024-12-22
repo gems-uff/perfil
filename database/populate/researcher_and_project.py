@@ -2,7 +2,8 @@ from os import listdir, sep
 from os.path import isfile, join
 from sqlalchemy import or_, and_, func
 from database.database_manager import Researcher, Project, Membership, Affiliation
-from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project
+from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project, areas
+from database.entities.researcher import Education, EducationType
 from utils.similarity_manager import detect_similar
 from utils.log import log_unify, log_possible_lattes_duplication
 
@@ -24,7 +25,7 @@ def add_researcher(session, tree, google_scholar_id, lattes_id):
                                 lattes_id=lattes_id)
     session.add(new_researcher)
     session.flush()
-    return new_researcher.id
+    return new_researcher
 
 
 def check_if_project_is_in_the_database(session, project_name, similarity_dict):
@@ -47,12 +48,11 @@ def check_if_project_is_in_the_database(session, project_name, similarity_dict):
     return False, None
 
 
-def add_projects(session, tree, researcher_id, similarity_dict):
+def add_projects(session, tree, researcher, similarity_dict):
     """Populates the Project and ResearcherProject table"""
 
     projects = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/ATUACOES-PROFISSIONAIS/ATUACAO-PROFISSIONAL/ATIVIDADES-DE"
                           "-PARTICIPACAO-EM-PROJETO/PARTICIPACAO-EM-PROJETO/PROJETO-DE-PESQUISA")
-    researcher = session.query(Researcher).filter(Researcher.id == researcher_id).all()[0]
 
     for project in projects:
         name = project.get("NOME-DO-PROJETO").upper()
@@ -60,10 +60,10 @@ def add_projects(session, tree, researcher_id, similarity_dict):
 
         # Lattes duplication
         if project_already_in_the_database[0]:
-            this_researcher_projects_relationship = session.query(Membership.project_id).filter(Membership.researcher_id == researcher_id)
+            this_researcher_projects_relationship = session.query(Membership.project_id).filter(Membership.researcher_id == researcher.id)
             this_researcher_projects_in_db = session.query(Project).filter(func.lower(Project.name) == func.lower(name), Project.id.in_(this_researcher_projects_relationship))
             for project_in_db in this_researcher_projects_in_db:
-                log_possible_lattes_duplication("researcher_project", researcher.name, researcher_id, project_in_db.id, name)
+                log_possible_lattes_duplication("researcher_project", researcher.name, researcher.id, project_in_db.id, name)
 
         # Normalize
         if unify_project and project_already_in_the_database[0]:
@@ -132,5 +132,26 @@ def add_affiliations(session):
 
             if len(researcher) > 0:
                 session.add(Affiliation(researcher=researcher[0].id, year=file))
-                session.flush()
 
+
+def add_researcher_education(session, tree, researcher):
+    '''Adds dsc and postdoc education from a lattes .xml file'''
+    elements = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO')
+    for element in elements:
+        add_education(EducationType.DOCTORATE, element, researcher)
+
+    elements = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/POS-DOUTORADO')
+    for element in elements:
+        add_education(EducationType.POSTDOC, element, researcher)
+
+
+def add_education(type, element, researcher):
+    '''Creates an instance of education'''  
+    course = element.get('NOME-CURSO')
+    codigo_area = element.get('CODIGO-AREA-CURSO')
+    area = areas.get(int(codigo_area) if codigo_area else None, codigo_area)
+    institution = element.get('NOME-INSTITUICAO')
+    start_date = element.get('ANO-DE-INICIO')
+    end_date = element.get('ANO-DE-CONCLUSAO')
+
+    Education(type=type, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, researcher=researcher) 

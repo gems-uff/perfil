@@ -1,6 +1,7 @@
 import enum
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum
 from database.base import Base
+from sqlalchemy.orm import relationship
 
 
 class AdvisementsTypes(enum.Enum):
@@ -26,6 +27,7 @@ class Advisement(Base):
 
     id = Column(Integer, primary_key=True)
     researcher_id = Column(Integer, ForeignKey("researcher.id"))
+    researcher = relationship("Researcher", back_populates="advisements")
     student_name = Column(String)
     college = Column(String)
     year = Column(Integer)
