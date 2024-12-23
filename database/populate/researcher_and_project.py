@@ -154,4 +154,4 @@ def add_education(type, element, researcher):
     start_date = element.get('ANO-DE-INICIO')
     end_date = element.get('ANO-DE-CONCLUSAO')
 
-    Education(type=type, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, researcher=researcher) 
+    Education(type=type.value, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, researcher=researcher) 

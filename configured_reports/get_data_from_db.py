@@ -5,7 +5,7 @@ from database.entities.book import ResearcherPublishedBook, Book, ResearcherPubl
 from database.entities.other_works import Prize, ResearcherPatent, Patent, ConferenceOrganization, \
     EditorialBoard
 from database.entities.project import Membership, Project
-from database.entities.researcher import Researcher
+from database.entities.researcher import Education, Researcher
 from database.entities.titles_support import Advisement, Committee
 from database.entities.venue import Venue
 from utils.list_filters import scope_years_paper_or_support
@@ -35,7 +35,8 @@ def quantity_of_researcher_itens(session, item_class: str, researcher_id):
         "Patente": get_patent_list(session, researcher_id),
         "Periodico": get_paper_list(session, True, researcher_id),
         "Projeto": get_project_list(session, researcher_id),
-        "Premio": get_prize_list(session, researcher_id)
+        "Premio": get_prize_list(session, researcher_id),
+        "Formacao": get_education_list(session, researcher_id)
     }
 
     return len(researcher_itens[item_class])
@@ -227,3 +228,15 @@ def get_prize_list(session, researcher_id=0):
                                               start_year <= Prize.year, Prize.year <= end_year)).all())
 
     return prize_list
+
+
+def get_education_list(session, researcher_id=0):
+    """Returns the education list of a given researcher or all of them"""
+
+    researchers = get_researchers(researcher_id, session)
+    education_list = []
+
+    for researcher in researchers:
+        education_list.extend(researcher.educations)
+
+    return education_list

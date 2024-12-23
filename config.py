@@ -1,6 +1,7 @@
 import os
 import enum
 import pandas as pd
+from configured_reports.user_classes.formacao import Formacao
 from configured_reports.user_classes.premio import Premio
 from utils.dict_xlsx_utils import read_dict
 from configured_reports.user_classes.periodico import Periodico
@@ -69,6 +70,15 @@ configured_reports = {
         Premio.ano,
         Premio.nome,
         Premio.entidade
+    ],
+    "Formacao": [
+        Pesquisador.nome,
+        Formacao.tipo,
+        Formacao.inicio,
+        Formacao.fim,
+        Formacao.instituicao,
+        Formacao.area,
+        Formacao.curso
     ]
 }
 

@@ -1,4 +1,4 @@
-from configured_reports.get_item_info import get_prize_entity_list, get_prize_name_list, get_prize_year_list, get_researchers_names, get_last_lattes_update_list, get_phd_college_list, \
+from configured_reports.get_item_info import get_education_attribute_list, get_prize_attribute_list, get_researchers_names, get_last_lattes_update_list, get_phd_college_list, \
     get_phd_defense_year_list, get_google_scholar_id_list, get_lattes_id_list, get_paper_year_list, \
     get_paper_title_list, get_venue_names_list, get_papers_pages_list, get_papers_qualis_list, get_jcr_list, \
     get_forum_oficial_list, get_doi_list, get_qualis_points_list, get_authors_list, get_issn_list, \
@@ -16,6 +16,7 @@ from configured_reports.user_classes.banca import Banca
 from configured_reports.user_classes.capitulo import Capitulo
 from configured_reports.user_classes.conferencia import Conferencia
 from configured_reports.user_classes.corpo_editorial import Corpo_Editorial
+from configured_reports.user_classes.formacao import Formacao
 from configured_reports.user_classes.livro import Livro
 from configured_reports.user_classes.organizacao_evento import Organizacao_Evento
 from configured_reports.user_classes.orientacao import Orientacao
@@ -202,12 +203,10 @@ def write_item_info(session, item: str, worksheet, col, make_cartesian_product_r
         value_list = get_book_authors_list(session, True)
     elif item == Capitulo.titulo_livro:
         value_list = get_chapter_title_list(session)
-    elif item == Premio.nome:
-        value_list = get_prize_name_list(session)
-    elif item == Premio.entidade:
-        value_list = get_prize_entity_list(session)
-    elif item == Premio.ano:
-        value_list = get_prize_year_list(session)
+    elif item.split('.')[0] == 'Premio':
+        value_list = get_prize_attribute_list(session, Premio.mapeamento[item].split('.')[1])
+    elif item.split('.')[0] == 'Formacao':
+        value_list = get_education_attribute_list(session, Formacao.mapeamento[item].split('.')[1])
     else:
         print("There isn't any information named \"" + item + "\"\n")
 

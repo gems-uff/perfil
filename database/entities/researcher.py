@@ -36,8 +36,8 @@ class Affiliation(Base):
     
 
 class EducationType(enum.Enum):
-    DOCTORATE = "doutorado"
-    POSTDOC = "posdoc"
+    DOCTORATE = 'doutorado'
+    POSTDOC = 'posdoc'
 
 
 class Education(Base):
@@ -46,7 +46,7 @@ class Education(Base):
     id = Column(Integer, primary_key=True)
     researcher_id = Column(Integer, ForeignKey("researcher.id"))
     researcher = relationship("Researcher", back_populates="educations")
-    type = Column(Enum(EducationType))
+    type = Column(String)
     course = Column(String)
     area = Column(String)
     institution = Column(String)
