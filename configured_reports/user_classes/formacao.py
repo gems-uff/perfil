@@ -9,6 +9,7 @@ class Formacao:
     instituicao = "Formacao.instituicao"
     inicio = "Formacao.inicio"
     fim = "Formacao.fim"
+    status = "Formacao.status"
 
     mapeamento = {
         tipo: str(Education.type),
@@ -16,7 +17,8 @@ class Formacao:
         area: str(Education.area),
         instituicao: str(Education.institution),
         inicio: str(Education.start_date),
-        fim: str(Education.end_date)
+        fim: str(Education.end_date),
+        status: str(Education.status)
     }
 
     def __init__(self):

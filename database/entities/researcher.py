@@ -52,6 +52,7 @@ class Education(Base):
     institution = Column(String)
     start_date = Column(Integer)
     end_date = Column(Integer)
+    status = Column(String)
 
     def __repr__(self):
         return str(self.__dict__)

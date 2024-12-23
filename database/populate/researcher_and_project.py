@@ -13,7 +13,7 @@ def add_researcher(session, tree, google_scholar_id, lattes_id):
     name = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/@NOME-COMPLETO")[0]
     last_lattes_update = str(tree.xpath("/CURRICULO-VITAE/@DATA-ATUALIZACAO")[0])
     phd = tree.xpath("/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO")[0]
-    phd_defense_year = phd.get("ANO-DE-CONCLUSAO")
+    phd_defense_year = int(phd.get("ANO-DE-CONCLUSAO"))
     phd_college = phd.get("NOME-INSTITUICAO")
     google_scholar_id = google_scholar_id
     if (last_lattes_update is not None) and (len(last_lattes_update) >= 8):
@@ -153,5 +153,6 @@ def add_education(type, element, researcher):
     institution = element.get('NOME-INSTITUICAO')
     start_date = element.get('ANO-DE-INICIO')
     end_date = element.get('ANO-DE-CONCLUSAO')
+    status = element.get('STATUS-DO-CURSO')
 
-    Education(type=type.value, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, researcher=researcher) 
+    Education(type=type.value, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, status=status, researcher=researcher) 

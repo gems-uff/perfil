@@ -76,6 +76,7 @@ configured_reports = {
         Formacao.tipo,
         Formacao.inicio,
         Formacao.fim,
+        Formacao.status,
         Formacao.instituicao,
         Formacao.area,
         Formacao.curso
