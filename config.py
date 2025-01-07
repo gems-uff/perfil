@@ -146,8 +146,9 @@ df_areas = pd.read_excel(resources_path + 'areas.xlsx')
 areas = dict(zip(df_areas.codigo, df_areas.area))
 
 # The file with JCR scores
-df_jcr = pd.read_excel(resources_path + 'jcr' + os.sep + 'jcr-2022.xlsx')
-jcr = dict(zip(df_jcr.issn, df_jcr.if_2022))
+df_jcr = pd.read_excel(resources_path + 'jcr' + os.sep + 'jcr-2023.xlsx')
+jcr = dict(zip(df_jcr.EISSN, df_jcr.JIF))
+jcr.update(dict(zip(df_jcr.ISSN, df_jcr.JIF)))
 
 # The file with conferences' qualis
 df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2020.xlsx')

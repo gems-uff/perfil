@@ -72,7 +72,7 @@ def get_or_create_journal(session, journal_details, similarity_dict):
 
     if len(journal_list) == 0:
         journal_name = journal_details.get("TITULO-DO-PERIODICO-OU-REVISTA").upper()
-        journal_jcr = jcr[journal_issn] if journal_issn in jcr and not math.isnan(jcr[journal_issn]) else 0
+        journal_jcr = float(jcr[journal_issn]) if journal_issn in jcr else 0
 
         qualis_and_forum = get_qualis_value_from_xlsx(journal_issn, journal_name, similarity_dict, False)
         qualis = None
