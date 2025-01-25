@@ -57,8 +57,7 @@ def researcher_production_paper_iterator(array_papers, researcher, session, work
     """For each paper of a given researcher calls the function to write its info"""
     for i in range(len(array_papers)):
         paper = array_papers[i]
-        venue = session.query(Journal).filter(paper.venue == Journal.id).all()[0] if is_journal_paper \
-            else session.query(Conference).filter(paper.venue == Conference.id).all()[0]  # Gets the paper venue
+        venue = paper.venue
 
         write_production_paper(paper, researcher, row, venue, worksheet, is_journal_paper, True)
         row += 1  # next paper info must be written on next row
@@ -99,8 +98,7 @@ def write_yearly_production(papers, session):
 
     for i in range(len(papers)):
         is_journal_paper = isinstance(papers[i], JournalPaper)
-        venue = session.query(Journal).filter(papers[i].venue == Journal.id).all()[0] if is_journal_paper \
-            else session.query(Conference).filter(papers[i].venue == Conference.id).all()[0]
+        venue = papers[i].venue
 
         write_production_paper(papers[i], None, i + 2, venue, worksheet, is_journal_paper, False)
 
@@ -193,7 +191,7 @@ def write_researchers_summary(researchers, session):
     for researcher in researchers:
         conference_papers = filter_completed_scope_years_papers(researcher.conference_papers)
         journal_papers = list(filter(published_journal_paper, filter_completed_scope_years_papers(researcher.journal_papers)))
-        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
+        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x), journal_papers))
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)
 
@@ -217,7 +215,7 @@ def write_yearly_summary(papers, session):
     for year in papers_by_year:
         conference_papers = list(filter(conference_paper, papers_by_year[year]))
         journal_papers = list(filter(journal_paper, papers_by_year[year]))
-        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), journal_papers))
+        journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x), journal_papers))
 
         write_summary(conference_papers, journal_papers, journal_papers_jcr, year, row, session, worksheet)
 
@@ -232,9 +230,9 @@ def remove_paper_duplicates(papers_list, session):
 
     for i in range(len(papers)):
         if papers[i] in new_list:
-            venue_i = session.query(Venue).filter(Venue.id == papers[i].venue).all()[0]
+            venue_i = papers[i].venue
             for j in range(i + 1, len(papers)):
-                venue_j = session.query(Venue).filter(Venue.id == papers[j].venue).all()[0]
+                venue_j = papers[j].venue
                 same_venue = venue_i.official_forum == venue_j.official_forum if (venue_i.official_forum is not None) and (venue_j.official_forum is not None) else venue_i.name.lower() == venue_j.name.lower()
                 same_year = papers[i].year == papers[j].year
 

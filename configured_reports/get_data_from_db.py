@@ -75,13 +75,9 @@ def get_papers_venues_list(session, is_journal: bool, researcher_id=0):
     """Returns the list of venues of journal papers or conference papers of a given researcher or all of them"""
 
     papers = get_paper_list(session, is_journal, researcher_id)
-    venues_ids = [paper.venue for paper in papers]
-    venue_list = []
+    venues = [paper.venue for paper in papers]
 
-    for venue_id in venues_ids:
-        venue_list.append(session.query(Venue).filter(Venue.id == venue_id).all()[0])
-
-    return venue_list
+    return venues
 
 
 def get_advisement_list(session, researcher_id=0):

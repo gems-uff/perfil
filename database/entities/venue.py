@@ -1,6 +1,7 @@
 import enum
 
 from sqlalchemy import Column, Integer, Float, String, ForeignKey, Enum
+from sqlalchemy.orm import relationship
 
 from config import QualisLevel
 from database.base import Base
@@ -28,6 +29,7 @@ class Conference(Venue):
     __tablename__ = "conference"
 
     id = Column(Integer, ForeignKey("venue.id"), primary_key=True)
+    papers = relationship('ConferencePaper', back_populates='venue')
     acronym = Column(String)
 
     __mapper_args__ = {
@@ -42,6 +44,7 @@ class Journal(Venue):
     __tablename__ = "journal"
 
     id = Column(Integer, ForeignKey("venue.id"), primary_key=True)
+    papers = relationship('JournalPaper', back_populates='venue')
     issn = Column(String)
     jcr = Column(Float)
 

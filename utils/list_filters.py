@@ -31,10 +31,9 @@ def completed_paper_filter(paper: Paper):
     return paper.nature == PaperNature.COMPLETE or (journal_paper(paper) and allow_in_press and paper.accepted)
 
 
-def jcr_pub_filter(paper: JournalPaper, session, jcr_value):
-    """filter only already published, complete papers which have jcr higher than the parameter"""
-    return (session.query(Journal.jcr).filter(Journal.id == paper.venue).all()[0][0] > jcr_value) and (
-            paper.nature == PaperNature.COMPLETE) and (paper.accepted is False)
+def jcr_pub_filter(paper: JournalPaper):
+    """filter only papers which have jcr"""
+    return paper.venue.jcr  # None or 0 yield False, otherwise True
 
 
 def published_journal_paper(paper: JournalPaper):
@@ -50,12 +49,12 @@ def accepted_journal_paper_jcr(paper: JournalPaper, session, jcr_value):
 
 def qualis_level_journal(paper: JournalPaper, session, qualis_level: QualisLevel):
     """filters journal papers by a QualisLevel"""
-    return session.query(Journal.qualis).filter(Journal.id == paper.venue).all()[0][0] == qualis_level
+    return paper.venue.qualis == qualis_level
 
 
 def qualis_level_conference(paper: ConferencePaper, session, qualis_level: QualisLevel):
     """filters conference papers by a QualisLevel"""
-    return session.query(Conference.qualis).filter(Conference.id == paper.venue).all()[0][0] == qualis_level
+    return paper.venue.qualis == qualis_level
 
 
 def journal_paper(paper):

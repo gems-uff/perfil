@@ -133,7 +133,7 @@ def add_journal_papers_published_and_accepted(session, tree, researcher, journal
             accepted = not published
             new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
                                              first_page=paper.first_page, last_page=paper.last_page,
-                                             authors=paper.authors, venue=venue.id, accepted=accepted)
+                                             authors=paper.authors, venue=venue, accepted=accepted)
             new_journal_paper.researchers.append(researcher)
 
 
@@ -170,7 +170,7 @@ def add_conference_papers(session, tree, researcher, conferences_similarity_dict
         else:
             new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
                                                    year=paper.year, first_page=paper.first_page,
-                                                   last_page=paper.last_page, authors=paper.authors, venue=venue.id)
+                                                   last_page=paper.last_page, authors=paper.authors, venue=venue)
             new_conference_paper.researchers.append(researcher)
 
 

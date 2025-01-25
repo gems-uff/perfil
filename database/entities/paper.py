@@ -44,9 +44,10 @@ class JournalPaper(Paper):
     __tablename__ = "journal_paper"
 
     id = Column(Integer, ForeignKey("paper.id"), primary_key=True)
-    venue = Column(Integer, ForeignKey("journal.id"))
-    accepted = Column(Boolean, default=False)
+    venue_id = Column(Integer, ForeignKey("journal.id"))
+    venue = relationship("Journal", back_populates="papers")
     researchers = relationship("Researcher", secondary=journal_association_table, backref="journal_papers")
+    accepted = Column(Boolean, default=False)
 
     __mapper_args__ = {
         "polymorphic_identity": "journal_paper"
@@ -60,7 +61,8 @@ class ConferencePaper(Paper):
     __tablename__ = "conference_paper"
 
     id = Column(Integer, ForeignKey("paper.id"), primary_key=True)
-    venue = Column(Integer, ForeignKey("conference.id"))
+    venue_id = Column(Integer, ForeignKey("conference.id"))
+    venue = relationship("Conference", back_populates="papers")
     researchers = relationship("Researcher", secondary=conference_association_table, backref="conference_papers")
 
     __mapper_args__ = {
