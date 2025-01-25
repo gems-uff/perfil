@@ -15,7 +15,6 @@ openpyxl = "*"
 matplotlib = "*"
 sqlalchemy = "*"
 sqlalchemy-schemadisplay = "*"
-pylcs = "*"
 flask = "*"
 
 [requires]

@@ -1,9 +1,9 @@
-import pylcs
+from difflib import SequenceMatcher
 
 
 def get_similarity(text_one, text_two):
     '''Auxiliar function to do the lcs calculations'''
-    return 2.0 * pylcs.lcs(text_one, text_two) / (len(text_one) + len(text_two))
+    return SequenceMatcher(None, text_one, text_two).ratio()
 
 
 def detect_similar(text, texts_to_compare, minimum_similarity, similarity_dict):
