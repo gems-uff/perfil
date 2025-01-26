@@ -59,7 +59,6 @@ def get_or_create_conference(session, conference_name, similarity_dict):
 
         conference = Conference(name=conference_name, qualis=qualis, acronym=acronym, official_forum=forum_oficial)
         session.add(conference)
-        session.flush()
         return conference
 
     return conference_list[0]
@@ -83,7 +82,6 @@ def get_or_create_journal(session, journal_details, similarity_dict):
 
         journal = Journal(name=journal_name, issn=journal_issn, jcr=journal_jcr, qualis=qualis, official_forum=forum_oficial)
         session.add(journal)
-        session.flush()
 
         return journal
 
@@ -127,14 +125,13 @@ def add_journal_papers_published_and_accepted(session, tree, researcher, journal
             # for each paper paper found in the db, adds the researcher_journal_paper relationship
             for journal_paper in journal_papers_in_db:
                 if researcher.name not in journal_paper.authors: journal_paper.authors += ";" + researcher.name
-                journal_paper.researchers.append(researcher)
+                researcher.journal_papers.append(journal_paper)
                 log_unify(journal_paper.title, researcher.id, researcher.name)
         else:
             accepted = not published
-            new_journal_paper = JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
-                                             first_page=paper.first_page, last_page=paper.last_page,
-                                             authors=paper.authors, venue=venue, accepted=accepted)
-            new_journal_paper.researchers.append(researcher)
+            session.add(JournalPaper(title=paper.title, doi=paper.doi, year=paper.year, nature=paper.nature,
+                                     first_page=paper.first_page, last_page=paper.last_page,
+                                     authors=paper.authors, venue=venue, accepted=accepted, researchers=[researcher]))
 
 
 def add_conference_papers(session, tree, researcher, conferences_similarity_dict):
@@ -165,13 +162,12 @@ def add_conference_papers(session, tree, researcher, conferences_similarity_dict
             # for each paper paper found in the db, adds the researcher_conference_paper relationship
             for conference_paper in conference_papers_in_db:
                 if researcher.name not in conference_paper.authors: conference_paper.authors += ";" + researcher.name
-                conference_paper.researchers.append(researcher)
+                researcher.conference_papers.append(conference_paper)
                 log_unify(conference_paper.title, researcher.id, researcher.name)
         else:
-            new_conference_paper = ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
-                                                   year=paper.year, first_page=paper.first_page,
-                                                   last_page=paper.last_page, authors=paper.authors, venue=venue)
-            new_conference_paper.researchers.append(researcher)
+            session.add(ConferencePaper(title=paper.title, doi=paper.doi, nature=paper.nature,
+                                        year=paper.year, first_page=paper.first_page,
+                                        last_page=paper.last_page, authors=paper.authors, venue=venue, researchers=[researcher]))
 
 
 def get_papers(element_list, basic_data_attribute, details_attribute, title_attribute, year_attribute, session,

@@ -13,7 +13,7 @@ from utils.list_filters import active_researcher_project, completed_paper_filter
 
 
 def lattes_full(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
-                masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement, phd_committee,
+                masters_committee, papers_with_jcr, phd_advisement, phd_committee,
                 profile, projects_coordinated, projects_participated):
     """Populates the profile dictionary with information from all years"""
 
@@ -36,13 +36,12 @@ def lattes_full(completed_and_published_journal_papers, completed_conference_pap
     new_profile['Publicações (total)'] = new_profile['Publicações em Congressos (total)'] + new_profile['Publicações em Periódicos (total)']
 
     new_profile['Publicações JCR (total)'] = len(papers_with_jcr)
-    new_profile['Publicações JCR > 1,5 (total)'] = len(papers_with_jcr_bigger_than_1_5)
 
     return new_profile
 
 
 def lattes_scope_years(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
-                       masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement,
+                       masters_committee, papers_with_jcr, phd_advisement,
                        phd_committee, profile, projects_coordinated, projects_participated, researcher, session):
     """Populates the profile dictionary with information only within the years specified in config.py"""
 
@@ -66,9 +65,6 @@ def lattes_scope_years(completed_and_published_journal_papers, completed_confere
     new_profile['Publicações'] = new_profile['Publicações em Congressos'] + new_profile['Publicações em Periódicos']
 
     new_profile['Publicações JCR'] = len(list(filter(scope_years_paper_or_support, papers_with_jcr)))
-    new_profile['Publicações JCR > 1,5'] = len(list(filter(scope_years_paper_or_support, papers_with_jcr_bigger_than_1_5)))
-    new_profile['Aceitações JCR > 1,5'] = len(list(filter(lambda x: accepted_journal_paper_jcr(x, session, 1.5), researcher.journal_papers)))
-    new_profile['Artigos JCR > 1,5'] = new_profile['Publicações JCR > 1,5'] + new_profile['Aceitações JCR > 1,5']
 
     return new_profile
 
@@ -99,8 +95,7 @@ def lattes(researcher, session):
     completed_journal_papers = list(filter(completed_paper_filter, researcher.journal_papers))
     completed_and_published_journal_papers = list(filter(published_journal_paper, completed_journal_papers))
 
-    papers_with_jcr = list(filter(lambda x: jcr_pub_filter(x, session, 0), researcher.journal_papers))
-    papers_with_jcr_bigger_than_1_5 = list(filter(lambda x: jcr_pub_filter(x, session, 1.5), researcher.journal_papers))
+    papers_with_jcr = list(filter(lambda x: jcr_pub_filter(x), researcher.journal_papers))
 
     profile = {}
 
@@ -109,11 +104,11 @@ def lattes(researcher, session):
     profile['Idade Acadêmica'] = datetime.now().year - researcher.phd_defense_year if researcher.phd_defense_year > 0 else 0
 
     profile = lattes_full(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
-                masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement, phd_committee,
+                masters_committee, papers_with_jcr, phd_advisement, phd_committee,
                 profile, projects_coordinated, projects_participated)
 
     profile = lattes_scope_years(completed_and_published_journal_papers, completed_conference_papers, masters_advisement,
-                       masters_committee, papers_with_jcr, papers_with_jcr_bigger_than_1_5, phd_advisement,
+                       masters_committee, papers_with_jcr, phd_advisement,
                        phd_committee, profile, projects_coordinated, projects_participated, researcher, session)
 
     return profile

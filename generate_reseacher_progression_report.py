@@ -36,7 +36,7 @@ def write_journal_papers(researcher, session, workbook):
 
     paper_index = 0
     for row in range(2, len(journal_papers) + 2):
-        venue = session.query(Journal).filter(Journal.id == journal_papers[paper_index].venue).one()
+        venue = journal_papers[paper_index].venue
 
         worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{journal_papers[paper_index].doi}")' if journal_papers[paper_index].doi else '')
         worksheet.cell(row=row, column=2, value=journal_papers[paper_index].authors)
@@ -71,7 +71,7 @@ def write_conference_papers(researcher, session, workbook):
 
     paper_index = 0
     for row in range(2, len(conference_papers) + 2):
-        venue = session.query(Conference).filter(Conference.id == conference_papers[paper_index].venue).one()
+        venue = conference_papers[paper_index].venue
 
         worksheet.cell(row=row, column=1, value=f'=HYPERLINK("https://www.doi.org/{conference_papers[paper_index].doi}")' if conference_papers[paper_index].doi else '')
         worksheet.cell(row=row, column=2, value=conference_papers[paper_index].authors)

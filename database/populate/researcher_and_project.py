@@ -24,7 +24,6 @@ def add_researcher(session, tree, google_scholar_id, lattes_id):
                                 phd_defense_year=phd_defense_year, google_scholar_id=google_scholar_id,
                                 lattes_id=lattes_id)
     session.add(new_researcher)
-    session.flush()
     return new_researcher
 
 
@@ -86,7 +85,6 @@ def add_projects(session, tree, researcher, similarity_dict):
 
             new_project = Project(name=name, start_year=start_year, end_year=end_year, team=team, manager=manager)
             session.add(new_project)
-            session.flush()
 
             add_one_researcher_project_relationship(new_project, researcher, session)
 
@@ -138,14 +136,14 @@ def add_researcher_education(session, tree, researcher):
     '''Adds dsc and postdoc education from a lattes .xml file'''
     elements = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/DOUTORADO')
     for element in elements:
-        add_education(EducationType.DOCTORATE, element, researcher)
+        add_education(session, EducationType.DOCTORATE, element, researcher)
 
     elements = tree.xpath('/CURRICULO-VITAE/DADOS-GERAIS/FORMACAO-ACADEMICA-TITULACAO/POS-DOUTORADO')
     for element in elements:
-        add_education(EducationType.POSTDOC, element, researcher)
+        add_education(session, EducationType.POSTDOC, element, researcher)
 
 
-def add_education(type, element, researcher):
+def add_education(session, type, element, researcher):
     '''Creates an instance of education'''  
     course = element.get('NOME-CURSO')
     codigo_area = element.get('CODIGO-AREA-CURSO')
@@ -155,4 +153,4 @@ def add_education(type, element, researcher):
     end_date = element.get('ANO-DE-CONCLUSAO')
     status = element.get('STATUS-DO-CURSO')
 
-    Education(type=type.value, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, status=status, researcher=researcher) 
+    session.add(Education(type=type.value, course=course, area=area, institution=institution, start_date=start_date, end_date=end_date, status=status, researcher=researcher))

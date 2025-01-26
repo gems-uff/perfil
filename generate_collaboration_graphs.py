@@ -7,14 +7,18 @@ from collaboration_graphs.generate_graphs import generate_graphs
 
 template_dir = os.getcwd() + os.sep + "collaboration_graphs" + os.sep + "templates"
 application = Flask("Collaboration Graphs", template_folder=template_dir)
+first_run = True
 graphs = None
 
 
-@application.before_first_request
+@application.before_request
 def populate_graphs():
-    global graphs
-    session = populate_database.main()
-    graphs = generate_graphs(session).copy()
+    global first_run, graphs
+
+    if (first_run):
+        session = populate_database.main()
+        graphs = generate_graphs(session).copy()
+        first_run = False
 
 
 @application.route("/", methods=["GET"])

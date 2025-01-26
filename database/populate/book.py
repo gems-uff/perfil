@@ -29,7 +29,6 @@ def get_or_add_book_id(session, basic_data, details, book_authors, researcher_id
 
     new_book = Book(title=title, publisher=publisher, year=year, authors=authors, doi=doi)
     session.add(new_book)
-    session.flush()
 
     return new_book
 
@@ -89,7 +88,6 @@ def get_or_add_chapter_id(session, basic_data, details, chapter_authors, researc
     new_chapter = BookChapter(title=book_title, publisher=publisher, year=year, authors=authors,
                               chapter_title=chapter_title)
     session.add(new_chapter)
-    session.flush()
 
     return new_chapter
 
@@ -120,4 +118,3 @@ def add_researcher_published_chapters(session, tree, researcher):
 
         if relationship_not_in_db:
             session.add(ResearcherPublishedBookChapter(published_book_chapter_id=added_chapter.id, researcher_id=researcher.id))
-            session.flush()

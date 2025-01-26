@@ -146,7 +146,6 @@ def get_or_add_patent(session, patent, software_patent: bool, researcher_id, res
     new_patent = Patent(type=type, title=title, number=number, local_of_registry=local_of_registry,
                         year=year, authors=authors)
     session.add(new_patent)
-    session.flush()
 
     return new_patent
 
@@ -168,10 +167,8 @@ def add_researcher_prizes(session, tree, researcher):
         name = lattes_prize.get("NOME-DO-PREMIO-OU-TITULO")
         entity = lattes_prize.get("NOME-DA-ENTIDADE-PROMOTORA")
         year = lattes_prize.get("ANO-DA-PREMIACAO")
-        
-        prize = Prize(researcher=researcher, name=name, entity=entity, year=year)        
-        session.add(prize)
-        session.flush()
+                
+        session.add(Prize(researcher=researcher, name=name, entity=entity, year=year))
 
 
 def check_lattes_duplication_patent(patent, researcher_id, researcher_name, session):
