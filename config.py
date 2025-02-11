@@ -17,7 +17,7 @@ test_resources_path = os.getcwd() + os.sep + 'test_resources' + os.sep
 output_path = os.getcwd() + os.sep + 'output' + os.sep
 
 #researchers_file = test_resources_path + 'test.xlsx'
-researchers_file = resources_path + 'pgc.xlsx'
+researchers_file = resources_path + 'pgc-2021-2024.xlsx'
 
 # The first and last years, inclusive, for collecting metrics.
 start_year = 2021
