@@ -1,5 +1,6 @@
 import openpyxl
 import os
+from database.entities.researcher import Affiliation
 import populate_database
 from collections import defaultdict
 from config import generate_datacapes_output_dir, QualisLevel, datacapes_minimum_similarity_titles
@@ -12,6 +13,12 @@ from utils.list_filters import scope_years_paper_or_support, published_journal_p
 
 def filter_completed_scope_years_papers(paper_list):
     return list(filter(completed_paper_filter, list(filter(scope_years_paper_or_support, paper_list))))
+
+
+def write(worksheet, row, column, value):
+    worksheet.cell(row, column, value)
+    return column + 1
+
 
 def write_production_header(worksheet, write_researcher : bool):
     """Writes the header of the xlsx file"""
@@ -133,67 +140,80 @@ def write_paper_number_by_qualis(session, column, papers, row, worksheet, is_jou
     return restricted_index, general_index
 
 
-def write_summary_header(worksheet):
+def write_summary_header(worksheet, entity, per_researcher=False):
     """Writes the header of datacapes summary files"""
-    worksheet.cell(row=1, column=1, value="ENTIDADE")
-    worksheet.cell(row=1, column=2, value="PERIODICOS JCR")
-    column = 3
+    column = write(worksheet, 1, 1, entity)
+    if per_researcher:
+        column = write(worksheet, 1, column, 'DOCENTES')
+    column = write(worksheet, 1, column, 'PERIODICOS JCR')    
     column = write_summary_header_papers(column, "PERIODICO", worksheet)
     column = write_summary_header_papers(column, "CONFERENCIA", worksheet)
-    worksheet.cell(row=1, column=column, value="I-RESTRITO PERIODICO")
-    worksheet.cell(row=1, column=column + 1, value="I-RESTRITO CONFERENCIA")
-    worksheet.cell(row=1, column=column + 2, value="I-RESTRITO TOTAL")
-    worksheet.cell(row=1, column=column + 3, value="I-GERAL PERIODICO")
-    worksheet.cell(row=1, column=column + 4, value="I-GERAL CONFERENCIA")
-    worksheet.cell(row=1, column=column + 5, value="I-GERAL TOTAL")
-    worksheet.cell(row=1, column=column + 6, value="SATURACAO (TRAVA)")
+    column = write(worksheet, 1, column, 'I-RESTRITO PERIODICO')
+    column = write(worksheet, 1, column, 'I-RESTRITO CONFERENCIA')
+    column = write(worksheet, 1, column, 'I-RESTRITO TOTAL')
+    if per_researcher:
+        column = write(worksheet, 1, column, 'I-RESTRITO POR DOCENTE')
+    column = write(worksheet, 1, column, 'I-GERAL PERIODICO')
+    column = write(worksheet, 1, column, 'I-GERAL CONFERENCIA')
+    column = write(worksheet, 1, column, 'I-GERAL TOTAL')
+    if per_researcher:
+        column = write(worksheet, 1, column, 'I-GERAL POR DOCENTE')
+    column = write(worksheet, 1, column, 'SATURACAO (TRAVA)')
 
 
-def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity, row, session, worksheet):
+def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity, per_researcher, row, session, worksheet):
     """Writes the quantitative info about papers in a .xlsx file"""
-    worksheet.cell(row=row, column=1, value=entity)
-    worksheet.cell(row=row, column=2, value=len(journal_papers_jcr))
-    journal_indexes = write_paper_number_by_qualis(session, 3, journal_papers, row, worksheet, True)
-    conference_indexes = write_paper_number_by_qualis(session, len(QualisLevel) + 3,
-                                                      conference_papers, row, worksheet, False)
+    column = write(worksheet, row, 1, entity)
+    if per_researcher:
+        num_researchers = session.query(Affiliation).filter(Affiliation.year == entity).count()
+        column = write(worksheet, row, column, num_researchers)
+    column = write(worksheet, row, column, len(journal_papers_jcr))
+    journal_indexes = write_paper_number_by_qualis(session, column, journal_papers, row, worksheet, True)
+    conference_indexes = write_paper_number_by_qualis(session, len(QualisLevel) + column, conference_papers, row, worksheet, False)
 
     # get indexes from tuple
     journal_restricted_index = journal_indexes[0]
     conference_restricted_index = conference_indexes[0]
+    restricted_index = journal_restricted_index + conference_restricted_index
     journal_general_index = journal_indexes[1]
     conference_general_index = conference_indexes[1]
+    general_index = journal_general_index + conference_general_index
 
-    column = len(QualisLevel) * 2 + 3 # column number jump after writing the number of journals and conferences by qualis
+    column = len(QualisLevel) * 2 + column # column number jump after writing the number of journals and conferences by qualis
 
-    worksheet.cell(row=row, column=column, value=journal_restricted_index)
-    worksheet.cell(row=row, column=column + 1, value=conference_restricted_index)
-    worksheet.cell(row=row, column=column + 2, value=journal_restricted_index + conference_restricted_index)
-    worksheet.cell(row=row, column=column + 3, value=journal_general_index)
-    worksheet.cell(row=row, column=column + 4, value=conference_general_index)
-    worksheet.cell(row=row, column=column + 5, value=journal_general_index + conference_general_index)
+    column = write(worksheet, row, column, journal_restricted_index)
+    column = write(worksheet, row, column, conference_restricted_index)
+    column = write(worksheet, row, column, restricted_index)
+    if per_researcher:
+        column = write(worksheet, row, column, restricted_index / num_researchers)
+    column = write(worksheet, row, column, journal_general_index)
+    column = write(worksheet, row, column, conference_general_index)
+    column = write(worksheet, row, column, general_index)
+    if per_researcher:
+        column = write(worksheet, row, column, general_index / num_researchers)
 
     # SATURACAO (TRAVA)
     if journal_general_index != 0:
-        worksheet.cell(row=row, column=column + 6, value=conference_general_index / journal_general_index)
+        column = write(worksheet, row, column, conference_general_index / journal_general_index)
     else:
         if conference_general_index != 0:
-            worksheet.cell(row=row, column=column + 6, value="INF.")
+            column = write(worksheet, row, column, "INF.")
         else:
-            worksheet.cell(row=row, column=column + 6, value="IND.")
+            column = write(worksheet, row, column, "IND.")
 
 
 def write_researchers_summary(researchers, session):
     """Writes the sumario_docentes.xlsx file"""
     wb = openpyxl.Workbook()
     worksheet = wb.active
-    write_summary_header(worksheet)
+    write_summary_header(worksheet, 'DOCENTE', False)
     row = 2  # the header uses the first row
     for researcher in researchers:
         conference_papers = filter_completed_scope_years_papers(researcher.conference_papers)
         journal_papers = list(filter(published_journal_paper, filter_completed_scope_years_papers(researcher.journal_papers)))
         journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x), journal_papers))
 
-        write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, row, session, worksheet)
+        write_summary(conference_papers, journal_papers, journal_papers_jcr, researcher.name, False, row, session, worksheet)
 
         row += 1  # a row for each researcher
     wb.save(generate_datacapes_output_dir + os.sep + "sumario_docentes.xlsx")
@@ -209,7 +229,7 @@ def write_yearly_summary(papers, session):
 
     wb = openpyxl.Workbook()
     worksheet = wb.active
-    write_summary_header(worksheet)
+    write_summary_header(worksheet, 'ANO', True)
     row = 2
 
     for year in papers_by_year:
@@ -217,7 +237,7 @@ def write_yearly_summary(papers, session):
         journal_papers = list(filter(journal_paper, papers_by_year[year]))
         journal_papers_jcr = list(filter(lambda x: jcr_pub_filter(x), journal_papers))
 
-        write_summary(conference_papers, journal_papers, journal_papers_jcr, year, row, session, worksheet)
+        write_summary(conference_papers, journal_papers, journal_papers_jcr, year, True, row, session, worksheet)
 
         row += 1 # a row for each year
     wb.save(generate_datacapes_output_dir + os.sep + "sumario_anual.xlsx")
@@ -238,8 +258,7 @@ def remove_paper_duplicates(papers_list, session):
 
                 if same_venue and same_year and (papers[j] in new_list) \
                         and (papers[i].title.lower() == papers[j].title.lower() or get_similarity(papers[i].title.lower(), papers[j].title.lower()) >= datacapes_minimum_similarity_titles):
-
-                    if isinstance(papers[i], JournalPaper) and isinstance(papers[j], JournalPaper) and (venue_i.jcr < venue_j.jcr) and (papers[i] in new_list):
+                    if isinstance(papers[i], JournalPaper) and isinstance(papers[j], JournalPaper) and (venue_i.jcr is not None) and (venue_j.jcr is not None) and (venue_i.jcr < venue_j.jcr) and (papers[i] in new_list):
                         new_list.remove(papers[i])  # removes the paper with the wrong issn
                     else:
                         new_list.remove(papers[j])  # if there are two papers with the same title, two researchers worked on the same paper, one gets remove
