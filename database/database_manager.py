@@ -13,17 +13,20 @@ from database.entities.other_works import Patent, EditorialBoard, ConferenceOrga
 
 from config import output_path
 
-def start_database(sqlite: bool):
+def start_database(persistent=False, populate=False):
     """Starts the database returning the session"""
-    engine = create_engine("sqlite:///:memory:", echo=False)
-    if sqlite:
-        print(f'sqlite:///{output_path}mysql.db')
-        engine = create_engine(f'sqlite:///{output_path}mysql.db', echo=False)
+    if persistent:
+        engine = create_engine(f'sqlite:///{output_path}sqlite.db', echo=False)
+    else:
+        engine = create_engine("sqlite:///:memory:", echo=False)
+    print(f'Database started at {engine.url}')
 
-    Base.metadata.create_all(engine, checkfirst=True)
+    if populate:
+        Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
     Session = sessionmaker(bind=engine)
-    SessionObject = Session()
-    return SessionObject
+    return Session()
 
 
 def database_schema_png():

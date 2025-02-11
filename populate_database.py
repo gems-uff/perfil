@@ -51,29 +51,33 @@ def create_similarities_xlsx():
     write_dict(journals_similarity_dict, similarity_dir+os.sep+"journals_similar")
 
 
-def main(one_researcher_profile = None):
-    df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
-    max = len(df) if one_researcher_profile is None else 1
-    print('Processing', max, 'researchers...\n')
+def main(one_researcher_profile = None, populate = False):
     # database_schema_png()
-    session = start_database(False)
+    session = start_database(persistent=False) if one_researcher_profile else start_database(persistent=True, populate=populate) 
 
-    for i, row in df.iterrows():
-        profile = row.to_dict() if one_researcher_profile == None else one_researcher_profile
-        print(profile['Nome'] + '...')
-        if not pd.isnull(profile['ID Lattes']):
-            lattes(profile['ID Lattes'], session, profile['ID Scholar'])
-            if one_researcher_profile is not None: break
+    if one_researcher_profile or populate:
+        df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
+        max = len(df) if one_researcher_profile is None else 1
+        print('Processing', max, 'researchers...\n')
 
-        print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
+        for i, row in df.iterrows():
+            profile = row.to_dict() if one_researcher_profile == None else one_researcher_profile
+            print(profile['Nome'] + '...')
+            if not pd.isnull(profile['ID Lattes']):
+                lattes(profile['ID Lattes'], session, profile['ID Scholar'])
+                if one_researcher_profile is not None: break
 
-    update_database_info(session)
-    session.flush()
-    print("\nFinished populating the database. \n")
+            print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
 
-    create_similarities_xlsx()
+        update_database_info(session)
+        session.flush()
+        session.commit()
+        session.close()
+        print("\nFinished populating the database. \n")
+        create_similarities_xlsx()
+
     return session
 
 
 if __name__ == "__main__":
-    main()
+    main(populate=True)

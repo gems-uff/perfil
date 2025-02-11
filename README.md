@@ -59,7 +59,7 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 9. Se ainda houver mais currículos lattes para baixar, o programa irá repetir o passo 8, faça-o até não haver mais arquivos para atualizar.
 
-10. populate_database.py popula o banco de dados, in-memory, usando os lattes dos pesquisadores que estão no arquivo de pesquisadores (passo 3 acima) e gera os arquivos de similares na pasta "output/similarity_xlsx".
+10. populate_database.py popula o banco de dados usando os lattes dos pesquisadores que estão no arquivo de pesquisadores (passo 3 acima) e gera os arquivos de similares na pasta "output/similarity_xlsx".
 
 `~/perfil$ python populate_database.py`
 
