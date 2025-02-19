@@ -70,7 +70,7 @@ def editorial_board_type_switch(other_link):
     if "Membro" in other_link:
         return EditorialBoardType.EDITORIAL_BOARD
     elif "Revisor" in other_link:
-        return EditorialBoardType.REVISER
+        return EditorialBoardType.REVIEWER
 
 
 def add_researcher_patents_software(session, tree, researcher):

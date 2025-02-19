@@ -6,8 +6,8 @@ from database.base import Base
 
 
 class EditorialBoardType(enum.Enum):
-    EDITORIAL_BOARD = "editorial_board"
-    REVISER = "reviewer"
+    EDITORIAL_BOARD = "journal_editorial_board"
+    REVIEWER = "journal_reviewer"
 
 
 class EditorialBoard(Base):

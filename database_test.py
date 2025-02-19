@@ -418,7 +418,7 @@ class DatabaseTestCase(unittest.TestCase):
         # REVISER
         self.assertEqual(editorial_board_job_two.researcher_id, 1)
         self.assertEqual(editorial_board_job_two.journal_name, "Software and Systems Modeling (1619-1366)")
-        self.assertEqual(editorial_board_job_two.type, EditorialBoardType.REVISER)
+        self.assertEqual(editorial_board_job_two.type, EditorialBoardType.REVIEWER)
         self.assertEqual(editorial_board_job_two.start_year, 2007)
         self.assertEqual(editorial_board_job_two.end_year, 2007)
         # BACKREF
