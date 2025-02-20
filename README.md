@@ -11,7 +11,7 @@ Esse projeto permite a análise do perfil de pesquisadores usando tanto o Lattes
 ## Instalação
 
 ### Requisitos 
-Assumimos que você tem o Python 3.8+ instalado no seu computador.
+Assumimos que você tem o Python 3.13+ instalado no seu computador.
 
 ### Passos para Instalação
 
@@ -100,6 +100,16 @@ Assumimos que você tem o Python 3.8+ instalado no seu computador.
 
 `~/perfil$ python generate_collaboration_graphs.py`
 
+20. Use analyze_international_collaborations.py para exibir, para determinados anos ou quadriênios, a quantidade total de produções, a quantidade de produções com estrangeiros, e o percentual de produções com estrangeiros. Para executar este script, é necessário baixar os arquivos `conferencia_programa {ano}.xls` da plataforma Sucupira para os anos desejados e colocar no diretório resources. 
+O script permite especificar como parâmetro quais são os anos desejados para a análise, ao passar só os números dos anos. Também é possível fazer análises de quadriênios usando os prefixos `q`, `m` ou `t` seguido do ano inicial do quadriênio (por exemplo, `q2017` para analisar 2017-2020). O prefixo `q` é equivalente a passar os quatro anos do quadriênio individualmente. Ou seja, `q2021` é o mesmo que usar o parâmetro `2021 2022 2023 2024`. O prefixo `m` calcula a média anual do quadriênio. Por fim, o prefixo `t` calcula a soma total de produções no quadriênio. O seguinte comando analisa a média de colaborações internacionais do quadriênio 2017-2020 e os resultados anuais do quadriênio 2021-2024:
+
+`~/perfil$ python analyze_international_collaborations.py m2017 q2021`
+
+Alternativamente, este mesmo comando pode ser executado como:
+
+`~/perfil$ python analyze_international_collaborations.py m2017 2021 2022 2023 2024`
+
+
 ## Execução dos testes:
 
 1. Entre no diretório do projeto:
@@ -147,6 +157,9 @@ Script que gera boxplot de publicações com JCR maior que 1,5 a partir dos dado
 
 ### write_profile.py
 Script com a funcionalidade de preencher as informações quantitativas dos pesquisadores do arquivo de pesquisadores no mesmo. Usa os dados dos currículos Lattes e do Google Scholar.
+
+### analyze_international_collaborations.py
+Script que analisa o percentual de colaboração internacional em determinado ano.
 
 ## Váriaveis do arquivo config.py
 
