@@ -19,19 +19,10 @@ def read_excel(input_path: str, sheet_name: str|int = 0) -> pd.DataFrame:
     return df
 
 
-def identify_year(
-        year: str|int,
-        products: Optional[set[int]] = None,
-        products_with_foreigners: Optional[set[int]] = None
-    ) -> TResult:
-    """Obtem informações de participante externo e produções do programa do arquivo `conferencia_programa {ano}.xls`
-    
-    Se quiser juntar resultados de diferentes anos, defina `products` e `products_with_foreigneirs` externamente
-    e passe para serem alterados nesta função. O último resultado terá o valor acumulado.
-    """
+def read_foreigners(year: str|int) -> pd.DataFrame:
+    """Carrega participantes externos estrangeiros"""
     external = read_excel(f"resources/conferencia_programa {year}.xls", sheet_name="Participante Externo")
-    authors = read_excel(f"resources/conferencia_programa {year}.xls", sheet_name="Produções - Autores")
-    estrangeiros = set(external[
+    return external[
         (
             (external["Nacionalidade"] == "Estrangeiro") 
             & (external["País da Instituição de Origem"] != "Brasil")
@@ -41,7 +32,22 @@ def identify_year(
             & (~external["País da Instituição de Origem"].isna())
         )
          
-    ]["Identificador da Pessoa do Participante"])
+    ]
+
+
+def identify_products_year(
+        year: str|int,
+        products: Optional[set[int]] = None,
+        products_with_foreigners: Optional[set[int]] = None
+    ) -> TResult:
+    """Obtem informações de participante externo e produções do programa do arquivo `conferencia_programa {ano}.xls`
+    
+    Se quiser juntar resultados de diferentes anos, defina `products` e `products_with_foreigneirs` externamente
+    e passe para serem alterados nesta função. O último resultado terá o valor acumulado.
+    """
+    
+    authors = read_excel(f"resources/conferencia_programa {year}.xls", sheet_name="Produções - Autores")
+    foreigners = set(read_foreigners(year)["Identificador da Pessoa do Participante"])
     bib_products = authors[
         (authors["Tipo de Produção"] == "BIBLIOGRÁFICA")
     ]
@@ -51,7 +57,7 @@ def identify_year(
         products_with_foreigners = set()
     for i, row in bib_products.iterrows():
         products.add(row["ID da Produção"])
-        if row["ID Pessoa do Autor"] in estrangeiros:
+        if row["ID Pessoa do Autor"] in foreigners:
             products_with_foreigners.add(row["ID da Produção"])
     return (
         str(year),
@@ -61,12 +67,12 @@ def identify_year(
     )
 
 
-def identify_quarterly(start_year: int, average: bool = True) -> TResult:
+def identify_products_quarterly(start_year: int, average: bool = True) -> TResult:
     """Analisa quadriênio e calcula média ou valor total"""
     products: set[int] = set()
     products_with_foreigners: set[int] = set()
     for year in range(start_year, start_year + 4):
-        result = identify_year(year, products=products, products_with_foreigners=products_with_foreigners)
+        result = identify_products_year(year, products=products, products_with_foreigners=products_with_foreigners)
     if average:
         result = (f'Média {start_year}-{start_year + 3}', result[1] / 4, result[2] / 4, result[3])
     else:
@@ -90,9 +96,9 @@ def main():
         elif year.startswith('q'):
             first_year = int(year[1:])
             for qyear in range(first_year, first_year + 4):
-                print(args.sep.join(map(str, identify_year(qyear))))
+                print(args.sep.join(map(str, identify_products_year(qyear))))
         else:
-            print(args.sep.join(map(str, identify_year(year))))
+            print(args.sep.join(map(str, identify_products_year(year))))
 
 if __name__ == '__main__':
     main()

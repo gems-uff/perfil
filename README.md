@@ -110,6 +110,16 @@ Alternativamente, este mesmo comando pode ser executado como:
 `~/perfil$ python analyze_international_collaborations.py m2017 2021 2022 2023 2024`
 
 
+21. Use list_international_collaborators.py para exibir, para determinados anos ou quadriênios, a lista de coautores internacionais. Para executar este script, é necessário baixar os arquivos `conferencia_programa {ano}.xls` da plataforma Sucupira para os anos desejados e colocar no diretório resources. Os coautores internacionais são os que estão na aba `Participante Externo` ou com nacionalidade "Estrangeiro" e país da instituição de origem diferente de "Brasil", ou com nacionalidade "Brasileiro" e país da instituição de origem *preenchido* diferente de Brasil.
+O script permite especificar como parâmetro quais são os anos desejados para a listagem, ao passar só os números dos anos. Também é possível fazer análises de quadriênios usando o prefixo `q` seguido do ano inicial do quadriênio (por exemplo, `q2017` para analisar 2017-2020). O prefixo `q` é equivalente a passar os quatro anos do quadriênio individualmente. Ou seja, `q2021` é o mesmo que usar o parâmetro `2021 2022 2023 2024`. O seguinte comando lista os coautores internacionais do quadriênio 2021-2024:
+
+`~/perfil$ python analyze_international_collaborations.py q2021`
+
+Por padrão, esse script lista os coautores a as instituições de origem cadastradas na Sucupira. Se quiser esconder instituições, é possível usar o parâmetro `-i`. Se ao invés da instituição de origem, quiser exibir a instituição de titulação, é possível usar `-t` (note que isso **não** altera o filtro - que continua sendo pelo país da instituição de origem). Alternativamente, use a opção `-c`, que apresenta o resultado como tabela tanto com instituição de origem quanto com a de titulação. Por padrão, o país das instituições é adicionado ao nome da instituição. Se desejar não adicionar, use `-p`.
+
+Por fim, vários coaturoes estão com instituição não especificada na Sucupira. Quando isso ocorre, a instituição não fica listada. Se preferir exibir "Não Especificado", use o parámetro `-u`.
+
+
 ## Execução dos testes:
 
 1. Entre no diretório do projeto:
@@ -160,6 +170,10 @@ Script com a funcionalidade de preencher as informações quantitativas dos pesq
 
 ### analyze_international_collaborations.py
 Script que analisa o percentual de colaboração internacional em determinado ano.
+
+### list_international_collaborators.py
+Script que lista o nome dos coautores internacionais.
+
 
 ## Váriaveis do arquivo config.py
 
