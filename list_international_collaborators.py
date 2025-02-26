@@ -2,18 +2,21 @@
 
 É necessário ter arquivos `conferencia_programa {ano}.xls` para os anos analisados no diretório `resources`.
 """
-from typing import Optional
+from typing import Optional, Generator
 import argparse
 from collections import defaultdict
 import unicodedata
 from dataclasses import dataclass, field
+import pandas as pd
 
-from analyze_international_collaborations import read_foreigners
+from analyze_international_collaborations import read_foreigners, read_excel
 
 @dataclass
 class CoAuthorData():
     source: set[str] = field(default_factory=set)
     title: set[str] = field(default_factory=set)
+    publications: set[str] = field(default_factory=set)
+    ids: set[int] = field(default_factory=set)
 
 UNSPECIFIED = "Não Especificado"
 
@@ -38,14 +41,19 @@ def identify_authors_year(
     """
     if author_dict is None:
         author_dict = defaultdict(CoAuthorData)
+    authors = read_excel(f"resources/conferencia_programa {year}.xls", sheet_name="Produções - Autores")
+
     foreigners = read_foreigners(year)
 
     for i, author in foreigners.iterrows():
         title = institution_to_str(author["Nome IES Titulação"], author["País Titulação"], concat_country)
         source = institution_to_str(author["Instituição de Origem"], author["País da Instituição de Origem"], concat_country)
-        author_dict[author["Nome do Participante"].strip().title()].title.add(title)
-        author_dict[author["Nome do Participante"].strip().title()].source.add(source)
-
+        publications = set(get_publications(authors, author["Identificador da Pessoa do Participante"]))
+        if publications:
+            author_dict[author["Nome do Participante"].strip().title()].title.add(title)
+            author_dict[author["Nome do Participante"].strip().title()].source.add(source)
+            author_dict[author["Nome do Participante"].strip().title()].ids.add(author["Identificador da Pessoa do Participante"])
+            author_dict[author["Nome do Participante"].strip().title()].publications |= publications
     return author_dict
 
 
@@ -67,6 +75,14 @@ def identify_authors_quarterly(
     for year in range(start_year, start_year + 4):
         result = identify_authors_year(year, author_dict, concat_country)
     return result
+
+
+def get_publications(authors: pd.DataFrame, author_id: int) -> Generator[str]:
+    """Pega publicações do autor através dos ids"""
+    products = authors[(authors["ID Pessoa do Autor"] == author_id) & (authors["Tipo de Produção"] == "BIBLIOGRÁFICA")]
+    for i, row in products.iterrows():
+        publication = f"{row['Nome da Produção']}, {row['Ano da Produção']}"
+        yield publication
 
 def main():
     parser = argparse.ArgumentParser(description="Lista colaboradores internacionais")
@@ -93,11 +109,13 @@ def main():
 
     if args.csv:
         if not args.no_header:
-            print(args.sep.join(["Colaborador", "Instituição de Origem", "Nome IES Titulação"]))
+            header = ["Colaborador", "Instituição de Origem", "Nome IES Titulação", "Publicações"]
+            print(args.sep.join(header))
         for author, coauthor_data in sorted(author_dict.items(), key=lambda x: unicodedata.normalize('NFKD', x[0])):
             source = "; ".join(filter_unspecified(coauthor_data.source, hide_unspecified))
             title = "; ".join(filter_unspecified(coauthor_data.title, hide_unspecified))
-            print(args.sep.join([author, source, title]))
+            row = [author, source, title, "; ".join(coauthor_data.publications)]
+            print(args.sep.join(row))
     else:
         for author, coauthor_data in sorted(author_dict.items(), key=lambda x: unicodedata.normalize('NFKD', x[0])):
             institutions = filter_unspecified(
