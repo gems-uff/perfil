@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy import and_
 from datetime import datetime
 from bs4 import BeautifulSoup
-from config import start_year, end_year, researchers_file
+from config import start_year, end_year, researchers_file, skip_scholar
 from database.database_manager import Researcher, Membership, Advisement, Committee
 from database.entities.titles_support import AdvisementsTypes, CommitteeTypes
 import populate_database
@@ -133,7 +133,6 @@ def scholar(researcher):
             url = 'https://scholar.google.com/citations?user=' + str(google_scholar_id)
             page = urllib.request.urlopen(url)
             soup = BeautifulSoup(page, 'html.parser')
-
             indexes = soup.find_all("td", "gsc_rsb_std")
             profile['Citações (total)'] = int(indexes[0].string)
             profile['H-Index (total)'] = int(indexes[2].string)
@@ -196,7 +195,8 @@ def normalized(profile):
 def generate_researcher_profile_dict(researcher: Researcher, session):
     """Generates and populates the profile dictionary of a researcher"""
     profile = lattes(researcher, session)
-    profile.update(scholar(researcher))
+    if not skip_scholar:
+        profile.update(scholar(researcher))
     profile.update(normalized(profile))
 
     return profile
@@ -206,13 +206,12 @@ def main():
     session = populate_database.main()
     researchers = session.query(Researcher).all()
 
-    print("Starting to write the profile(s)\n")
+    print("\nStarting to write the profile(s)")
 
-    print("Getting Google Scholar info for each researcher...")
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
     researcher_count = 1
     for researcher in researchers:
-        if not researcher_count % 6:
+        if not skip_scholar and not researcher_count % 6:
             print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
             time.sleep(10)
         profile = generate_researcher_profile_dict(researcher, session)
@@ -221,11 +220,10 @@ def main():
             df.at[researcher_count-1, key] = value
 
         researcher_count += 1
-    print("Finished getting Google Scholar info\n")
 
     df.to_excel(researchers_file, index=False)
 
-    print("Finished writing the profile(s)")
+    print("\nFinished writing the profile(s)")
 
 
 if __name__ == "__main__":

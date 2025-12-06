@@ -26,6 +26,9 @@ end_year = 2024
 # Allows accepted but not yet published journal papers for datacapes
 allow_in_press = False
 
+# Skip Google Scholar data collection
+skip_scholar = False
+
 # Tries to make each input on the database unique
 unify_conference_paper = False
 unify_journal_paper = False
