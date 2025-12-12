@@ -1,4 +1,5 @@
 import os
+import glob
 import pandas as pd
 from lxml import etree
 from zipfile import ZipFile
@@ -18,23 +19,47 @@ project_similarity_dict = dict()
 
 def lattes(lattes_id, session, google_scholar_id):
     """Populates the database with the lattes info"""
-    with ZipFile(lattes_dir + os.sep + str(lattes_id) + '.zip') as zip:
-        with zip.open('curriculo.xml') as file:
-            tree = etree.parse(file)
+    
+    try:
+        # Search for xml or zip files containing the lattes_id in the filename
+        matching_pattern = glob.glob(os.path.join(lattes_dir, f'*{lattes_id}*'))
+        valid_extensions = ('.xml', '.zip')
+        matching_files = [f for f in matching_pattern if f.lower().endswith(valid_extensions)]
 
-            researcher = add_researcher(session, tree, google_scholar_id, lattes_id)
-            add_conference_papers(session, tree, researcher, conferences_similarity_dict)
-            add_journal_papers(session, tree, researcher, journals_similarity_dict)
-            add_projects(session, tree, researcher, project_similarity_dict)
-            add_researcher_education(session, tree, researcher)
-            add_researcher_advisements(session, tree, researcher)
-            add_researcher_committees(session, tree, researcher)
-            add_researcher_conference_management(session, tree, researcher)
-            add_researcher_editorial_board(session, tree, researcher)
-            add_researcher_published_books(session, tree, researcher)
-            add_researcher_published_chapters(session, tree, researcher)
-            add_researcher_patents_software(session, tree, researcher)
-            add_researcher_prizes(session, tree, researcher)
+        # Uses the most recent file
+        if matching_files:
+            matching_files.sort(key=os.path.getmtime, reverse=True)
+            target_file = matching_files[0]
+        else:
+            raise Exception(f"File not found.")
+
+        tree = None
+        if target_file.lower().endswith('.zip'):
+            with ZipFile(target_file) as z:
+                # Find the first xml file inside the zip
+                xml_file = [n for n in z.namelist() if n.lower().endswith('.xml')][0]
+                with z.open(xml_file) as file:
+                    tree = etree.parse(file)
+        else:
+            # It is not zip, so it must be xml
+            with open(target_file, 'rb') as file:
+                tree = etree.parse(file)
+        
+        researcher = add_researcher(session, tree, google_scholar_id, lattes_id)
+        add_conference_papers(session, tree, researcher, conferences_similarity_dict)
+        add_journal_papers(session, tree, researcher, journals_similarity_dict)
+        add_projects(session, tree, researcher, project_similarity_dict)
+        add_researcher_education(session, tree, researcher)
+        add_researcher_advisements(session, tree, researcher)
+        add_researcher_committees(session, tree, researcher)
+        add_researcher_conference_management(session, tree, researcher)
+        add_researcher_editorial_board(session, tree, researcher)
+        add_researcher_published_books(session, tree, researcher)
+        add_researcher_published_chapters(session, tree, researcher)
+        add_researcher_patents_software(session, tree, researcher)
+        add_researcher_prizes(session, tree, researcher)
+    except Exception as e:
+        print(f"\tError processing lattes {lattes_id}: {e}")
 
 
 def update_database_info(session):
@@ -62,12 +87,10 @@ def main(one_researcher_profile = None, populate = False):
 
         for i, row in df.iterrows():
             profile = row.to_dict() if one_researcher_profile == None else one_researcher_profile
-            print(profile['Nome'] + '...')
+            print(profile['Nome'] +  ' ({:.0f}%)'.format((i + 1) / max * 100))
             if not pd.isnull(profile['ID Lattes']):
                 lattes(profile['ID Lattes'], session, profile['ID Scholar'])
-                if one_researcher_profile is not None: break
-
-            print('\tOk ({:.0f}%).'.format((i + 1) / max * 100))
+                if one_researcher_profile: break
 
         update_database_info(session)
         session.flush()
