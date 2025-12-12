@@ -183,7 +183,10 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
         doi = basic_data.get("DOI") if basic_data.get("DOI") != "" else None
         nature = nature_switch(basic_data.get("NATUREZA"))
 
-        year = int(basic_data.get(year_attribute))
+        try:
+            year = int(basic_data.get(year_attribute))
+        except ValueError:
+            year = None
         first_page = paper_details.get("PAGINA-INICIAL")
         try: first_page = int(first_page)
         except: pass
