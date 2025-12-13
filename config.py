@@ -27,7 +27,7 @@ end_year = 2025
 allow_in_press = False
 
 # Skip Google Scholar data collection
-skip_scholar = False
+skip_scholar = True
 
 # Tries to make each input on the database unique
 unify_conference_paper = False
