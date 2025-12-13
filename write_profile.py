@@ -204,22 +204,28 @@ def generate_researcher_profile_dict(researcher: Researcher, session):
 
 def main():
     session = populate_database.main()
-    researchers = session.query(Researcher).all()
 
     print("\nStarting to write the profile(s)")
 
     df = pd.read_excel(researchers_file, dtype={'ID Lattes': object})
-    researcher_count = 1
-    for researcher in researchers:
-        if not skip_scholar and not researcher_count % 6:
-            print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
-            time.sleep(10)
-        profile = generate_researcher_profile_dict(researcher, session)
-        print('{:.0f}%...'.format((researcher_count) / len(researchers) * 100), end="", flush=True)
-        for key, value in profile.items():
-            df.at[researcher_count-1, key] = value
+    total_rows = len(df)
+    
+    for index, row in df.iterrows():
+        lattes_id = row['ID Lattes']
+        researcher = session.query(Researcher).filter(Researcher.lattes_id == lattes_id).first()
 
-        researcher_count += 1
+        if researcher:
+            print(f"{researcher.name} ({index + 1}/{total_rows})")
+            
+            if not skip_scholar and not (index + 1) % 6:
+                print('\nPausing for 10 seconds to avoid Google Scholar complaining...\n')
+                time.sleep(10)
+            
+            profile = generate_researcher_profile_dict(researcher, session)
+            for key, value in profile.items():
+                df.at[index, key] = value
+        else:
+            print(f"Researcher with Lattes ID {lattes_id} not found in database (Row {index + 1}).")
 
     df.to_excel(researchers_file, index=False)
 
