@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 from sqlalchemy import or_, not_, and_, func
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
@@ -183,10 +184,8 @@ def get_papers(element_list, basic_data_attribute, details_attribute, title_attr
         doi = basic_data.get("DOI") if basic_data.get("DOI") != "" else None
         nature = nature_switch(basic_data.get("NATUREZA"))
 
-        try:
-            year = int(basic_data.get(year_attribute))
-        except ValueError:
-            year = None
+        try: year = int(basic_data.get(year_attribute))
+        except: year = datetime.now().year
         first_page = paper_details.get("PAGINA-INICIAL")
         try: first_page = int(first_page)
         except: pass
