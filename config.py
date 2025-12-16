@@ -24,7 +24,7 @@ start_year = 2022
 end_year = 2025
 
 # Allows accepted but not yet published journal papers for datacapes
-allow_in_press = False
+allow_in_press = True
 
 # Skip Google Scholar data collection
 skip_scholar = True
