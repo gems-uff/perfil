@@ -2,7 +2,7 @@ from os import listdir, sep
 from os.path import isfile, join
 from sqlalchemy import or_, and_, func
 from database.database_manager import Researcher, Project, Membership, Affiliation
-from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project, areas, start_year, end_year
+from config import project_name_minimum_similarity, projects_synonyms, affiliations_dir, unify_project, areas, start_year, end_year, require_affiliation
 from database.entities.researcher import Education, EducationType
 from utils.similarity_manager import detect_similar
 from utils.log import log_unify, log_possible_lattes_duplication
@@ -121,8 +121,14 @@ def add_one_researcher_project_relationship(project, researcher, session):
 def add_affiliations(session):
     """Populates the Affiliation table using the files in the affiliation directory"""
 
+    if not require_affiliation:
+        return
+
     for year in range(start_year, end_year + 1):
-        for researcher_name in open(affiliations_dir + sep + str(year)).read().splitlines():
+        affiliation_file = affiliations_dir + sep + str(year)
+        if not isfile(affiliation_file):
+            continue
+        for researcher_name in open(affiliation_file).read().splitlines():
             researcher = session.query(Researcher).filter(Researcher.name == researcher_name).one_or_none()
 
             if researcher:

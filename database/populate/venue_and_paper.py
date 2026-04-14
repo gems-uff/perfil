@@ -1,5 +1,7 @@
+
 from datetime import datetime
 import math
+import re
 from sqlalchemy import or_, not_, and_, func
 from config import conferences_qualis, conferences_synonyms, conferences_minimum_similarity, \
     conferences_papers_title_minimum_similarity, journals_qualis, issn_journals, journals_synonyms, journals_minimum_similarity, \
@@ -37,6 +39,20 @@ def get_qualis_value_from_xlsx(venue_issn, venue_name, similarity_dict, is_confe
     # lcs
     lcs = detect_similar(venue_name, qualis_dictionary, minimum_similarity, similarity_dict)
     if lcs is not None and lcs in qualis_dictionary: return (qualis_dictionary[lcs], lcs)
+
+    # For conferences, try to match by the acronym in parentheses.
+    # Only applies to standalone venues (not satellite events):
+    # - exactly one acronym in parentheses (two would indicate "MAIN (S1), SUB-EVENT (S2)")
+    # - name does not start with a sub-event indicator such as "SESSÃO DE"
+    if is_conference:
+        siglas = re.findall(r'\(([A-Z0-9\-/]+)\)', venue_name)
+        sigla_suffix = f'({siglas[0]})' if siglas else None
+        if (len(siglas) == 1
+                and not venue_name.startswith('SESSÃO DE')
+                and venue_name.endswith(sigla_suffix)):
+            for key in qualis_dictionary:
+                if key.endswith(sigla_suffix):
+                    return (qualis_dictionary[key], key)
 
     return 'NC', ''
 

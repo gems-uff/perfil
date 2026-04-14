@@ -166,6 +166,8 @@ def write_summary(conference_papers, journal_papers, journal_papers_jcr, entity,
     column = write(worksheet, row, 1, entity)
     if per_researcher:
         num_researchers = session.query(Affiliation).filter(Affiliation.year == entity).count()
+        if num_researchers == 0:
+            num_researchers = session.query(Researcher).count()
         column = write(worksheet, row, column, num_researchers)
     column = write(worksheet, row, column, len(journal_papers_jcr))
     journal_indexes = write_paper_number_by_qualis(session, column, journal_papers, row, worksheet, True)

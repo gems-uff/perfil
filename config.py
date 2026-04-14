@@ -29,6 +29,10 @@ allow_in_press = True
 # Skip Google Scholar data collection
 skip_scholar = True
 
+# Requires affiliation files to filter researchers per year.
+# Set to False to include all researchers regardless of affiliation (useful for personal production history).
+require_affiliation = False
+
 # Tries to make each input on the database unique
 unify_conference_paper = False
 unify_journal_paper = False
@@ -154,11 +158,11 @@ jcr = dict(zip(df_jcr.EISSN, df_jcr.JIF))
 jcr.update(dict(zip(df_jcr.ISSN, df_jcr.JIF)))
 
 # The file with conferences' qualis
-df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2020.xlsx')
+df_qualis_conferences = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-conferences-2025.xlsx')
 conferences_qualis = dict((f'{titulo} ({sigla})'.upper(), estrato) for (sigla, titulo, estrato) in zip(df_qualis_conferences.sigla, df_qualis_conferences.titulo, df_qualis_conferences.estrato))
 
 # The file with journals' qualis
-df_qualis_journals = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-journals-2020.xlsx')
+df_qualis_journals = pd.read_excel(resources_path + 'qualis' + os.sep + 'qualis-journals-2025.xlsx')
 journals_qualis = dict((titulo.upper(), estrato) for (titulo, estrato) in zip(df_qualis_journals.titulo, df_qualis_journals.estrato))
 issn_journals = dict((issn, titulo.upper()) for (issn, titulo) in zip(df_qualis_journals.issn, df_qualis_journals.titulo))
 

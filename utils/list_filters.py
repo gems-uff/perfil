@@ -1,5 +1,5 @@
 from sqlalchemy import and_
-from config import start_year, end_year, allow_in_press, QualisLevel
+from config import start_year, end_year, allow_in_press, QualisLevel, require_affiliation
 from database.database_manager import Paper, JournalPaper, Journal, Membership, Project, Conference, \
     ConferencePaper, Affiliation
 from database.entities.paper import PaperNature
@@ -7,6 +7,8 @@ from database.entities.paper import PaperNature
 
 def affiliated_researcher(researcher_id, paper_year, session):
     """filter function to get only the papers within the years which the researcher was affiliated"""
+    if not require_affiliation:
+        return True
     return len(session.query(Affiliation).filter(and_(Affiliation.year == paper_year, Affiliation.researcher == researcher_id)).all()) > 0
 
 
